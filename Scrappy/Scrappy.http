@@ -1,0 +1,6 @@
+@Scrappy_HostAddress = http://localhost:5275
+
+GET {{Scrappy_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

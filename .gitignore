@@ -1,6 +1,8 @@
 # .NET
 bin/
 obj/
+dotnet/
+
 
 # Node.js
 node_modules/
