@@ -23,30 +23,33 @@ public class EventService
 
     public Result<DistrictEvent> AddEvent(CreateEventDto dto)
     {
-        Enum.TryParse<DistrictName>(dto.District, true, out DistrictName district);
-        Enum.TryParse<EventType>(dto.Type, true, out EventType eventType);
 
-        bool isValidStartDate = !string.IsNullOrEmpty(dto.StartDate) && Event.ParsingDate(dto.StartDate).HasValue;
-        if (!isValidStartDate)
+        if (!Validator.IsTitleValid(dto.Title))
+                return Result<DistrictEvent>.Failure("Invalid Title.");
+
+        if (!Validator.AreDatesValid(dto.StartDate, dto.EndDate))
+            return Result<DistrictEvent>.Failure("Invalid StartDate or EndDate.");
+
+        if (!Validator.IsDistrictValid(dto.District))
+            return Result<DistrictEvent>.Failure("Invalid District.");
+
+        if (Validator.IsDuplicateOnCreate(dto, this))
         {
-            return Result<DistrictEvent>.Failure("\nInvalid StartDate format. Please use 'yyyy-MM-dd HH:mm'.");
-        }
-        bool isValidEndDate = string.IsNullOrEmpty(dto.EndDate) || Event.ParsingDate(dto.EndDate).HasValue;
-        if (!isValidEndDate)
-        {
-            return Result<DistrictEvent>.Failure("\nInvalid EndDate format. Please use 'yyyy-MM-dd HH:mm'.");
-        }
-        bool isDuplicated = _storage.Values.Any(e => e.District.Equals(district) && e.Event.Title.Trim().Equals(dto.Title.Trim(), StringComparison.OrdinalIgnoreCase) && e.Event.StartDate == Event.ParsingDate(dto.StartDate));
-        if (isDuplicated)
-        {
-            return Result<DistrictEvent>.Failure("\nEvent with the same District and Title already exists in storage!");
-        }
+            return Result<DistrictEvent>.Failure("An event with the same District, Title, and StartDate already exists.");
+        }  
 
         DateTime? startDate = Event.ParsingDate(dto.StartDate);
         DateTime? endDate = string.IsNullOrEmpty(dto.EndDate) ? null : Event.ParsingDate(dto.EndDate);
 
+        Enum.TryParse<DistrictName>(dto.District, true, out DistrictName district);
+        Enum.TryParse<EventType>(dto.Type, true, out EventType eventType);
 
-        decimal qualityScore = EventQualityService.ComputeQualityScore(dto.Description, startDate, dto.Location, eventType); 
+        string cleanTitle = dto.Title.Trim();
+        string? cleanDescription = dto.Description?.Trim();
+        string? cleanLocation = dto.Location?.Trim();
+        string? cleanSourceUrl = dto.SourceUrl?.Trim();
+
+        decimal qualityScore = EventQualityService.ComputeQualityScore(cleanDescription, cleanLocation, eventType, startDate); 
 
         DistrictEvent districtEvent = new()
         {
@@ -54,12 +57,12 @@ public class EventService
             District = district,
             Event = new Event{
                 Id = Guid.NewGuid(),
-                Title = dto.Title.Trim(),
-                Description = dto.Description,
+                Title = cleanTitle,
+                Description = cleanDescription,
                 StartDate = startDate ?? DateTime.MinValue,
                 EndDate = endDate,
-                Location = dto.Location,
-                SourceUrl = dto.SourceUrl,
+                Location = cleanLocation,
+                SourceUrl = cleanSourceUrl,
                 Type = eventType,
                 QualityScore = qualityScore
             },
@@ -67,7 +70,6 @@ public class EventService
 
 
         _storage[districtEvent.Id] = districtEvent;
-        Console.WriteLine("\nEvent successfully added and pushed to storage!");
         return Result<DistrictEvent>.Success(districtEvent);
     }
 

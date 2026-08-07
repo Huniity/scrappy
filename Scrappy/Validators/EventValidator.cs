@@ -91,4 +91,33 @@ public partial class Validator
         }
         return false;
     }
+
+    public static bool IsDuplicateOnCreate(CreateEventDto candidate, EventService eventService)
+    {
+        if (string.IsNullOrWhiteSpace(candidate.Title) || string.IsNullOrWhiteSpace(candidate.StartDate))
+        {
+            return false;
+        }
+
+        DateTime? candidateStartDate = Event.ParsingDate(candidate.StartDate);
+        if (!candidateStartDate.HasValue)
+        {
+            return false;
+        }
+
+        var eventsResult = eventService.GetAllEvents();
+        if (!eventsResult.IsSuccess || eventsResult.Value is null)
+        {
+            return false;
+        }
+
+        string cleanTitle = candidate.Title.Trim();
+
+        return eventsResult.Value.Any(existing =>
+            existing.District.ToString().Equals(candidate.District, StringComparison.OrdinalIgnoreCase) && 
+            existing.Event.StartDate == candidateStartDate.Value &&  
+            existing.Event.Title != null &&
+            existing.Event.Title.Trim().Equals(cleanTitle, StringComparison.OrdinalIgnoreCase)
+        );
+    }
 }
