@@ -2,6 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Scrappy.DTOs;
 using Scrappy.Models;
+using System.Text.RegularExpressions;
 
 namespace Scrappy.Services;
 
@@ -12,6 +13,7 @@ public class EventFilterService
         EventType? type,
         DateTime? startDate,
         DateTime? endDate,
+        decimal? minQualityScore,
         string? searchTerm)
     {
         var builder = Builders<DistrictEvent>.Filter;
@@ -29,12 +31,22 @@ public class EventFilterService
         if (endDate.HasValue)
             filters.Add(builder.Lte(e => e.Event.StartDate, endDate.Value));
 
+        if (minQualityScore.HasValue)
+            filters.Add(builder.Gte(e => e.Event.QualityScore, minQualityScore.Value));
+
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var regex = new MongoDB.Bson.BsonRegularExpression(searchTerm, "i");
-            filters.Add(builder.Regex(e => e.Event.Title, regex));
-            filters.Add(builder.Regex(e => e.Event.Description, regex));
-            filters.Add(builder.Regex(e => e.Event.Location, regex));
+            var pattern = Regex.Escape(searchTerm.Trim());
+            var regex = new BsonRegularExpression(pattern, "i");
+
+            var searchFilter = builder.Or
+                (
+                    builder.Regex(e => e.Event.Title, regex),
+                    builder.Regex(e => e.Event.Description, regex),
+                    builder.Regex(e => e.Event.Location, regex)
+                );
+
+            filters.Add(searchFilter);
         }
 
         return filters.Count > 0 ? builder.And(filters) : builder.Empty;

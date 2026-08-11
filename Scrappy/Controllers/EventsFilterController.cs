@@ -11,7 +11,7 @@ namespace Scrappy.Controllers;
 [Route("events")]
 public class EventsFilterController(EventQueryService queryService) : ControllerBase
 {
-    [HttpGet("search")]
+    [HttpGet("filter")]
     public async Task<IActionResult> SearchEvents([FromQuery] EventQueryParameters query)
     {
         var result = await queryService.QueryAsync(query);

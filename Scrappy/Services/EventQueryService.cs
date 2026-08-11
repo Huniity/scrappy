@@ -14,9 +14,23 @@ public class EventQueryService(
 
     public async Task<Result<PagedResult<DistrictEvent>>> QueryAsync(EventQueryParameters query)
     {
+        if (query.StartDate.HasValue &&
+            query.EndDate.HasValue &&
+            query.StartDate.Value > query.EndDate.Value)
+        {
+            return Result<PagedResult<DistrictEvent>>.Failure(
+                "StartDate cannot be later than EndDate.");
+        }
+
+        if (query.MinQualityScore is < 0 or > 100)
+        {
+            return Result<PagedResult<DistrictEvent>>.Failure(
+                "MinQualityScore must be between 0 and 100.");
+        }
+
         try
         {
-            var filter = filterService.BuildFilter(query.District, query.Type, query.StartDate, query.EndDate, query.SearchTerm);
+            var filter = filterService.BuildFilter(query.District, query.Type, query.StartDate, query.EndDate, query.MinQualityScore, query.SearchTerm);
             var sort = sortingService.GetSortParams(query.SortBy);
 
             var totalCount = await _events.CountDocumentsAsync(filter);

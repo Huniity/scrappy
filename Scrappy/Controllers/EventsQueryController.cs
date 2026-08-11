@@ -12,19 +12,6 @@ namespace Scrappy.Controllers;
 [Produces("application/json")]
 public class EventsQueryController(EventQueryService queryService) : ControllerBase
 {
-    /// <summary>
-    /// Search, filter, sort, and paginate municipal events.
-    /// </summary>
-    /// <remarks>
-    /// Sample request:
-    /// 
-    ///     GET /events/search?district=Faro&amp;type=Feira&amp;sortBy=quality_desc&amp;page=1&amp;pageSize=10
-    /// 
-    /// </remarks>
-    /// <param name="query">Filter parameters including district, event type, date range, search terms, sorting, and pagination.</param>
-    /// <returns>A paginated list of matching district events.</returns>
-    /// <response code="200">Returns the paginated result set.</response>
-    /// <response code="400">If the query parameters or date formats are invalid.</response>
     [HttpGet("search")]
     public async Task<IActionResult> SearchEvents([FromQuery] EventQueryParameters query)
     {
