@@ -1,32 +1,32 @@
+
+
 using Microsoft.AspNetCore.Mvc;
 using Scrappy.DTOs;
-using Scrappy.Models;
 using Scrappy.Services;
 using Scrappy.Exceptions;
-using Scrappy.Common;
 
 namespace Scrappy.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("events")]
 public class EventsController(EventService eventService) : ControllerBase
 {
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var result = eventService.GetAllEvents();
+        var result = await eventService.GetAllEvents();
         if (!result.IsSuccess)
         {
-            return StatusCode(500, new { error = result.Error});
+            return StatusCode(500, new { error = result.Error });
         }
         return Ok(result.Value);
     }
 
-    [HttpGet("{id:guid}")]
-    public IActionResult GetById(Guid id)
+    [HttpGet("{id:length(24)}")]
+    public async Task<IActionResult> GetById(string id)
     {
-        var result = eventService.GetEventById(id);
+        var result = await eventService.GetEventById(id);
         if (!result.IsSuccess)
         {
             return NotFound(new { error = result.Error });
@@ -35,17 +35,17 @@ public class EventsController(EventService eventService) : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] CreateEventDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
     {
         try
         {
-            var result = eventService.AddEvent(dto);
+            var result = await eventService.AddEvent(dto);
             
-            if(!result.IsSuccess)
+            if (!result.IsSuccess)
             {
                 return BadRequest(new { error = result.Error });
             }
-            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id}, result.Value);
+            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
         }
         catch (ValidationException ex)
         {
@@ -57,13 +57,13 @@ public class EventsController(EventService eventService) : ControllerBase
         }
     }
 
-    [HttpPatch("{id:guid}")]
-    public IActionResult Update(Guid id, [FromBody] UpdateEventDto dto)
+    [HttpPatch("{id:length(24)}")]
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateEventDto dto)
     {
         try
         {
             dto.Id = id;
-            var result = eventService.UpdateEvent(dto);
+            var result = await eventService.UpdateEvent(dto);
             
             if (!result.IsSuccess)
             {
@@ -81,10 +81,10 @@ public class EventsController(EventService eventService) : ControllerBase
         }
     }
 
-    [HttpDelete("{id:guid}")]
-    public IActionResult Delete(Guid id)
+    [HttpDelete("{id:length(24)}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var result = eventService.DeleteEvent(id);
+        var result = await eventService.DeleteEvent(id);
         
         if (!result.IsSuccess)
         {
