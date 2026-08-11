@@ -4,7 +4,7 @@ namespace Scrappy.DTOs;
 
 public class UpdateEventDto
 {
-    public Guid Id { get; set; } = Guid.Empty;
+    public string Id { get; set; } = string.Empty;
     public string? Title { get; set; }
     public string? District { get; set; }
     public string? Description { get; set; }
