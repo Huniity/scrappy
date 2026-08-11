@@ -1,15 +1,5 @@
 {
   "features": {
-    "ghcr.io/devcontainers-extra/features/mongodb-atlas-cli-homebrew:1": {
-      "version": "1.0.15",
-      "resolved": "ghcr.io/devcontainers-extra/features/mongodb-atlas-cli-homebrew@sha256:ba435dd77554d50b2878e89a4aa0c68e65a0bc93cd7f99b93c6484ae9e31a486",
-      "integrity": "sha256:ba435dd77554d50b2878e89a4aa0c68e65a0bc93cd7f99b93c6484ae9e31a486"
-    },
-    "ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {
-      "version": "1.0.21",
-      "resolved": "ghcr.io/devcontainers-extra/features/mongosh-homebrew@sha256:d2d5b11c86235ef26b42eda1ed50017fdff07976b8b517bc0981c65692a6869f",
-      "integrity": "sha256:d2d5b11c86235ef26b42eda1ed50017fdff07976b8b517bc0981c65692a6869f"
-    },
     "ghcr.io/devcontainers-extra/features/pnpm:2": {
       "version": "2.0.5",
       "resolved": "ghcr.io/devcontainers-extra/features/pnpm@sha256:694c2b6182435c9e9c06f6071728b087c1181b38c18cecf0defe2ab8c11cddd6",
