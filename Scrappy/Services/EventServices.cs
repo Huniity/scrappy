@@ -1,30 +1,20 @@
 
-/// <summary>
-/// Services files are for business logic, they are not for API endpoints. Processes raw data from controller
-/// and returns the processed data to the controller. 
-/// 
-/// 
-/// The EventService class provides functionality for managing events associated with different cities. 
-/// It includes methods for adding new events to an in-memory storage and retrieving all stored events. 
-/// The service utilizes a dictionary to efficiently store and manage CityEvent objects, allowing for quick access and manipulation of event data. 
-/// The AddEvent method handles the parsing of event details, computation of quality scores, and creation of CityEvent objects, 
-/// while the GetAllEvents method provides a way to retrieve all stored events for further processing or display.
-/// </summary>
+
 using Scrappy.Models;
 using Scrappy.DTOs;
 using Scrappy.Common;
-using Scrappy.Exceptions;
-using Scrappy.Services;
+using Scrappy.Validators;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Scrappy.Services;
-public class EventService
+public partial class EventService(IMongoDatabase database)
 {
-    private readonly static Dictionary<Guid, DistrictEvent> _storage = [];
-
-    public Result<DistrictEvent> AddEvent(CreateEventDto dto)
+    private readonly IMongoCollection<DistrictEvent> _eventsCollection = database.GetCollection<DistrictEvent>("DistrictEvents");
+    public async Task<Result<DistrictEvent>> AddEvent(CreateEventDto dto)
     {
 
-        if (!Validator.IsTitleValid(dto.Title))
+        if (!await Validator.IsTitleValidAndAvailable(dto.Title, eventService: this))
                 return Result<DistrictEvent>.Failure("Invalid Title.");
 
         if (!Validator.AreDatesValid(dto.StartDate, dto.EndDate))
@@ -33,7 +23,7 @@ public class EventService
         if (!Validator.IsDistrictValid(dto.District))
             return Result<DistrictEvent>.Failure("Invalid District.");
 
-        if (Validator.IsDuplicateOnCreate(dto, this))
+        if (await Validator.IsDuplicateOnCreate(dto, this))
         {
             return Result<DistrictEvent>.Failure("An event with the same District, Title, and StartDate already exists.");
         }  
@@ -41,41 +31,45 @@ public class EventService
         DateTime? startDate = Event.ParsingDate(dto.StartDate);
         DateTime? endDate = string.IsNullOrEmpty(dto.EndDate) ? null : Event.ParsingDate(dto.EndDate);
 
-        Enum.TryParse<DistrictName>(dto.District, true, out DistrictName district);
-        Enum.TryParse<EventType>(dto.Type, true, out EventType eventType);
+        Enum.TryParse(dto.District, true, out DistrictName district);
+        Enum.TryParse(dto.Type, true, out EventType eventType);
 
         string cleanTitle = dto.Title.Trim();
         string? cleanDescription = dto.Description?.Trim();
         string? cleanLocation = dto.Location?.Trim();
         string? cleanSourceUrl = dto.SourceUrl?.Trim();
 
-        decimal qualityScore = EventQualityService.ComputeQualityScore(cleanDescription, cleanLocation, eventType, startDate); 
+        decimal qualityScore = EventQualityService.ComputeQualityScore(cleanDescription, startDate, cleanLocation, eventType);
 
         DistrictEvent districtEvent = new()
         {
-            Id = Guid.NewGuid(),
+            Id = ObjectId.GenerateNewId().ToString(),
             District = district,
             Event = new Event{
-                Id = Guid.NewGuid(),
+                Id = ObjectId.GenerateNewId().ToString(),
                 Title = cleanTitle,
                 Description = cleanDescription,
                 StartDate = startDate ?? DateTime.MinValue,
                 EndDate = endDate,
                 Location = cleanLocation,
-                SourceUrl = cleanSourceUrl,
+                SourceUrl = cleanSourceUrl ?? string.Empty,
                 Type = eventType,
                 QualityScore = qualityScore
             },
         };
 
 
-        _storage[districtEvent.Id] = districtEvent;
+        await _eventsCollection.InsertOneAsync(districtEvent);
         return Result<DistrictEvent>.Success(districtEvent);
     }
 
-    public Result<DistrictEvent> UpdateEvent(UpdateEventDto dto)
+    public async Task<Result<DistrictEvent>> UpdateEvent(UpdateEventDto dto)
     {
-        if (_storage.TryGetValue(dto.Id, out DistrictEvent? existingEvent))
+        if (!ObjectId.TryParse(dto.Id, out _))
+            return Result<DistrictEvent>.Failure("Invalid event id.");
+
+        var existingEvent = await _eventsCollection.Find(e => e.Id == dto.Id).FirstOrDefaultAsync();
+        if (existingEvent != null)
         {
 
             DateTime? startDate = string.IsNullOrEmpty(dto.StartDate) ? existingEvent.Event.StartDate : Event.ParsingDate(dto.StartDate);
@@ -106,6 +100,8 @@ public class EventService
             existingEvent.Event.Type = eventType;
             existingEvent.Event.QualityScore = qualityScore;
 
+            await _eventsCollection.ReplaceOneAsync(e => e.Id == existingEvent.Id, existingEvent);
+
             Console.WriteLine("\nEvent successfully updated in storage!");
             return Result<DistrictEvent>.Success(existingEvent);
         }
@@ -116,9 +112,13 @@ public class EventService
         }
     }
 
-    public Result<DistrictEvent> DeleteEvent(Guid id)
+    public async Task<Result<DistrictEvent>> DeleteEvent(string id)
     {
-        if (_storage.Remove(id, out DistrictEvent? districtEvent))
+        if (!ObjectId.TryParse(id, out _))
+            return Result<DistrictEvent>.Failure("Invalid event id.");
+
+        var districtEvent = await _eventsCollection.FindOneAndDeleteAsync(e => e.Id == id);
+        if (districtEvent != null)
         {
             Console.WriteLine("\nEvent successfully deleted from storage!");
             return Result<DistrictEvent>.Success(districtEvent);
@@ -127,17 +127,21 @@ public class EventService
         Console.WriteLine("\nEvent not found in storage!");
         return Result<DistrictEvent>.Failure("Event not found");
     }
-    public Result<IEnumerable<DistrictEvent>> GetAllEvents()
+    public async Task<Result<IEnumerable<DistrictEvent>>> GetAllEvents()
     {
-        return Result<IEnumerable<DistrictEvent>>.Success(_storage.Values);
+        var events = await _eventsCollection.Find(_ => true).ToListAsync();
+        return Result<IEnumerable<DistrictEvent>>.Success(events);
     }
-    public Result<DistrictEvent> GetEventById(Guid id)
+    public async Task<Result<DistrictEvent>> GetEventById(string id)
     {
-        if (_storage.TryGetValue(id, out DistrictEvent? districtEvent))
+        if (!ObjectId.TryParse(id, out _))
+            return Result<DistrictEvent>.Failure("Invalid event id.");
+
+        var districtEvent = await _eventsCollection.Find(e => e.Id == id).FirstOrDefaultAsync();
+        if (districtEvent != null)
         {
             return Result<DistrictEvent>.Success(districtEvent);
         }
         return Result<DistrictEvent>.Failure($"Event with id {id} not found.");
     }
 }
-
