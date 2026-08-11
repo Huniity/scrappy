@@ -23,6 +23,18 @@ public partial class EventService(IMongoDatabase database)
         if (!Validator.IsDistrictValid(dto.District))
             return Result<DistrictEvent>.Failure("Invalid District.");
 
+        if (!Validator.IsTypeValid(dto.Type))
+            return Result<DistrictEvent>.Failure("Invalid Type.");
+
+        if (!Validator.IsDescriptionValid(dto.Description))
+            return Result<DistrictEvent>.Failure("Invalid Description.");
+
+        if (!Validator.IsLocationValid(dto.Location))
+            return Result<DistrictEvent>.Failure("Invalid Location.");
+
+        if (!Validator.IsSourceUrlValid(dto.SourceUrl))
+            return Result<DistrictEvent>.Failure("Invalid SourceUrl.");
+
         if (await Validator.IsDuplicateOnCreate(dto, this))
         {
             return Result<DistrictEvent>.Failure("An event with the same District, Title, and StartDate already exists.");
@@ -63,40 +75,86 @@ public partial class EventService(IMongoDatabase database)
         return Result<DistrictEvent>.Success(districtEvent);
     }
 
-    public async Task<Result<DistrictEvent>> UpdateEvent(UpdateEventDto dto)
+    public async Task<Result<DistrictEvent>> UpdateEvent(string id, UpdateEventDto dto)
     {
-        if (!ObjectId.TryParse(dto.Id, out _))
+        if (!ObjectId.TryParse(id, out _))
             return Result<DistrictEvent>.Failure("Invalid event id.");
 
-        var existingEvent = await _eventsCollection.Find(e => e.Id == dto.Id).FirstOrDefaultAsync();
+        var existingEvent = await _eventsCollection.Find(e => e.Id == id).FirstOrDefaultAsync();
         if (existingEvent != null)
         {
+            if (dto.Title is not null)
+            {
+                var cleanTitle = dto.Title.Trim();
+                if (cleanTitle.Length is 0 or > 250)
+                    return Result<DistrictEvent>.Failure("Invalid Title.");
 
-            DateTime? startDate = string.IsNullOrEmpty(dto.StartDate) ? existingEvent.Event.StartDate : Event.ParsingDate(dto.StartDate);
-            DateTime? endDate = string.IsNullOrEmpty(dto.EndDate) ? existingEvent.Event.EndDate : Event.ParsingDate(dto.EndDate);
+                var otherEvents = await _eventsCollection.Find(e => e.Id != id).ToListAsync();
+                if (otherEvents.Any(e => e.Event.Title.Trim().Equals(
+                    cleanTitle, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return Result<DistrictEvent>.Failure("An event with that title already exists.");
+                }
+            }
+
+            if (dto.District is not null && !Validator.IsDistrictValid(dto.District))
+                return Result<DistrictEvent>.Failure("Invalid District.");
+
+            if (dto.Type is not null && !Validator.IsTypeValid(dto.Type))
+                return Result<DistrictEvent>.Failure("Invalid Type.");
+
+            if (dto.Description is not null && !Validator.IsDescriptionValid(dto.Description))
+                return Result<DistrictEvent>.Failure("Invalid Description.");
+
+            if (dto.Location is not null && !Validator.IsLocationValid(dto.Location))
+                return Result<DistrictEvent>.Failure("Invalid Location.");
+
+            if (dto.SourceUrl is not null && !Validator.IsSourceUrlValid(dto.SourceUrl))
+                return Result<DistrictEvent>.Failure("Invalid SourceUrl.");
+
+            DateTime startDate = existingEvent.Event.StartDate;
+            if (dto.StartDate is not null)
+            {
+                var parsedStartDate = Event.ParsingDate(dto.StartDate);
+                if (!parsedStartDate.HasValue)
+                    return Result<DistrictEvent>.Failure("Invalid StartDate.");
+                startDate = parsedStartDate.Value;
+            }
+
+            DateTime? endDate = existingEvent.Event.EndDate;
+            if (dto.EndDate is not null)
+            {
+                endDate = string.IsNullOrWhiteSpace(dto.EndDate)
+                    ? null
+                    : Event.ParsingDate(dto.EndDate);
+
+                if (!string.IsNullOrWhiteSpace(dto.EndDate) && !endDate.HasValue)
+                    return Result<DistrictEvent>.Failure("Invalid EndDate.");
+            }
+
+            if (endDate.HasValue && endDate.Value < startDate)
+                return Result<DistrictEvent>.Failure("EndDate cannot be earlier than StartDate.");
+
             EventType eventType = existingEvent.Event.Type ?? EventType.Outro;
-            if (!string.IsNullOrEmpty(dto.Type))
-            {
-                Enum.TryParse<EventType>(dto.Type, true, out eventType);
-            }
-            DistrictName district = existingEvent.District;
-            if (!string.IsNullOrEmpty(dto.District))
-            {
-                Enum.TryParse<DistrictName>(dto.District, true, out district);
-            }
+            if (dto.Type is not null)
+                Enum.TryParse(dto.Type, true, out eventType);
 
-            string? descriptionToCompute = dto.Description ?? existingEvent.Event.Description;
-            string? locationToCompute = dto.Location ?? existingEvent.Event.Location;
+            DistrictName district = existingEvent.District;
+            if (dto.District is not null)
+                Enum.TryParse(dto.District, true, out district);
+
+            string? descriptionToCompute = dto.Description?.Trim() ?? existingEvent.Event.Description;
+            string? locationToCompute = dto.Location?.Trim() ?? existingEvent.Event.Location;
 
             decimal qualityScore = EventQualityService.ComputeQualityScore(descriptionToCompute, startDate, locationToCompute, eventType);
 
             existingEvent.District = district;
-            existingEvent.Event.Title = dto.Title ?? existingEvent.Event.Title;
+            existingEvent.Event.Title = dto.Title?.Trim() ?? existingEvent.Event.Title;
             existingEvent.Event.Description = descriptionToCompute;
-            existingEvent.Event.StartDate = startDate ?? DateTime.MinValue;
+            existingEvent.Event.StartDate = startDate;
             existingEvent.Event.EndDate = endDate;
             existingEvent.Event.Location = locationToCompute;
-            existingEvent.Event.SourceUrl = dto.SourceUrl ?? existingEvent.Event.SourceUrl;
+            existingEvent.Event.SourceUrl = dto.SourceUrl?.Trim() ?? existingEvent.Event.SourceUrl;
             existingEvent.Event.Type = eventType;
             existingEvent.Event.QualityScore = qualityScore;
 

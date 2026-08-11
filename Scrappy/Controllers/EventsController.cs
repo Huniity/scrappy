@@ -4,12 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 using Scrappy.DTOs;
 using Scrappy.Services;
 using Scrappy.Exceptions;
+using MongoDB.Bson;
 
 namespace Scrappy.Controllers;
 
 [ApiController]
 [Route("events")]
-public class EventsController(EventService eventService) : ControllerBase
+public class EventsController(
+    EventService eventService,
+    ILogger<EventsController> logger) : ControllerBase
 {
 
     [HttpGet]
@@ -26,6 +29,9 @@ public class EventsController(EventService eventService) : ControllerBase
     [HttpGet("{id:length(24)}")]
     public async Task<IActionResult> GetById(string id)
     {
+        if (!ObjectId.TryParse(id, out _))
+            return BadRequest(new { error = "Invalid event id." });
+
         var result = await eventService.GetEventById(id);
         if (!result.IsSuccess)
         {
@@ -53,7 +59,8 @@ public class EventsController(EventService eventService) : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "An internal error has occurred: " + ex.Message });
+            logger.LogError(ex, "Failed to create event");
+            return StatusCode(500, new { error = "An internal server error occurred." });
         }
     }
 
@@ -62,12 +69,16 @@ public class EventsController(EventService eventService) : ControllerBase
     {
         try
         {
-            dto.Id = id;
-            var result = await eventService.UpdateEvent(dto);
+            if (!ObjectId.TryParse(id, out _))
+                return BadRequest(new { error = "Invalid event id." });
+
+            var result = await eventService.UpdateEvent(id, dto);
             
             if (!result.IsSuccess)
             {
-                return NotFound(new { error = result.Error });
+                return result.Error == "Event not found"
+                    ? NotFound(new { error = result.Error })
+                    : BadRequest(new { error = result.Error });
             }
             return Ok(result.Value);
         }
@@ -77,13 +88,17 @@ public class EventsController(EventService eventService) : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "An internal error has occurred: " + ex.Message });
+            logger.LogError(ex, "Failed to update event {EventId}", id);
+            return StatusCode(500, new { error = "An internal server error occurred." });
         }
     }
 
     [HttpDelete("{id:length(24)}")]
     public async Task<IActionResult> Delete(string id)
     {
+        if (!ObjectId.TryParse(id, out _))
+            return BadRequest(new { error = "Invalid event id." });
+
         var result = await eventService.DeleteEvent(id);
         
         if (!result.IsSuccess)

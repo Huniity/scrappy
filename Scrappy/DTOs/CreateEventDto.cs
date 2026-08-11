@@ -12,5 +12,4 @@ public class CreateEventDto
     public string? Location { get; set; }
     public string SourceUrl { get; set; } = string.Empty;
     public string? Type { get; set; }
-    public decimal QualityScore { get; set; }
 }
