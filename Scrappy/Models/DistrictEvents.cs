@@ -2,6 +2,7 @@
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace Scrappy.Models;
@@ -14,6 +15,7 @@ public class DistrictEvent
     public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
 
     [BsonElement("DistrictName")]
+    [BsonRepresentation(BsonType.String)]
     public DistrictName District {get; set; }
 
     [BsonElement("Event")]
@@ -27,6 +29,7 @@ Aveiro,
 Beja,
 Braga,
 Bragança,
+[Display(Name = "Castelo Branco")]
 CasteloBranco,
 Coimbra,
 Évora,
@@ -38,7 +41,9 @@ Portalegre,
 Porto,
 Santarém,
 Setúbal,
+[Display(Name = "Viana do Castelo")]
 VianaDoCastelo,
+[Display(Name = "Vila Real")]
 VilaReal,
 Viseu
 }

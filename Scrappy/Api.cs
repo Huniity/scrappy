@@ -1,6 +1,7 @@
 // using Scalar.AspNetCore;
 using Scrappy.Services;
 using MongoDB.Driver;
+using System.Text.Json.Serialization;
 
 var CORS = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
@@ -23,17 +24,24 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
-builder.Services.AddScoped<IMongoDatabase>(sp => 
+builder.Services.AddScoped<IMongoDatabase>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
     return client.GetDatabase("ScrappyDb");
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(
+            options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            }
+    );
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.Configure<RouteOptions>(
-    options => 
+    options =>
     {
         options.LowercaseUrls = true;
         options.LowercaseQueryStrings = true;
@@ -52,7 +60,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     // app.MapScalarApiReference();
 
-    app.UseSwaggerUI(option => 
+    app.UseSwaggerUI(option =>
     {
         option.SwaggerEndpoint("/openapi/v1.json", "Scrappy API V1");
     });
