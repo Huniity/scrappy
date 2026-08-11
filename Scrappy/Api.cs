@@ -1,7 +1,11 @@
+
 // using Scalar.AspNetCore;
 using Scrappy.Services;
 using MongoDB.Driver;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 
 var CORS = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +43,27 @@ builder.Services.AddControllers()
     );
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+
+// Configure OpenAPI to output enums as strings in the generated spec
+builder.Services.AddOpenApi(options =>
+{
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
+    {
+        var schemaType = Nullable.GetUnderlyingType(context.JsonTypeInfo.Type)
+                         ?? context.JsonTypeInfo.Type;
+
+        if (schemaType.IsEnum)
+        {
+            schema.Type = JsonSchemaType.String;
+            schema.Format = null;
+            schema.Enum = Enum.GetNames(schemaType)
+                              .Select(name => (JsonNode)JsonValue.Create(name)!)
+                              .ToList();
+        }
+        return Task.CompletedTask;
+    });
+});
+
 builder.Services.Configure<RouteOptions>(
     options =>
     {
@@ -59,7 +83,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     // app.MapScalarApiReference();
-
+    
     app.UseSwaggerUI(option =>
     {
         option.SwaggerEndpoint("/openapi/v1.json", "Scrappy API V1");

@@ -20,10 +20,10 @@ public partial class EventService(IMongoDatabase database)
         if (!Validator.AreDatesValid(dto.StartDate, dto.EndDate))
             return Result<DistrictEvent>.Failure("Invalid StartDate or EndDate.");
 
-        if (!Validator.IsDistrictValid(dto.District))
+        if (!dto.District.HasValue || !Enum.IsDefined(dto.District.Value))
             return Result<DistrictEvent>.Failure("Invalid District.");
 
-        if (!Validator.IsTypeValid(dto.Type))
+        if (!dto.Type.HasValue || !Enum.IsDefined(dto.Type.Value))
             return Result<DistrictEvent>.Failure("Invalid Type.");
 
         if (!Validator.IsDescriptionValid(dto.Description))
@@ -43,8 +43,8 @@ public partial class EventService(IMongoDatabase database)
         DateTime? startDate = Event.ParsingDate(dto.StartDate);
         DateTime? endDate = string.IsNullOrEmpty(dto.EndDate) ? null : Event.ParsingDate(dto.EndDate);
 
-        Enum.TryParse(dto.District, true, out DistrictName district);
-        Enum.TryParse(dto.Type, true, out EventType eventType);
+        DistrictName district = dto.District.Value;
+        EventType eventType = dto.Type.Value;
 
         string cleanTitle = dto.Title.Trim();
         string? cleanDescription = dto.Description?.Trim();
@@ -97,10 +97,10 @@ public partial class EventService(IMongoDatabase database)
                 }
             }
 
-            if (dto.District is not null && !Validator.IsDistrictValid(dto.District))
+            if (dto.District.HasValue && !Enum.IsDefined(dto.District.Value))
                 return Result<DistrictEvent>.Failure("Invalid District.");
 
-            if (dto.Type is not null && !Validator.IsTypeValid(dto.Type))
+            if (dto.Type.HasValue && !Enum.IsDefined(dto.Type.Value))
                 return Result<DistrictEvent>.Failure("Invalid Type.");
 
             if (dto.Description is not null && !Validator.IsDescriptionValid(dto.Description))
@@ -136,12 +136,12 @@ public partial class EventService(IMongoDatabase database)
                 return Result<DistrictEvent>.Failure("EndDate cannot be earlier than StartDate.");
 
             EventType eventType = existingEvent.Event.Type ?? EventType.Outro;
-            if (dto.Type is not null)
-                Enum.TryParse(dto.Type, true, out eventType);
+            if (dto.Type.HasValue)
+                eventType = dto.Type.Value;
 
             DistrictName district = existingEvent.District;
-            if (dto.District is not null)
-                Enum.TryParse(dto.District, true, out district);
+            if (dto.District.HasValue)
+                district = dto.District.Value;
 
             string? descriptionToCompute = dto.Description?.Trim() ?? existingEvent.Event.Description;
             string? locationToCompute = dto.Location?.Trim() ?? existingEvent.Event.Location;

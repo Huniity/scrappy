@@ -114,7 +114,8 @@ public partial class Validator
         string cleanTitle = candidate.Title.Trim();
 
         return eventsResult.Value.Any(existing =>
-            existing.District.ToString().Equals(candidate.District, StringComparison.OrdinalIgnoreCase) && 
+            candidate.District.HasValue &&
+            existing.District == candidate.District.Value &&
             existing.Event.StartDate == candidateStartDate.Value &&  
             existing.Event.Title != null &&
             existing.Event.Title.Trim().Equals(cleanTitle, StringComparison.OrdinalIgnoreCase)
