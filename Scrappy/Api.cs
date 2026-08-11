@@ -42,6 +42,7 @@ builder.Services.Configure<RouteOptions>(
 
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<EventFilterService>();
+builder.Services.AddScoped<EventSortingService>();
 builder.Services.AddScoped<EventQueryService>();
 
 var app = builder.Build();
