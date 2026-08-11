@@ -18,13 +18,13 @@ public partial class Validator
         return Enum.TryParse<DistrictName>(district, true, out var parsedDistrict) && Enum.IsDefined(parsedDistrict);
     }
 
-    public static bool IsTitleValidAndAvailable(string? title, EventService eventService)
+    public static async Task<bool> IsTitleValidAndAvailable(string? title, EventService eventService)
     {
         if (string.IsNullOrWhiteSpace(title)) return false;
         string trimmedTitle = title.Trim();
         if (trimmedTitle.Length > 250) return false;
 
-        var eventsResult = eventService.GetAllEvents();
+        var eventsResult = await eventService.GetAllEvents();
         if (!eventsResult.IsSuccess || eventsResult.Value is null)
         {   
             return true;
@@ -92,7 +92,7 @@ public partial class Validator
         return false;
     }
 
-    public static bool IsDuplicateOnCreate(CreateEventDto candidate, EventService eventService)
+    public static async Task<bool> IsDuplicateOnCreate(CreateEventDto candidate, EventService eventService)
     {
         if (string.IsNullOrWhiteSpace(candidate.Title) || string.IsNullOrWhiteSpace(candidate.StartDate))
         {
@@ -105,7 +105,7 @@ public partial class Validator
             return false;
         }
 
-        var eventsResult = eventService.GetAllEvents();
+        var eventsResult = await eventService.GetAllEvents();
         if (!eventsResult.IsSuccess || eventsResult.Value is null)
         {
             return false;

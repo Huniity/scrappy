@@ -24,6 +24,6 @@ public class EventQualityService
             if (eventType.HasValue && Enum.IsDefined(eventType.Value))
                 earnedScore += 5;
 
-            return ((decimal)earnedScore / maxScore) * 100;
+            return (decimal)earnedScore / maxScore * 100;
         }
 }
