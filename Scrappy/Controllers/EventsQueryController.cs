@@ -1,7 +1,8 @@
 
 
 using Microsoft.AspNetCore.Mvc;
-using Scrappy.DTOs;
+using Scrappy.DTOs.Common;
+using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Services;
 

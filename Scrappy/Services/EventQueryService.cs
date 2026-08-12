@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using Scrappy.Common;
-using Scrappy.DTOs;
+using Scrappy.DTOs.Common;
+using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 
 namespace Scrappy.Services;

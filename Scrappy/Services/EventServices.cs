@@ -2,7 +2,8 @@
 
 using Scrappy.Models;
 using Scrappy.Models.Entities;
-using Scrappy.DTOs;
+using Scrappy.DTOs.Common;
+using Scrappy.DTOs.Requests;
 using Scrappy.Common;
 using Scrappy.Validators;
 using MongoDB.Driver;

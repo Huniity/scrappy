@@ -1,6 +1,6 @@
 
 
-namespace Scrappy.DTOs;
+namespace Scrappy.DTOs.Common;
 
 public class PagedResult<T>
 {

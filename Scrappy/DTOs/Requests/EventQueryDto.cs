@@ -3,7 +3,7 @@
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 
-namespace Scrappy.DTOs;
+namespace Scrappy.DTOs.Requests;
 
 
 public class EventQueryParameters
