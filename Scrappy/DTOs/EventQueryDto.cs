@@ -1,8 +1,10 @@
 
 
+using Scrappy.Models;
+using Scrappy.Models.Entities;
+
 namespace Scrappy.DTOs;
 
-using Scrappy.Models;
 
 public class EventQueryParameters
 {

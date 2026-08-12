@@ -1,7 +1,9 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 using System;
 using System.Globalization;
+using Scrappy.Models.Entities;
 
 namespace Scrappy.Models;
 
@@ -65,16 +67,4 @@ public class Event
 
         return (decimal)earnedScore / maxScore * 100;
     }
-}
-
-public enum EventType
-{
-    Concerto,
-    Feira,
-    Mercado,
-    FestaPopular,
-    Teatro,
-    Festival,
-    Exposição,
-    Outro
 }

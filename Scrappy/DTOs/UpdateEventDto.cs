@@ -1,6 +1,8 @@
 
 
 using Scrappy.Models;
+using Scrappy.Models.Entities;
+
 namespace Scrappy.DTOs;
 
 public class UpdateEventDto

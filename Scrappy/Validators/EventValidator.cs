@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using Scrappy.DTOs;
 using Scrappy.Models;
+using Scrappy.Models.Entities;
 using Scrappy.Services;
 
 namespace Scrappy.Validators;

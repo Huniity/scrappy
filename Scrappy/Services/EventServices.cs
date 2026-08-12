@@ -1,6 +1,7 @@
 
 
 using Scrappy.Models;
+using Scrappy.Models.Entities;
 using Scrappy.DTOs;
 using Scrappy.Common;
 using Scrappy.Validators;

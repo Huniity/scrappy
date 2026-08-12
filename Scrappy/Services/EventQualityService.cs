@@ -2,6 +2,7 @@
 
 using System;
 using Scrappy.Models;
+using Scrappy.Models.Entities;
 
 namespace Scrappy.Services;
 
