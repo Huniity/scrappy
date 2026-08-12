@@ -6,17 +6,17 @@ using Scrappy.Models;
 namespace Scrappy.Models.Entities;
 
 /// <summary>
-/// Event attendance types.
+/// Event attendance Modes.
 /// </summary>
-public enum AttendanceType
+public enum EventAttendanceMode
 {
-    /// <summary> In-Person Attendance Type </summary>
+    /// <summary> In-Person Attendance Mode </summary>
     [Display(Name = "Presencial")]
     InPerson,
-    /// <summary> Online Attendance Type </summary>
+    /// <summary> Online Attendance Mode </summary>
     [Display(Name = "Online")]
     Online,
-    /// <summary> Hybrid Attendance Type </summary>
+    /// <summary> Hybrid Attendance Mode </summary>
     [Display(Name = "Híbrido")]
     Hybrid
 }
