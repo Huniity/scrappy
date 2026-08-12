@@ -6,7 +6,7 @@ using Scrappy.Models;
 namespace Scrappy.Models.Entities;
 
 /// <summary>
-/// Administrative region divisions of Portugal that follows NUTSii and DICO.
+/// Administrative region divisions of Portugal that follows NUTS2.
 /// </summary>
 public enum NutsRegion
 {
