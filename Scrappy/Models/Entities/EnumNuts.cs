@@ -8,7 +8,7 @@ namespace Scrappy.Models.Entities;
 /// <summary>
 /// Administrative region divisions of Portugal that follows NUTS2.
 /// </summary>
-public enum NutsRegion
+public enum Nuts2Region
 {
     /// <summary>Norte Region</summary>
     [Display(Name = "Norte")]

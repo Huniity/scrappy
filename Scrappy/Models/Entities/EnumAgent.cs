@@ -8,7 +8,7 @@ namespace Scrappy.Models.Entities;
 /// <summary>
 /// Event entities types.
 /// </summary>
-public enum EntityType
+public enum AgentType
 {
     /// <sumarry> Person Type </sumarry>
     [Display(Name = "Pessoa")]
