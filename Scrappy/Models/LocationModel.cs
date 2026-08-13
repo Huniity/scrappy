@@ -2,7 +2,7 @@ using Scrappy.Models.Entities;
 
 namespace Scrappy.Models;
 
-public class EventLocation
+public class LocationModel
 {
     public string Name { get; set; } = string.Empty;
     public LocalityName Locality { get; set; }
