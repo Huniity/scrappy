@@ -1,126 +1,82 @@
-
-
-using System;
-using System.Linq;
-using Scrappy.DTOs.Common;
 using Scrappy.DTOs.Requests;
-using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Services;
 
 namespace Scrappy.Validators;
 
-
-public partial class Validator
+public static class Validator
 {
-    public static bool IsDistrictValid(string? district)
-    {
-        if (string.IsNullOrWhiteSpace(district)) return false;
+    public static bool IsDistrictValid(DistrictName district) =>
+        Enum.IsDefined(district);
 
-        return Enum.TryParse<DistrictName>(district, true, out var parsedDistrict) && Enum.IsDefined(parsedDistrict);
-    }
+    public static bool IsTypeValid(EventType type) =>
+        Enum.IsDefined(type);
 
-    public static async Task<bool> IsTitleValidAndAvailable(string? title, EventService eventService)
+    public static bool IsTitleValid(string? title) =>
+        !string.IsNullOrWhiteSpace(title) && title.Trim().Length <= 250;
+
+    public static async Task<bool> IsTitleValidAndAvailable(
+        string? title,
+        EventService eventService,
+        string? excludedEventId = null)
     {
-        if (string.IsNullOrWhiteSpace(title)) return false;
-        string trimmedTitle = title.Trim();
-        if (trimmedTitle.Length > 250) return false;
+        if (!IsTitleValid(title))
+            return false;
 
         var eventsResult = await eventService.GetAllEvents();
         if (!eventsResult.IsSuccess || eventsResult.Value is null)
-        {   
             return true;
-        }
 
-        bool isDuplicated = eventsResult.Value.Any(e => e.Event.Title != null && e.Event.Title.Trim().Equals(trimmedTitle, StringComparison.OrdinalIgnoreCase));
-        return !isDuplicated;
+        var cleanTitle = title!.Trim();
+
+        return !eventsResult.Value.Any(existing =>
+            existing.Id != excludedEventId &&
+            existing.Event.Title.Trim().Equals(
+                cleanTitle,
+                StringComparison.OrdinalIgnoreCase));
     }
 
-    public static bool IsTypeValid(string? type)
-    {
-        if (string.IsNullOrWhiteSpace(type)) return false;
+    public static bool IsDescriptionValid(string? description) =>
+        !string.IsNullOrWhiteSpace(description) &&
+        description.Trim().Length is >= 10 and <= 2000;
 
-        return Enum.TryParse<EventType>(type, true, out var parsedType) && Enum.IsDefined(parsedType);
-    }
+    public static bool AreDatesValid(DateTime startDate, DateTime? endDate) =>
+        startDate != default && (!endDate.HasValue || endDate.Value >= startDate);
 
-    public static bool IsDescriptionValid(string? description)
-    {
-        if (string.IsNullOrWhiteSpace(description)) return true;
-        string trimmedDescription = description.Trim();
-        if (trimmedDescription.Length > 2000) return false;
-        
-        return true;
-    }
-
-    public static bool IsDateValid(string? date)
-    {
-        if (string.IsNullOrWhiteSpace(date)) return false;
-
-        return Event.ParsingDate(date).HasValue;
-    }
-
-    public static bool AreDatesValid(string? startDateStr, string? endDateStr)
-    {
-        if (!IsDateValid(startDateStr)) return false;
-        if (string.IsNullOrWhiteSpace(endDateStr)) return true;
-        
-        DateTime startDate = Event.ParsingDate(startDateStr!)!.Value;
-        DateTime? endDate = Event.ParsingDate(endDateStr);
-        
-        if (!endDate.HasValue) return false;
-
-        return endDate >= startDate;
-    }
-
-
-    public static bool IsLocationValid(string? location)
-    {
-        if (string.IsNullOrWhiteSpace(location)) return true;
-        string trimmedLocation = location.Trim();
-        if (trimmedLocation.Length > 250) return false;
-
-        return true;
-    }
+    public static bool IsLocationValid(EventLocationRequestDto? location) =>
+        location is not null &&
+        !string.IsNullOrWhiteSpace(location.Name) &&
+        location.Name.Trim().Length <= 250 &&
+        IsDistrictValid(location.District);
 
     public static bool IsSourceUrlValid(string? sourceUrl)
     {
-        if (string.IsNullOrWhiteSpace(sourceUrl)) return false;
-        string trimmedUrl = sourceUrl.Trim();
-        if (Uri.TryCreate(trimmedUrl, UriKind.Absolute, out Uri? uriResult))
-        {
-            return (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps)
-            && uriResult.Host.Contains('.');
-        }
-        return false;
+        if (string.IsNullOrWhiteSpace(sourceUrl))
+            return false;
+
+        return Uri.TryCreate(sourceUrl.Trim(), UriKind.Absolute, out var uri) &&
+               (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) &&
+               uri.Host.Contains('.');
     }
 
-    public static async Task<bool> IsDuplicateOnCreate(CreateEventDto candidate, EventService eventService)
+    public static async Task<bool> IsDuplicateOnCreate(
+        CreateEventDto candidate,
+        EventService eventService)
     {
-        if (string.IsNullOrWhiteSpace(candidate.Title) || string.IsNullOrWhiteSpace(candidate.StartDate))
-        {
+        if (!IsTitleValid(candidate.Title) || candidate.Location is null)
             return false;
-        }
-
-        DateTime? candidateStartDate = Event.ParsingDate(candidate.StartDate);
-        if (!candidateStartDate.HasValue)
-        {
-            return false;
-        }
 
         var eventsResult = await eventService.GetAllEvents();
         if (!eventsResult.IsSuccess || eventsResult.Value is null)
-        {
             return false;
-        }
 
-        string cleanTitle = candidate.Title.Trim();
+        var cleanTitle = candidate.Title.Trim();
 
         return eventsResult.Value.Any(existing =>
-            candidate.District.HasValue &&
-            existing.District == candidate.District.Value &&
-            existing.Event.StartDate == candidateStartDate.Value &&  
-            existing.Event.Title != null &&
-            existing.Event.Title.Trim().Equals(cleanTitle, StringComparison.OrdinalIgnoreCase)
-        );
+            existing.District == candidate.Location.District &&
+            existing.Event.StartDate == candidate.StartDate &&
+            existing.Event.Title.Trim().Equals(
+                cleanTitle,
+                StringComparison.OrdinalIgnoreCase));
     }
 }
