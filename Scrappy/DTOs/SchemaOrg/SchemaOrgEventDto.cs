@@ -233,7 +233,7 @@ public class SchemaOrgEventDto
     public SchemaOrgPlaceDto? Location { get; set; }
 
     /// <summary> Gets or sets the owner of the event, which is represented by a SchemaOrgAgentDto object. </summary>
-    [JsonPropertyName("maintainer")]
+    [JsonPropertyName("owner")]
     public SchemaOrgAgentDto? Owner { get; set; }
 
     [JsonPropertyName("organizer")]
@@ -264,7 +264,7 @@ public class SchemaOrgEventDto
     public SchemaOrgScheduleDto? EventSchedule { get; set; }
 
     [JsonPropertyName("subEvent")]
-    public List<SchemaOrgEventDto>? SubEvents { get; set; }
+    public List<SchemaOrgEventDto>? SubEvent { get; set; }
 
     [JsonPropertyName("superEvent")]
     public SchemaOrgEventDto? SuperEvent { get; set; }
