@@ -119,14 +119,14 @@ public class Event
     [BsonElement("Promoter")]
     public AgentModel? Promoter { get; set; }
 
-    [BsonElement("Performer")]
+    [BsonElement("Performers")]
     public List<AgentModel> Performers { get; set; } = new();
 
     [BsonElement("Schedule")]
     public ScheduleModel? Schedule { get; set; }
 
     [BsonElement("Status")]
-    public EventStatus Status { get; set; } = string.Empty;
+    public EventStatus Status { get; set; } = EventStatus.Scheduled;
 
     [BsonElement("Duration")]
     public string? Duration { get; set; }

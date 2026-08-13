@@ -65,7 +65,8 @@ public class EventService(IMongoDatabase database)
                 Organizer = MapAgent(dto.Organizer),
                 Promoter = MapAgent(dto.Promoter),
                 Performers = MapAgents(dto.Performers),
-                QualityScore = qualityScore
+                QualityScore = qualityScore,
+                Schedule = MapSchedule(dto.Schedule)
             }
         };
 
@@ -119,6 +120,9 @@ public class EventService(IMongoDatabase database)
 
         if (dto.Performers is not null)
             existingEvent.Event.Performers = MapAgents(dto.Performers);
+
+        if (dto.Schedule is not null)
+            existingEvent.Event.Schedule = MapSchedule(dto.Schedule);
 
         var startDate = dto.StartDate ?? existingEvent.Event.StartDate;
         var endDate = dto.EndDate ?? existingEvent.Event.EndDate;
@@ -236,4 +240,20 @@ public class EventService(IMongoDatabase database)
             .Cast<AgentModel>()
             .ToList() ?? new();
     }
+
+    private static ScheduleModel? MapSchedule(EventScheduleRequestDto? dto)
+  {
+      if (dto is null)
+          return null;
+
+      return new ScheduleModel
+      {
+          StartDate = dto.StartDate,
+          EndDate = dto.EndDate,
+          StartTime = dto.StartTime,
+          EndTime = dto.EndTime,
+          TimeZone = dto.TimeZone ?? "Europe/Lisbon",
+          RepeatDays = dto.RepeatDays
+      };
+  }
 }
