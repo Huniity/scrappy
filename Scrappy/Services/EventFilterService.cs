@@ -44,7 +44,7 @@ public class EventFilterService
                 (
                     builder.Regex(e => e.Event.Title, regex),
                     builder.Regex(e => e.Event.Description, regex),
-                    builder.Regex(e => e.Event.Location, regex)
+                    builder.Regex(e => e.Event.Location!.Name, regex)
                 );
 
             filters.Add(searchFilter);

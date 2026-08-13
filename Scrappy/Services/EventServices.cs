@@ -5,6 +5,7 @@ using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Validators;
+using System.Globalization;
 
 namespace Scrappy.Services;
 
@@ -58,9 +59,12 @@ public class EventService(IMongoDatabase database)
                 Description = cleanDescription,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                Location = cleanLocation,
+                Location = MapLocation(dto.Location),
                 SourceUrl = dto.SourceUrl.Trim(),
                 Type = dto.Type,
+                Organizer = MapAgent(dto.Organizer),
+                Promoter = MapAgent(dto.Promoter),
+                Performers = MapAgents(dto.Performers),
                 QualityScore = qualityScore
             }
         };
@@ -107,6 +111,15 @@ public class EventService(IMongoDatabase database)
             return Result<DistrictEvent>.Failure("Invalid source URL.");
         }
 
+        if (dto.Organizer is not null)
+            existingEvent.Event.Organizer = MapAgent(dto.Organizer);
+
+        if (dto.Promoter is not null)
+            existingEvent.Event.Promoter = MapAgent(dto.Promoter);
+
+        if (dto.Performers is not null)
+            existingEvent.Event.Performers = MapAgents(dto.Performers);
+
         var startDate = dto.StartDate ?? existingEvent.Event.StartDate;
         var endDate = dto.EndDate ?? existingEvent.Event.EndDate;
 
@@ -115,14 +128,17 @@ public class EventService(IMongoDatabase database)
 
         var eventType = dto.Type ?? existingEvent.Event.Type ?? EventType.Outro;
         var description = dto.Description?.Trim() ?? existingEvent.Event.Description;
-        var locationName = dto.Location?.Name.Trim() ?? existingEvent.Event.Location;
+        var location = dto.Location is null
+            ? existingEvent.Event.Location
+            : MapLocation(dto.Location);
+        var locationName = location?.Name;
 
-        existingEvent.District = dto.Location?.District ?? existingEvent.District;
+        existingEvent.District = location?.District ?? existingEvent.District;
         existingEvent.Event.Title = dto.Title?.Trim() ?? existingEvent.Event.Title;
         existingEvent.Event.Description = description;
         existingEvent.Event.StartDate = startDate;
         existingEvent.Event.EndDate = endDate;
-        existingEvent.Event.Location = locationName;
+        existingEvent.Event.Location = location;
         existingEvent.Event.SourceUrl = dto.SourceUrl?.Trim() ?? existingEvent.Event.SourceUrl;
         existingEvent.Event.Type = eventType;
         existingEvent.Event.QualityScore = EventQualityService.ComputeQualityScore(
@@ -136,6 +152,32 @@ public class EventService(IMongoDatabase database)
             existingEvent);
 
         return Result<DistrictEvent>.Success(existingEvent);
+    }
+
+    private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
+    {
+        Name = dto.Name.Trim(),
+        Locality = dto.Locality,
+        District = dto.District,
+        Region = dto.Region,
+        Country = dto.Country.Trim(),
+        DicoCode = dto.DicoCode?.Trim(),
+        Latitude = ParseCoordinate(dto.Latitude),
+        Longitude = ParseCoordinate(dto.Longitude)
+    };
+
+    private static double? ParseCoordinate(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return double.TryParse(
+            value,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var coordinate)
+            ? coordinate
+            : null;
     }
 
     public async Task<Result<DistrictEvent>> DeleteEvent(string id)
@@ -169,5 +211,29 @@ public class EventService(IMongoDatabase database)
         return districtEvent is null
             ? Result<DistrictEvent>.Failure($"Event with id {id} not found.")
             : Result<DistrictEvent>.Success(districtEvent);
+    }
+
+    private static AgentModel? MapAgent(EventAgentRequestDto? dto)
+    {
+        if (dto is null)
+            return null;
+
+        return new AgentModel
+        {
+            Name = dto.Name.Trim(),
+            Type = dto.Type,
+            Url = dto.Url?.Trim(),
+            SameAs = dto.SameAs?.Trim()
+        };
+    }
+
+    private static List<AgentModel> MapAgents(
+        IEnumerable<EventAgentRequestDto>? agents)
+    {
+        return agents?
+            .Select(MapAgent)
+            .Where(agent => agent is not null)
+            .Cast<AgentModel>()
+            .ToList() ?? new();
     }
 }

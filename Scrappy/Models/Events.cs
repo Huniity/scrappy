@@ -35,7 +35,7 @@ public class Event
     
     /// <summary> Gets or sets the location of the event. </summary>
     [BsonElement("Location")]
-    public string? Location { get; set; }
+    public EventLocation? Location { get; set; }
     
     /// <summary> Gets or sets the source URL of the event. </summary>
     [BsonElement("SourceUrl")]
@@ -88,4 +88,48 @@ public class Event
 
         return (decimal)earnedScore / maxScore * 100;
     }
+
+    [BsonElement("AlternateName")]
+    public string AlternateName { get; set; } = string.Empty;
+
+    [BsonElement("DoorTime")]
+    public DateTime? DoorTime { get; set; }
+
+    [BsonElement("ImageUrl")]
+    public string ImageUrl { get; set; } = string.Empty;
+
+    [BsonElement("IsAccessibleForFree")]
+    public bool IsAccessibleForFree { get; set; }
+
+    [BsonElement("PhysicalAccessibility")]
+    public bool PhysicalAccessibility { get; set; }
+
+    [BsonElement("AgeRating")]
+    public int? AgeRating { get; set; }
+
+    [BsonElement("MaximumAttendeeCapacity")]
+    public int? MaximumAttendeeCapacity { get; set; }
+
+    [BsonElement("Keywords")]
+    public List<string> Keywords { get; set; } = new List<string>();
+
+    [BsonElement("Organizer")]
+    public AgentModel? Organizer { get; set; }
+
+    [BsonElement("Promoter")]
+    public AgentModel? Promoter { get; set; }
+
+    [BsonElement("Performer")]
+    public List<AgentModel> Performers { get; set; } = new();
+
+    [BsonElement("Schedule")]
+    public ScheduleModel? Schedule { get; set; }
+
+    [BsonElement("Status")]
+    public EventStatus Status { get; set; } = string.Empty;
+
+    [BsonElement("Duration")]
+    public string? Duration { get; set; }
+
+
 }
