@@ -1,0 +1,502 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrappy — validação de eventos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;450;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAECE7; --surface:#FAFBF8; --surface-2:#F1F3EE;
+  --ink:#16201C; --ink-2:#55605A; --ink-3:#8B958F;
+  --line:rgba(22,32,28,.13); --line-2:rgba(22,32,28,.24);
+  --done:#2F5D50; --done-bg:#DDE8E2;
+  --req:#9E3B2E; --soft:#A8701B; --quality:#77680F; --none:#3F7A3E; --arch:#2C5670; --later:#5E4A7E;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121614; --surface:#1A1F1C; --surface-2:#222825;
+    --ink:#E6EAE5; --ink-2:#9CA69F; --ink-3:#6D766F;
+    --line:rgba(230,234,229,.13); --line-2:rgba(230,234,229,.26);
+    --done:#6FBFA3; --done-bg:#1E2E28;
+    --req:#E08A7B; --soft:#DFAE60; --quality:#C4B65A; --none:#84C081; --arch:#7FADCB; --later:#AE9AD0;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+  font-feature-settings:"ss01";}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 24px;padding-bottom:16px;border-bottom:1px solid var(--line-2)}
+.brand{font-family:var(--cond);font-weight:600;font-size:28px;letter-spacing:-.01em;line-height:1.1;margin:0}
+.brand small{display:block;font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+.counter{margin-left:auto;text-align:right;font-family:var(--mono);font-size:12px;color:var(--ink-2);line-height:1.5}
+.counter b{display:block;font-size:30px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1}
+
+.meter{display:flex;gap:2px;height:6px;margin:14px 0 0}
+.meter i{flex:1;background:var(--line-2);border-radius:1px;transition:background .18s}
+.meter i.on{background:var(--done)}
+
+.cols{display:grid;grid-template-columns:266px minmax(0,1fr);gap:36px;margin-top:26px;align-items:start}
+@media (max-width:880px){.cols{grid-template-columns:1fr;gap:24px}}
+
+.rail{position:sticky;top:20px}
+@media (max-width:880px){.rail{position:static}}
+.railhead{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+.next{background:var(--surface);border:1px solid var(--line-2);border-radius:3px;padding:11px 13px;margin-bottom:18px}
+.next .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--done)}
+.next .txt{font-family:var(--cond);font-weight:600;font-size:17px;line-height:1.25;margin-top:3px}
+.next .txt em{display:block;font-style:normal;font-family:var(--mono);font-size:10px;font-weight:400;color:var(--ink-3);margin-top:4px;line-height:1.4;word-break:break-word}
+.seq{list-style:none;margin:0;padding:0;border-left:1px solid var(--line-2)}
+.seq li{position:relative;padding:0 0 0 15px}
+.seq button{all:unset;display:flex;gap:8px;align-items:baseline;cursor:pointer;width:100%;padding:3px 0;color:var(--ink-2);font-size:13.5px;line-height:1.35}
+.seq button:hover{color:var(--ink)}
+.seq button:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+.seq .num{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);min-width:16px}
+.seq li::before{content:"";position:absolute;left:-3.5px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--paper);border:1px solid var(--line-2)}
+.seq li.done::before{background:var(--done);border-color:var(--done)}
+.seq li.done button{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+.seq li.here::before{background:var(--surface);border:2px solid var(--done);width:9px;height:9px;left:-5px;top:10px}
+.seq li.here button{color:var(--ink);font-weight:500}
+
+.tools{margin-top:20px;display:flex;flex-wrap:wrap;gap:6px}
+.tools button{all:unset;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:5px 9px;border:1px solid var(--line-2);border-radius:2px;color:var(--ink-2)}
+.tools button:hover{border-color:var(--ink-3);color:var(--ink)}
+.tools button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tools button:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:10px;overflow:hidden}
+.sec.complete{background:var(--surface-2)}
+.sechead{display:flex;align-items:center;gap:11px;width:100%;padding:11px 14px;cursor:pointer;background:none;border:0;font:inherit;color:inherit;text-align:left}
+.sechead:focus-visible{outline:2px solid var(--done);outline-offset:-2px}
+.sev{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;border:1px solid currentColor;border-radius:2px;white-space:nowrap;flex:none}
+.sev.req{color:var(--req)} .sev.soft{color:var(--soft)} .sev.quality{color:var(--quality)}
+.sev.none{color:var(--none)} .sev.arch{color:var(--arch)} .sev.later{color:var(--later)}
+.secn{font-family:var(--mono);font-size:11px;color:var(--ink-3);flex:none;min-width:18px}
+.sectitle{font-family:var(--cond);font-weight:600;font-size:17.5px;letter-spacing:-.005em;flex:1;min-width:0}
+.secfrac{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);flex:none}
+.filetag{font-family:var(--mono);font-size:10px;color:var(--arch);border:1px solid currentColor;border-radius:2px;padding:2px 5px;white-space:nowrap;flex:none;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+@media (max-width:760px){.filetag{display:none}}
+.sec.complete .secfrac{color:var(--done)}
+.chev{flex:none;width:9px;height:9px;border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .16s}
+.sec.closed .chev{transform:rotate(-45deg) translate(-1px,1px)}
+.sec.closed .secbody{display:none}
+.secbody{padding:2px 14px 14px;border-top:1px solid var(--line)}
+.pathline{display:none;font-family:var(--mono);font-size:10.5px;color:var(--arch);padding:8px 0 2px}
+@media (max-width:760px){.pathline{display:block}}
+
+.item{display:flex;gap:10px;align-items:flex-start;padding:5px 0;cursor:pointer}
+.item input{appearance:none;flex:none;width:15px;height:15px;margin:3px 0 0;border:1px solid var(--line-2);border-radius:2px;background:var(--paper);cursor:pointer;position:relative}
+.item input:checked{background:var(--done);border-color:var(--done)}
+.item input:checked::after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid var(--surface);border-width:0 1.6px 1.6px 0;transform:rotate(42deg)}
+.item input:focus-visible{outline:2px solid var(--done);outline-offset:2px}
+.item span{font-size:14.5px;line-height:1.45}
+.item input:checked+span{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+
+.note{font-size:13.5px;color:var(--ink-2);border-left:2px solid var(--line-2);padding:1px 0 1px 11px;margin:11px 0 3px}
+.no{margin:12px 0 0;padding:9px 11px;background:var(--surface-2);border-radius:2px}
+.no .nolbl{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--req);display:block;margin-bottom:4px}
+.no ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--ink-2)}
+.ex{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px;font-family:var(--mono);font-size:12px}
+.ex span{padding:2px 7px;border-radius:2px;border:1px solid var(--line-2);color:var(--ink-2)}
+.ex span.ok{color:var(--none);border-color:currentColor}
+.ex span.bad{color:var(--req);border-color:currentColor;text-decoration:line-through}
+.pre{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;background:var(--surface-2);padding:9px 11px;border-radius:2px;margin:11px 0 0;color:var(--ink-2);line-height:1.6}
+
+.grouphead{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line-2)}
+.grouphead:first-child{margin-top:0}
+.sec[hidden],.grouphead[hidden]{display:none}
+.save{position:fixed;right:14px;bottom:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-3);background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:4px 8px;opacity:0;transition:opacity .3s}
+.save.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="brand"><small>Scrappy · event validation</small>Checklist de implementação</h1>
+    <div class="counter"><b id="pct">0%</b><span id="frac">0 de 0 verificações</span></div>
+  </header>
+  <div class="meter" id="meter"></div>
+
+  <div class="cols">
+    <aside class="rail">
+      <p class="railhead">Ordem de trabalho · auto</p>
+      <div class="next"><span class="lbl">Próximo passo</span><div class="txt" id="nexttxt">—</div></div>
+      <ol class="seq" id="seq"></ol>
+      <div class="tools">
+        <button id="f-all" aria-pressed="true">todas</button>
+        <button id="f-open" aria-pressed="false">por fazer</button>
+        <button id="f-done" aria-pressed="false">feitas</button>
+        <button id="collapse">fechar tudo</button>
+        <button id="reset">recomeçar</button>
+      </div>
+    </aside>
+    <main id="main"></main>
+  </div>
+</div>
+<div class="save" id="save">guardado</div>
+<script>
+  if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const v = localStorage.getItem(key);
+      return v === null ? null : { key, value: v };
+    },
+    async set(key, value) {
+      localStorage.setItem(key, value);
+      return { key, value };
+    },
+    async delete(key) {
+      localStorage.removeItem(key);
+      return { key, deleted: true };
+    },
+    async list(prefix = "") {
+      return { keys: Object.keys(localStorage).filter(k => k.startsWith(prefix)), prefix };
+    }
+  };
+}
+</script>
+<script>
+const SECTIONS = [
+{g:"Validação de entrada",n:1,sev:"req",t:"Create — presença dos campos mínimos",order:"Validar campos mínimos do Create",file:"Validators/EventValidator.cs",items:[
+  "Title não pode ser null, vazio ou apenas espaços",
+  "District não pode ser null, vazio ou apenas espaços",
+  "Type não pode ser null, vazio ou apenas espaços",
+  "StartDate não pode ser null, vazia ou apenas espaços",
+  "SourceUrl não pode ser null, vazia ou apenas espaços"
+],note:"Aqui verificas apenas se os dados mínimos existem. A validade do enum, URL e datas é tratada nas secções seguintes."},
+
+{n:2,sev:"req",t:"Title",order:"Validar Title",file:"Validators/EventValidator.cs",items:[
+  "Obrigatório no Create",
+  "Rejeitar null / vazio / whitespace",
+  "Aplicar Trim antes de guardar",
+  "Definir comprimento máximo (ex.: 250 caracteres)"
+],note:"Para comparação de duplicados usa uma versão normalizada; para armazenamento basta guardar o valor limpo com Trim()."},
+
+{n:3,sev:"req",t:"Enum District",order:"Validar District",file:"Validators/EventValidator.cs",items:[
+  "Executar Enum.TryParse<DistrictName>",
+  "Verificar se TryParse devolveu true",
+  "Verificar se o valor resultante pertence ao enum",
+  "Rejeitar texto ou números desconhecidos"
+],ok:["Faro","Lisboa","Porto"],bad:["Banana","1234","(vazio)"],note:"TryParse sozinho não basta: tens de verificar o boolean devolvido e se o valor é realmente definido no enum."},
+
+{n:4,sev:"req",t:"Enum EventType",order:"Validar EventType",file:"Validators/EventValidator.cs",items:[
+  "Executar Enum.TryParse<EventType>",
+  "Verificar se TryParse devolveu true",
+  "Verificar se o valor resultante pertence ao enum",
+  "Rejeitar valores desconhecidos",
+  "Permitir Outro"
+],ok:["Concerto","Festival","Mercado","Outro"],bad:["Football","123","Banana"],note:"Outro é um tipo válido; apenas pode contribuir menos para o QualityScore."},
+
+{n:5,sev:"req",t:"SourceUrl",order:"Validar SourceUrl",file:"Validators/EventValidator.cs",items:[
+  "Obrigatória no Create",
+  "Rejeitar null / vazio / whitespace",
+  "Aplicar Trim antes de guardar",
+  "Validar formato de URL",
+  "Aceitar apenas http / https"
+],bad:["facebook","hello","evento123"],no:["Verificar se o servidor responde","Verificar se devolve HTTP 200","Verificar se a página ainda existe"],note:"Disponibilidade da página pertence ao pipeline do scraper, não à validação do Event."},
+
+{n:6,sev:"req",t:"Datas",order:"Validar StartDate / EndDate",file:"Validators/EventValidator.cs + Common/DateParser.cs",items:[
+  "DateParser apenas tenta converter string → DateTime?",
+  "StartDate é obrigatória no Create e tem de ser convertível",
+  "EndDate é opcional; quando existe, tem de ser convertível",
+  "Validar EndDate >= StartDate",
+  "Evento sem EndDate continua válido"
+],no:["Rejeitar automaticamente eventos porque StartDate < DateTime.Now"],note:"Parsing responde 'consigo converter?'. EventValidator responde 'estas datas fazem sentido juntas?'."},
+
+{n:7,sev:"soft",t:"Description",order:"Validar Description",file:"Validators/EventValidator.cs + Services/EventQualityService.cs",items:[
+  "Aceitar null",
+  "Aceitar description vazia",
+  "Aplicar Trim quando existe",
+  "Definir eventualmente comprimento máximo",
+  "Ausência ou pouca informação reduz QualityScore"
+],note:"Description não deve tornar o Event inválido apenas por estar ausente."},
+
+{n:8,sev:"soft",t:"Location",order:"Validar Location",file:"Validators/EventValidator.cs + Services/EventQualityService.cs",items:[
+  "Aceitar null",
+  "Aceitar campo ausente",
+  "Aplicar Trim quando existe",
+  "Ausência reduz QualityScore"
+],note:"Location incompleta é problema de qualidade, não necessariamente de validade."},
+
+{g:"Duplicados",n:9,sev:"req",t:"Duplicate detection no Create",order:"Validar duplicados no Create",file:"Services/EventService.cs",items:[
+  "Comparar District",
+  "Comparar Title com Trim e sem diferença de maiúsculas/minúsculas",
+  "Comparar StartDate",
+  "Rejeitar candidato duplicado"
+],later:["Normalizar múltiplos espaços","Normalizar acentos","Usar SourceUrl no fingerprint","Criar fingerprint/hash","Fuzzy matching"],note:"District + Title + StartDate é suficiente para esta fase."},
+
+{n:10,sev:"req",t:"Duplicate detection no PATCH",order:"Validar duplicados no PATCH",file:"Services/EventService.cs",items:[
+  "Construir primeiro o estado final do evento após o PATCH",
+  "Comparar District final",
+  "Comparar Title final",
+  "Comparar StartDate final",
+  "Ignorar o próprio Event.Id",
+  "Bloquear se outro evento ficar com a mesma identidade"
+],pre:"ID 1  Festival MED   Faro     2026-09-10\nID 2  Festival ABC   Lisboa   2026-10-20\n\nPATCH ID 2 → Festival MED / Faro / 2026-09-10   ✕ bloquear"},
+
+{g:"PATCH",n:11,sev:"req",t:"PATCH — verificar existência",order:"Validar existência no PATCH",file:"Services/EventService.cs",items:[
+  "Procurar o Event pelo id",
+  "Se não existe → Result.Failure → Controller devolve 404",
+  "Campo não enviado → preservar valor antigo",
+  "Campo enviado → validar valor novo"
+]},
+
+{n:12,sev:"req",t:"PATCH — Title / District / Type / URL",order:"Validar campos finais do PATCH",file:"Services/EventService.cs + Validators/EventValidator.cs",items:[
+  "Construir os valores finais usando novo valor ou valor existente",
+  "Validar Title final",
+  "Validar District final",
+  "Validar EventType final",
+  "Validar SourceUrl final"
+],note:"Não dupliques regras no Service: o Service constrói o estado final e pede ao EventValidator para o validar."},
+
+{n:13,sev:"req",t:"PATCH — StartDate / EndDate",order:"Validar datas finais do PATCH",file:"Services/EventService.cs + Validators/EventValidator.cs",items:[
+  "Construir StartDate final",
+  "Construir EndDate final",
+  "Validar parsing dos valores novos quando fornecidos",
+  "Validar EndDate final >= StartDate final"
+],pre:"Existente:   Start 20 Ago   End 22 Ago\nPATCH:       Start 25 Ago\nResultado:   Start 25       End 22   ✕ inválido",note:"A relação entre datas tem de ser validada sobre o estado final do Event."},
+
+{g:"Leitura e remoção",n:14,sev:"req",t:"DELETE",order:"Validar DELETE",file:"Services/EventService.cs + Controllers/EventsController.cs",items:[
+  "O Guid da route já é validado pelo constraint {id:guid}",
+  "Procurar Event",
+  "Se não existe → Result.Failure / 404",
+  "Se existe → remover"
+],note:"Não precisas de revalidar manualmente o formato do Guid dentro do método se a route já usa {id:guid}."},
+
+{n:15,sev:"req",t:"GET by id",order:"Validar GET by id",file:"Services/EventService.cs + Controllers/EventsController.cs",items:[
+  "Procurar ID",
+  "Devolver Event se existir",
+  "Devolver 404 se não existir"
+],note:"Não inventes validation onde não é necessária."},
+
+{n:16,sev:"none",t:"GET all",order:"Validar GET all",file:"Services/EventService.cs + Controllers/EventsController.cs",items:[
+  "Devolver [] com 200 OK quando não há eventos"
+],note:"Zero eventos não é erro."},
+
+{g:"Quality",n:17,sev:"quality",t:"Quality score",order:"Implementar Quality score",file:"Services/EventQualityService.cs",items:[
+  "Description existe e tem informação suficiente",
+  "StartDate conhecida",
+  "Location conhecida",
+  "EventType conhecido",
+  "EventType diferente de Outro",
+  "EndDate conhecida",
+  "SourceUrl conhecida"
+],note:"Validation responde 'pode este Event existir?'. Quality responde 'quão completos são os dados?'."},
+
+{n:18,sev:"quality",t:"Recalcular Quality no Update",order:"Recalcular Quality no Update",file:"Services/EventService.cs + Services/EventQualityService.cs",items:[
+  "Obter o estado final do Event",
+  "Calcular o QualityScore com os valores finais",
+  "Substituir o QualityScore antigo"
+],note:"QualityScore não deve vir do CreateEventDto nem do UpdateEventDto; é calculado pelo servidor."},
+
+{n:19,sev:"quality",t:"Normalização antes de armazenar",order:"Normalizar antes de armazenar",file:"Validators/EventValidator.cs / EventService.cs",items:[
+  "Title.Trim()",
+  "Description?.Trim()",
+  "Location?.Trim()",
+  "SourceUrl.Trim()"
+],note:"Evita armazenar valores como \"    Festival MED     \"."},
+
+{g:"Arquitetura",n:20,sev:"arch",t:"Controller",order:"Rever Controller",file:"Controllers/EventsController.cs",items:[
+  "Receber DTO e route parameters",
+  "Chamar EventService",
+  "Traduzir Result para HTTP"
+],no:["Calcular QualityScore","Verificar duplicados","Fazer parsing complexo","Conter regras de negócio"],note:"O Controller deve ser essencialmente HTTP → Service → HTTP."},
+
+{n:21,sev:"arch",t:"EventService",order:"Rever EventService",file:"Services/EventService.cs",items:[
+  "Adicionar / atualizar / remover / encontrar Event",
+  "Coordenar EventValidator",
+  "Detetar duplicados",
+  "Chamar EventQualityService",
+  "Comunicar com storage",
+  "Remover Console.WriteLine"
+],no:["Calcular internamente cada ponto do QualityScore","Concentrar todas as validações básicas dentro de AddEvent"],note:"Para logging real, mais tarde usa ILogger."},
+
+{n:22,sev:"arch",t:"EventValidator",order:"Concluir EventValidator",file:"Validators/EventValidator.cs",items:[
+  "ValidateCreate()",
+  "ValidateUpdate() ou validação do estado final",
+  "Campos obrigatórios",
+  "Enums válidos",
+  "Datas válidas",
+  "Relação Start/End",
+  "URL válida",
+  "Limites de strings"
+],no:["Duplicate detection — precisa de storage e fica no EventService"]},
+
+{n:23,sev:"arch",t:"DateParser",order:"Concluir DateParser",file:"Common/DateParser.cs",items:[
+  "Converter string → DateTime? e nada mais"
+],no:["Decidir se o evento está no passado","Decidir se o Event é válido","Comparar EndDate com StartDate"]},
+
+{n:24,sev:"arch",t:"EventQualityService",order:"Concluir EventQualityService",file:"Services/EventQualityService.cs",items:[
+  "Receber informação do Event e devolver QualityScore",
+  "Ser independente de HTTP / Controller",
+  "Ser independente de MongoDB / Dictionary"
+],note:"O scraper poderá reutilizá-lo sem passar pelo Controller."},
+
+{g:"Testes",n:25,sev:"arch",t:"Testes principais",order:"Implementar testes principais",file:"Scrappy.Tests/EventServiceTests.cs",items:[
+  "Create inválido",
+  "Create válido",
+  "PATCH inválido",
+  "Duplicate no Create",
+  "Duplicate criado por PATCH",
+  "Delete inexistente",
+  "GetById inexistente",
+  "EndDate anterior a StartDate",
+  "District inválido",
+  "EventType inválido",
+  "SourceUrl inválida"
+],note:"Quando começares os testes, vale a pena separar testes de EventValidator dos testes de EventService."},
+
+{g:"Backlog",n:26,sev:"later",t:"Quando entrar MongoDB",order:"Preparar MongoDB (mais tarde)",file:"Repositories/ + Infrastructure/MongoDB",items:[
+  "Substituir _storage",
+  "Criar IEventRepository / EventRepository",
+  "Estratégia unique/index no MongoDB",
+  "Índices por StartDate / District / Type",
+  "Fingerprint para duplicados",
+  "Paginação",
+  "Filtros",
+  "Sorting",
+  "Persistência real"
+],note:"Não faças isto agora. É backlog para quando o CRUD e as validações estiverem estáveis."}
+];
+
+const SEVLBL={req:"obrigatório",soft:"opcional",quality:"quality",none:"sem validação",arch:"estrutura",later:"mais tarde"};
+const KEY="scrappy_event_validation_v3";
+let state=new Set(), filter="all";
+
+const main=document.getElementById("main");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let html="";
+SECTIONS.forEach(s=>{
+  if(s.g)html+=`<p class="grouphead" data-group="${esc(s.g)}">${esc(s.g)}</p>`;
+  html+=`<section class="sec" id="section-${s.n}" data-n="${s.n}"><button class="sechead" aria-expanded="true">
+    <span class="sev ${s.sev}">${SEVLBL[s.sev]}</span><span class="secn">${String(s.n).padStart(2,"0")}</span>
+    <span class="sectitle">${esc(s.t)}</span>${s.file?`<span class="filetag">${esc(s.file)}</span>`:""}<span class="secfrac" data-frac></span><span class="chev"></span></button>
+    <div class="secbody">`;
+  if(s.file)html+=`<p class="pathline">${esc(s.file)}</p>`;
+  s.items.forEach((it,i)=>{
+    html+=`<label class="item"><input type="checkbox" data-id="s${s.n}.${i}"><span>${esc(it)}</span></label>`;
+  });
+  if(s.ok||s.bad){html+=`<div class="ex">`;
+    (s.ok||[]).forEach(v=>html+=`<span class="ok">${esc(v)}</span>`);
+    (s.bad||[]).forEach(v=>html+=`<span class="bad">${esc(v)}</span>`);
+    html+=`</div>`;}
+  if(s.pre)html+=`<div class="pre">${esc(s.pre)}</div>`;
+  if(s.no)html+=`<div class="no"><span class="nolbl">não fazer</span><ul>${s.no.map(v=>`<li>${esc(v)}</li>`).join("")}</ul></div>`;
+  if(s.later)html+=`<div class="no"><span class="nolbl" style="color:var(--later)">só mais tarde</span><ul>${s.later.map(v=>`<li>${esc(v)}</li>`).join("")}</ul></div>`;
+  if(s.note)html+=`<p class="note">${esc(s.note)}</p>`;
+  html+=`</div></section>`;
+});
+main.innerHTML=html;
+
+const seq=document.getElementById("seq");
+seq.innerHTML=SECTIONS.map(s=>`<li data-section="${s.n}"><button title="${esc(s.file||"")}"><span class="num">${String(s.n).padStart(2,"0")}</span><span>${esc(s.order||s.t)}</span></button></li>`).join("");
+
+seq.querySelectorAll("li").forEach(li=>{
+  li.querySelector("button").addEventListener("click",()=>{
+    const sec=document.querySelector(`.sec[data-n="${li.dataset.section}"]`);
+    if(!sec)return;
+    sec.hidden=false;
+    sec.classList.remove("closed");
+    sec.querySelector(".sechead")?.setAttribute("aria-expanded","true");
+    sec.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+
+const meter=document.getElementById("meter");
+meter.innerHTML=SECTIONS.map(()=>"<i></i>").join("");
+
+function toggle(id){ state.has(id)?state.delete(id):state.add(id); render(); save(); }
+
+main.addEventListener("change",e=>{ if(e.target.matches("input[type=checkbox]")) toggle(e.target.dataset.id); });
+document.querySelectorAll(".sechead").forEach(h=>h.addEventListener("click",()=>{
+  const sec=h.closest(".sec"), closed=sec.classList.toggle("closed");
+  h.setAttribute("aria-expanded",String(!closed));
+}));
+
+function render(){
+  let total=0,done=0;
+  document.querySelectorAll(".sec").forEach(sec=>{
+    let t=0,d=0;
+    sec.querySelectorAll("input").forEach(cb=>{
+      const on=state.has(cb.dataset.id); cb.checked=on; t++; if(on)d++;
+      cb.closest(".item").hidden = (filter==="open"&&on)||(filter==="done"&&!on);
+    });
+    total+=t; done+=d;
+    sec.querySelector("[data-frac]").textContent=`${d}/${t}`;
+    sec.classList.toggle("complete",d===t);
+    sec.hidden = (filter==="open"&&d===t)||(filter==="done"&&d===0);
+  });
+  document.querySelectorAll(".grouphead").forEach(gh=>{
+    let el=gh.nextElementSibling, any=false;
+    while(el&&el.classList.contains("sec")){ if(!el.hidden)any=true; el=el.nextElementSibling; }
+    gh.hidden=!any;
+  });
+  document.getElementById("pct").textContent=total?Math.round(done/total*100)+"%":"0%";
+  document.getElementById("frac").textContent=`${done} de ${total} verificações`;
+
+  let next=null;
+  const sectionStatus=new Map();
+
+  document.querySelectorAll(".sec").forEach(sec=>{
+    const boxes=[...sec.querySelectorAll("input[type=checkbox]")];
+    const complete=boxes.length>0 && boxes.every(cb=>state.has(cb.dataset.id));
+    sectionStatus.set(Number(sec.dataset.n),complete);
+  });
+
+  seq.querySelectorAll("li").forEach((li,i)=>{
+    const n=Number(li.dataset.section);
+    const complete=sectionStatus.get(n)===true;
+    li.classList.toggle("done",complete);
+    li.classList.remove("here");
+    if(!complete && next===null)next=i;
+  });
+
+  const nt=document.getElementById("nexttxt");
+  if(next!==null){
+    const s=SECTIONS[next];
+    seq.children[next].classList.add("here");
+    nt.innerHTML=`${String(s.n).padStart(2,"0")} · ${esc(s.order||s.t)}<em>${esc(s.file||"")}</em>`;
+  } else {
+    nt.textContent="Tudo feito.";
+  }
+
+  meter.querySelectorAll("i").forEach((el,i)=>{
+    const s=SECTIONS[i];
+    el.classList.toggle("on",sectionStatus.get(s.n)===true);
+  });
+}
+
+let timer,flash=document.getElementById("save");
+function save(){ clearTimeout(timer); timer=setTimeout(async()=>{
+  try{ await window.storage.set(KEY,JSON.stringify([...state]));
+    flash.textContent="guardado"; flash.classList.add("on"); setTimeout(()=>flash.classList.remove("on"),1100);
+  }catch(e){ flash.textContent="não foi possível guardar"; flash.classList.add("on"); }
+},400); }
+
+function setFilter(f){ filter=f;
+  ["all","open","done"].forEach(k=>document.getElementById("f-"+k).setAttribute("aria-pressed",String(k===f)));
+  render();
+}
+document.getElementById("f-all").onclick=()=>setFilter("all");
+document.getElementById("f-open").onclick=()=>setFilter("open");
+document.getElementById("f-done").onclick=()=>setFilter("done");
+document.getElementById("collapse").onclick=e=>{
+  const anyOpen=[...document.querySelectorAll(".sec")].some(s=>!s.classList.contains("closed"));
+  document.querySelectorAll(".sec").forEach(s=>s.classList.toggle("closed",anyOpen));
+  e.target.textContent=anyOpen?"abrir tudo":"fechar tudo";
+};
+document.getElementById("reset").onclick=()=>{
+  if(confirm("Desmarcar todas as verificações?")){ state=new Set(); render(); save(); }
+};
+
+(async()=>{
+  try{ const r=await window.storage.get(KEY); if(r&&r.value) state=new Set(JSON.parse(r.value)); }catch(e){}
+  render();
+})();
+</script>
