@@ -1,7 +1,9 @@
+
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Scrappy.Models;
+namespace Scrappy.Models.Entities;
 
 public class ScheduleModel
 {

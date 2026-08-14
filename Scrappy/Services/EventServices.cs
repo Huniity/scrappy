@@ -1,9 +1,12 @@
+
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Scrappy.Common;
 using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 using Scrappy.Validators;
 using System.Globalization;
 

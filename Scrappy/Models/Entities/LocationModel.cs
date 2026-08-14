@@ -1,6 +1,9 @@
-using Scrappy.Models.Entities;
 
-namespace Scrappy.Models;
+
+using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
+
+namespace Scrappy.Models.Entities;
 
 public class LocationModel
 {

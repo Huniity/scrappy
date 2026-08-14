@@ -1,5 +1,8 @@
+
+
 using Scrappy.DTOs.Requests;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 using Scrappy.Services;
 
 namespace Scrappy.Validators;

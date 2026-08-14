@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System;
 using System.Globalization;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
 namespace Scrappy.Models;
 

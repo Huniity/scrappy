@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models;
 
-namespace Scrappy.Models.Entities;
+namespace Scrappy.Models.Entities.Enums;
 
 /// <summary>
 /// Event audience types.

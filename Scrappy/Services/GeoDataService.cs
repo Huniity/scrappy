@@ -1,7 +1,8 @@
 
 
-using Scrappy.Models.Entities;
 using Scrappy.Models;
+using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 using Scrappy.Services.Interfaces;
 
 namespace Scrappy.Services;

@@ -1,8 +1,11 @@
+
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Scrappy.DTOs;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 using System.Text.RegularExpressions;
 
 namespace Scrappy.Services;

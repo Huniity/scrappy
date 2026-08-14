@@ -1,5 +1,8 @@
+
+
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
 namespace Scrappy.DTOs.Requests;
 

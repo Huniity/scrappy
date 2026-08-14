@@ -4,9 +4,10 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
 
-namespace Scrappy.Models;
+namespace Scrappy.Models.Entities;
 
 /// <summary>
 /// Represents a district event, which is an association between a district and an event.

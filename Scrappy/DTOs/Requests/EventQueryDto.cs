@@ -2,6 +2,7 @@
 
 using Scrappy.Models;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
 namespace Scrappy.DTOs.Requests;
 

@@ -1,8 +1,11 @@
+
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
-namespace Scrappy.Models;
+namespace Scrappy.Models.Entities;
 
 public class AgentModel
 {
