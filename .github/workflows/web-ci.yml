@@ -1,0 +1,9 @@
+name: Web CI Placeholder
+
+on: workflow_dispatch
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Web CI workflow placeholder"

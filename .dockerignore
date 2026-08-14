@@ -1,0 +1,61 @@
+# Source control and repository metadata
+.git
+.gitignore
+.gitattributes
+.github
+.agents
+.codex
+
+# .NET build artifacts
+**/bin
+**/obj
+**/artifacts
+**/TestResults
+*.nupkg
+*.snupkg
+
+# IDE and editor files
+.vs
+.vscode
+.idea
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Test, coverage, and analysis output
+coverage
+coverage.*
+*.coverage
+*.coveragexml
+*.trx
+.sonarqube
+
+# Package-manager and frontend artifacts
+**/node_modules
+**/dist
+**/.npm
+**/.yarn
+**/.pnpm-store
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Logs, caches, and operating-system files
+*.log
+*.tmp
+*.cache
+.DS_Store
+Thumbs.db
+
+# Files not needed to build the image
+.editorconfig
+.dockerignore
+.pre-commit-config.yaml

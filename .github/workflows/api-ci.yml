@@ -1,0 +1,9 @@
+name: API CI Placeholder
+
+on: workflow_dispatch
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "API CI workflow placeholder"

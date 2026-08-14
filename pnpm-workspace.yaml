@@ -1,0 +1,7 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  msgpackr-extract: set this to true or false
+minimumReleaseAgeExclude:
+  - bullmq@6.1.1

@@ -15,5 +15,17 @@
 		"ghcr.io/devcontainers/features/node:2": {},
 		"ghcr.io/devcontainers-extra/features/pnpm:2": {},
 		"ghcr.io/devcontainers-extra/features/typescript:2": {}
-	}
+	},
+	"forwardPorts": [5000, 27017, 6379],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"evgo2017.killport-vscode",
+				"Postman.postman-for-vscode",
+				"mongodb.mongodb-vscode",
+				"yoavbls.pretty-ts-errors"
+			]
+		}
+	},
+	"postCreateCommand": "npm install -g @openai/codex"
 }

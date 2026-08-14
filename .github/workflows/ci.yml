@@ -1,0 +1,9 @@
+name: CI/CD Placeholder
+
+on: workflow_dispatch
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI/CD workflow placeholder"

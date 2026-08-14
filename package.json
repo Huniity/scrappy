@@ -1,0 +1,26 @@
+{
+  "name": "scrappy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Event scraper for Portuguese municipalities",
+  "scripts": {
+    "prepare": "husky",
+    "format:check": "dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes",
+    "build:check": "dotnet build Scrappy/Scrappy.csproj --configuration Release --no-restore",
+    "precommit": "lint-staged",
+    "prepush": "npm run build:check"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.5"
+  },
+  "lint-staged": {
+    "*.cs": "dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes --include"
+  },
+  "dependencies": {
+    "bullmq": "^6.1.1",
+    "dotenv": "^17.4.2",
+    "ioredis": "^6.0.0"
+  }
+}
