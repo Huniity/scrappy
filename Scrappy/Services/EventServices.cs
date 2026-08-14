@@ -19,8 +19,8 @@ public class EventService(IMongoDatabase database)
 
     public async Task<Result<DistrictEvent>> AddEvent(CreateEventDto dto)
     {
-        if (!await Validator.IsTitleValidAndAvailable(dto.Title, this))
-            return Result<DistrictEvent>.Failure("Invalid or unavailable title.");
+        if (!Validator.IsTitleValid(dto.Title))
+            return Result<DistrictEvent>.Failure("Invalid title.");
 
         if (!Validator.IsDescriptionValid(dto.Description))
             return Result<DistrictEvent>.Failure("Invalid description.");
@@ -91,10 +91,9 @@ public class EventService(IMongoDatabase database)
         if (existingEvent is null)
             return Result<DistrictEvent>.Failure("Event not found");
 
-        if (dto.Title is not null &&
-            !await Validator.IsTitleValidAndAvailable(dto.Title, this, id))
+        if (dto.Title is not null && !Validator.IsTitleValid(dto.Title))
         {
-            return Result<DistrictEvent>.Failure("Invalid or unavailable title.");
+            return Result<DistrictEvent>.Failure("Invalid title.");
         }
 
         if (dto.Description is not null &&
@@ -115,18 +114,6 @@ public class EventService(IMongoDatabase database)
             return Result<DistrictEvent>.Failure("Invalid source URL.");
         }
 
-        if (dto.Organizer is not null)
-            existingEvent.Event.Organizer = MapAgent(dto.Organizer);
-
-        if (dto.Promoter is not null)
-            existingEvent.Event.Promoter = MapAgent(dto.Promoter);
-
-        if (dto.Performers is not null)
-            existingEvent.Event.Performers = MapAgents(dto.Performers);
-
-        if (dto.Schedule is not null)
-            existingEvent.Event.Schedule = MapSchedule(dto.Schedule);
-
         var startDate = dto.StartDate ?? existingEvent.Event.StartDate;
         var endDate = dto.EndDate ?? existingEvent.Event.EndDate;
 
@@ -139,9 +126,32 @@ public class EventService(IMongoDatabase database)
             ? existingEvent.Event.Location
             : MapLocation(dto.Location);
         var locationName = location?.Name;
+        var district = location?.District ?? existingEvent.District;
+        var title = dto.Title?.Trim() ?? existingEvent.Event.Title;
 
-        existingEvent.District = location?.District ?? existingEvent.District;
-        existingEvent.Event.Title = dto.Title?.Trim() ?? existingEvent.Event.Title;
+        if (!Validator.IsTitleValid(title))
+            return Result<DistrictEvent>.Failure("Invalid title.");
+
+        if (await Validator.IsDuplicateOnUpdate(id, title, district, startDate, this))
+        {
+            return Result<DistrictEvent>.Failure(
+                "An event with the same district, title, and start date already exists.");
+        }
+
+        if (dto.Organizer is not null)
+            existingEvent.Event.Organizer = MapAgent(dto.Organizer);
+
+        if (dto.Promoter is not null)
+            existingEvent.Event.Promoter = MapAgent(dto.Promoter);
+
+        if (dto.Performers is not null)
+            existingEvent.Event.Performers = MapAgents(dto.Performers);
+
+        if (dto.Schedule is not null)
+            existingEvent.Event.Schedule = MapSchedule(dto.Schedule);
+
+        existingEvent.District = district;
+        existingEvent.Event.Title = title;
         existingEvent.Event.Description = description;
         existingEvent.Event.StartDate = startDate;
         existingEvent.Event.EndDate = endDate;
