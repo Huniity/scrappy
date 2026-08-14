@@ -33,14 +33,15 @@ public class EventLocationRequestDto
     // Address Properties
     /// <summary> Gets or sets the locality of the event location. </summary>
     [Required]
-    public LocalityName Locality { get; set; }
+    public LocalityName? Locality { get; set; }
 
     /// <summary> Gets or sets the district of the event location. </summary>
     [Required]
-    public DistrictName District { get; set; }
+    public DistrictName? District { get; set; }
 
     /// <summary> Gets or sets the NUTS2 region of the event location. </summary>
-    public Nuts2Region Region { get; set; }
+    [Required]
+    public Nuts2Region? Region { get; set; }
     
     /// <summary> Gets or sets the country of the event location, which is always "PT" for this DTO. </summary>
     public string Country { get; set; } = "PT";

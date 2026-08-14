@@ -88,7 +88,7 @@ public class CreateEventDto
 
     /// <summary> Gets or sets the type of the event. </summary>
     [Required(ErrorMessage = "O tipo do evento é obrigatório.")]
-    public EventType Type { get; set; }
+    public EventType? Type { get; set; }
 
     /// <summary> Gets or sets the location of the event. </summary>
     [Required(ErrorMessage = "A localização do evento é obrigatória.")]
@@ -128,4 +128,6 @@ public class CreateEventDto
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }
+
+    public List<EventOfferRequestDto> Offers { get; set; } = new();
 }

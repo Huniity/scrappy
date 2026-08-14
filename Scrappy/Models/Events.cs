@@ -90,47 +90,65 @@ public class Event
         return (decimal)earnedScore / maxScore * 100;
     }
 
+    /// <summary> Gets or sets an alternative name for the event. </summary>
     [BsonElement("AlternateName")]
     public string AlternateName { get; set; } = string.Empty;
 
+    /// <summary> Gets or sets the door opening time of the event. </summary>
     [BsonElement("DoorTime")]
     public DateTime? DoorTime { get; set; }
 
+    /// <summary> Gets or sets the URL of the event image. </summary>
     [BsonElement("ImageUrl")]
     public string ImageUrl { get; set; } = string.Empty;
 
+    /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
     [BsonElement("IsAccessibleForFree")]
     public bool IsAccessibleForFree { get; set; }
 
+    /// <summary> Gets or sets a value indicating whether the event is physically accessible. </summary>
     [BsonElement("PhysicalAccessibility")]
     public bool PhysicalAccessibility { get; set; }
 
+    /// <summary> Gets or sets the recommended minimum age rating for the event. </summary>
     [BsonElement("AgeRating")]
     public int? AgeRating { get; set; }
 
+    /// <summary> Gets or sets the maximum number of attendees for the event. </summary>
     [BsonElement("MaximumAttendeeCapacity")]
     public int? MaximumAttendeeCapacity { get; set; }
 
+    /// <summary> Gets or sets the keywords associated with the event. </summary>
     [BsonElement("Keywords")]
     public List<string> Keywords { get; set; } = new List<string>();
 
+    /// <summary> Gets or sets the organizer of the event. </summary>
     [BsonElement("Organizer")]
     public AgentModel? Organizer { get; set; }
 
+    /// <summary> Gets or sets the promoter of the event. </summary>
     [BsonElement("Promoter")]
     public AgentModel? Promoter { get; set; }
 
+    /// <summary> Gets or sets the performers associated with the event. </summary>
     [BsonElement("Performers")]
     public List<AgentModel> Performers { get; set; } = new();
 
+    /// <summary> Gets or sets the schedule of the event. </summary>
     [BsonElement("Schedule")]
     public ScheduleModel? Schedule { get; set; }
 
+    /// <summary> Gets or sets the current status of the event. </summary>
     [BsonElement("Status")]
     public EventStatus Status { get; set; } = EventStatus.Scheduled;
 
+    /// <summary> Gets or sets the duration of the event in ISO 8601 format. </summary>
     [BsonElement("Duration")]
     public string? Duration { get; set; }
+
+    /// <summary> Gets or sets the offers associated with the event. </summary>
+    [BsonElement("Offers")]
+    public List<OfferModel> Offers { get; set; } = new();
 
 
 }

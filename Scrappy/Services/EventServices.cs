@@ -54,7 +54,7 @@ public class EventService(IMongoDatabase database)
         var districtEvent = new DistrictEvent
         {
             Id = ObjectId.GenerateNewId().ToString(),
-            District = dto.Location.District,
+            District = dto.Location.District!.Value,
             Event = new Event
             {
                 Id = ObjectId.GenerateNewId().ToString(),
@@ -64,7 +64,7 @@ public class EventService(IMongoDatabase database)
                 EndDate = dto.EndDate,
                 Location = MapLocation(dto.Location),
                 SourceUrl = dto.SourceUrl.Trim(),
-                Type = dto.Type,
+                Type = dto.Type!.Value,
                 Organizer = MapAgent(dto.Organizer),
                 Promoter = MapAgent(dto.Promoter),
                 Performers = MapAgents(dto.Performers),
@@ -164,9 +164,9 @@ public class EventService(IMongoDatabase database)
     private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
     {
         Name = dto.Name.Trim(),
-        Locality = dto.Locality,
-        District = dto.District,
-        Region = dto.Region,
+        Locality = dto.Locality!.Value,
+        District = dto.District!.Value,
+        Region = dto.Region!.Value,
         Country = dto.Country.Trim(),
         DicoCode = dto.DicoCode?.Trim(),
         Latitude = ParseCoordinate(dto.Latitude),

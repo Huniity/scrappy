@@ -122,4 +122,6 @@ public class UpdateEventDto
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }
+
+    public List<EventOfferRequestDto>? Offers { get; set; }
 }
