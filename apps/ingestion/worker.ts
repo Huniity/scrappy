@@ -1,16 +1,13 @@
 
 
 import { Job, Worker } from 'bullmq';
-import IORedis from 'ioredis';
 import { redisConnection } from '../shared/redis';
-import * as dotenv from 'dotenv';
+import { env } from '../shared/env';
 import { RawEvent } from '../shared/rawEvent';
 
 
-dotenv.config();
 
-
-const apiUrl = process.env.API_URL || 'http://localhost:5000/events';
+const apiUrl = env.API_URL
 
 console.log('Inicializing Worker... searching for jobs in the queue...');
 
@@ -71,3 +68,41 @@ ingestionWorker.on('completed', (job) => {
 ingestionWorker.on('failed', (job, err) => {
 	console.error(`Job ${job?.id} failed with error:`, err);
 });
+
+ingestionWorker.on('error', err => {
+	console.error('Worker encountered an error:', err);
+})
+
+let isShuttingDown = false;
+
+  async function shutdown(signal: string): Promise<void> {
+    if (isShuttingDown) {
+      return;
+    }
+
+    isShuttingDown = true;
+
+    console.log(
+      `${signal} received; closing ingestion worker...`,
+    );
+
+    try {
+      await ingestionWorker.close();
+      console.log('Ingestion worker closed.');
+      process.exitCode = 0;
+    } catch (error) {
+      console.error(
+        'Failed to close ingestion worker:',
+        error,
+      );
+      process.exitCode = 1;
+    }
+  }
+
+  process.once('SIGINT', () => {
+    void shutdown('SIGINT');
+  });
+
+  process.once('SIGTERM', () => {
+    void shutdown('SIGTERM');
+  });
