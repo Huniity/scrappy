@@ -1,30 +1,21 @@
+
+
 import { Job, Worker } from 'bullmq';
 import IORedis from 'ioredis';
-import { redisConnection } from '../config/redis';
+import { redisConnection } from '../shared/redis';
 import * as dotenv from 'dotenv';
+import { RawEvent } from '../shared/rawEvent';
+
 
 dotenv.config();
 
-
-interface RawScrapedEventData {
-  title: string;
-  description: string;
-  sourceUrl: string;
-  locationName?: string;
-  locality?: string;
-  district?: string;
-  region?: string;
-  dicoCode?: string;
-  startDate: string;
-  type?: string;
-}
 
 const apiUrl = process.env.API_URL || 'http://localhost:5000/events';
 
 console.log('Inicializing Worker... searching for jobs in the queue...');
 
 const ingestionWorker = new Worker(
-	'events-ingestion-queue', async (job: Job<RawScrapedEventData>) => {
+	'events-ingestion-queue', async (job: Job<RawEvent>) => {
 		const rawData = job.data;
 		const apiData = {
 			title: rawData.title,
