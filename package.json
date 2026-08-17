@@ -9,7 +9,11 @@
     "build:check": "dotnet build Scrappy/Scrappy.csproj --configuration Release --no-restore",
     "precommit": "lint-staged",
     "prepush": "npm run build:check",
-    "scrape": "tsx apps/scraper/src/index-playwright.ts"
+    "scrape": "tsx apps/scraper/src/index-playwright.ts",
+    "scraper": "tsx apps/scraper/main.ts",
+    "worker": "tsx apps/ingestion/worker.ts",
+    "typecheck": "tsc --noEmit",
+    "build:ts": "tsc"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
@@ -26,6 +30,7 @@
     "crawlee": "^3.18.1",
     "dotenv": "^17.4.2",
     "ioredis": "^6.0.0",
-    "playwright": "^1.62.1"
+    "playwright": "^1.62.1",
+    "zod": "^4.4.3"
   }
 }
