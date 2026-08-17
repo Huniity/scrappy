@@ -30,18 +30,18 @@ public class EventQueryParameters
     /// <summary> Gets or sets the page number for pagination. </summary>
     private int _page = 1;
 
-    /// <summary> Gets or sets the page size for pagination, clamped between 1 and 100. </summary>
+    /// <summary> Gets or sets the page size for pagination. It must be between 1 and 100. </summary>
     public int PageSize
     {
         get => _pageSize;
-        set => _pageSize = Math.Clamp(value, 1, 100);
+        set => _pageSize = value;
     }
 
-    /// <summary> Gets or sets the page number for pagination, ensuring it is at least 1. </summary>
+    /// <summary> Gets or sets the page number for pagination. It must be at least 1. </summary>
     public int Page
     {
         get => _page;
-        set => _page = value < 1 ? 1 : value;
+        set => _page = value;
     }
 
     /// <summary> Gets or sets the minimum quality score for filtering events. </summary>

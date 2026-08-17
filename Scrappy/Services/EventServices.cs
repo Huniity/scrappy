@@ -28,6 +28,30 @@ public class EventService(IMongoDatabase database)
         if (!Validator.AreDatesValid(dto.StartDate, dto.EndDate))
             return Result<DistrictEvent>.Failure("Invalid start or end date.");
 
+        if (!Validator.IsAlternateNameValid(dto.AlternateName))
+            return Result<DistrictEvent>.Failure("Invalid alternate name.");
+
+        if (!Validator.IsOptionalUrlValid(dto.ImageUrl))
+            return Result<DistrictEvent>.Failure("Invalid image URL.");
+
+        if (!Validator.IsAgeRatingValid(dto.AgeRating))
+            return Result<DistrictEvent>.Failure("Invalid age rating.");
+
+        if (!Validator.IsMaximumAttendeeCapacityValid(dto.MaximumAttendeeCapacity))
+            return Result<DistrictEvent>.Failure("Invalid maximum attendee capacity.");
+
+        if (!Validator.IsDoorTimeValid(dto.DoorTime, dto.StartDate))
+            return Result<DistrictEvent>.Failure("Invalid door time.");
+
+        if (!Validator.AreKeywordsValid(dto.Keywords))
+            return Result<DistrictEvent>.Failure("Invalid keywords.");
+
+        if (!Validator.IsScheduleValid(dto.Schedule, dto.StartDate, dto.EndDate))
+            return Result<DistrictEvent>.Failure("Invalid schedule.");
+
+        if (!Validator.AreOffersValid(dto.Offers, dto.StartDate, dto.EndDate))
+            return Result<DistrictEvent>.Failure("Invalid offers.");
+
         if (!Validator.IsTypeValid(dto.Type))
             return Result<DistrictEvent>.Failure("Invalid event type.");
 
@@ -36,6 +60,15 @@ public class EventService(IMongoDatabase database)
 
         if (!Validator.IsSourceUrlValid(dto.SourceUrl))
             return Result<DistrictEvent>.Failure("Invalid source URL.");
+
+        if (!Validator.IsAgentValid(dto.Organizer))
+            return Result<DistrictEvent>.Failure("Invalid organizer.");
+
+        if (!Validator.IsAgentValid(dto.Promoter))
+            return Result<DistrictEvent>.Failure("Invalid promoter.");
+
+        if (!Validator.ArePerformersValid(dto.Performers))
+            return Result<DistrictEvent>.Failure("Invalid performers.");
 
         if (await Validator.IsDuplicateOnCreate(dto, this))
         {
@@ -64,10 +97,19 @@ public class EventService(IMongoDatabase database)
                 EndDate = dto.EndDate,
                 Location = MapLocation(dto.Location),
                 SourceUrl = dto.SourceUrl.Trim(),
+                AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
+                ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
+                DoorTime = dto.DoorTime,
+                IsAccessibleForFree = dto.IsAccessibleForFree,
+                PhysicalAccessibility = dto.PhysicalAccessibility,
+                AgeRating = dto.AgeRating,
+                MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
+                Keywords = MapKeywords(dto.Keywords),
                 Type = dto.Type!.Value,
                 Organizer = MapAgent(dto.Organizer),
                 Promoter = MapAgent(dto.Promoter),
                 Performers = MapAgents(dto.Performers),
+                Offers = MapOffers(dto.Offers),
                 QualityScore = qualityScore,
                 Schedule = MapSchedule(dto.Schedule)
             }
@@ -114,11 +156,76 @@ public class EventService(IMongoDatabase database)
             return Result<DistrictEvent>.Failure("Invalid source URL.");
         }
 
+        if (!Validator.IsAgentValid(dto.Organizer))
+            return Result<DistrictEvent>.Failure("Invalid organizer.");
+
+        if (!Validator.IsAgentValid(dto.Promoter))
+            return Result<DistrictEvent>.Failure("Invalid promoter.");
+
+        if (!Validator.ArePerformersValid(dto.Performers))
+            return Result<DistrictEvent>.Failure("Invalid performers.");
+
         var startDate = dto.StartDate ?? existingEvent.Event.StartDate;
         var endDate = dto.EndDate ?? existingEvent.Event.EndDate;
 
         if (!Validator.AreDatesValid(startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid start or end date.");
+
+        if (dto.AlternateName is not null &&
+            !Validator.IsAlternateNameValid(dto.AlternateName))
+        {
+            return Result<DistrictEvent>.Failure("Invalid alternate name.");
+        }
+
+        if (dto.ImageUrl is not null &&
+            !Validator.IsOptionalUrlValid(dto.ImageUrl))
+        {
+            return Result<DistrictEvent>.Failure("Invalid image URL.");
+        }
+
+        if (dto.AgeRating is not null &&
+            !Validator.IsAgeRatingValid(dto.AgeRating))
+        {
+            return Result<DistrictEvent>.Failure("Invalid age rating.");
+        }
+
+        if (dto.MaximumAttendeeCapacity is not null &&
+            !Validator.IsMaximumAttendeeCapacityValid(dto.MaximumAttendeeCapacity))
+        {
+            return Result<DistrictEvent>.Failure("Invalid maximum attendee capacity.");
+        }
+
+        if (dto.DoorTime is not null &&
+            !Validator.IsDoorTimeValid(dto.DoorTime, startDate))
+        {
+            return Result<DistrictEvent>.Failure("Invalid door time.");
+        }
+
+        if (dto.Keywords is not null &&
+            !Validator.AreKeywordsValid(dto.Keywords))
+        {
+            return Result<DistrictEvent>.Failure("Invalid keywords.");
+        }
+
+        var schedule = dto.Schedule is null
+            ? existingEvent.Event.Schedule
+            : MapSchedule(dto.Schedule);
+
+        if (!Validator.IsScheduleValid(schedule, startDate, endDate))
+            return Result<DistrictEvent>.Failure("Invalid schedule.");
+
+        if (dto.Offers is not null &&
+            !Validator.AreOffersValid(dto.Offers, startDate, endDate))
+        {
+            return Result<DistrictEvent>.Failure("Invalid offers.");
+        }
+
+        var offers = dto.Offers is null
+            ? existingEvent.Event.Offers
+            : MapOffers(dto.Offers);
+
+        if (!Validator.AreOffersValid(offers, startDate, endDate))
+            return Result<DistrictEvent>.Failure("Invalid offers.");
 
         var eventType = dto.Type ?? existingEvent.Event.Type ?? EventType.Outro;
         var description = dto.Description?.Trim() ?? existingEvent.Event.Description;
@@ -128,6 +235,11 @@ public class EventService(IMongoDatabase database)
         var locationName = location?.Name;
         var district = location?.District ?? existingEvent.District;
         var title = dto.Title?.Trim() ?? existingEvent.Event.Title;
+        var alternateName = dto.AlternateName?.Trim() ?? existingEvent.Event.AlternateName;
+        var imageUrl = dto.ImageUrl?.Trim() ?? existingEvent.Event.ImageUrl;
+        var keywords = dto.Keywords is null
+            ? existingEvent.Event.Keywords
+            : MapKeywords(dto.Keywords);
 
         if (!Validator.IsTitleValid(title))
             return Result<DistrictEvent>.Failure("Invalid title.");
@@ -148,7 +260,10 @@ public class EventService(IMongoDatabase database)
             existingEvent.Event.Performers = MapAgents(dto.Performers);
 
         if (dto.Schedule is not null)
-            existingEvent.Event.Schedule = MapSchedule(dto.Schedule);
+            existingEvent.Event.Schedule = schedule;
+
+        if (dto.Offers is not null)
+            existingEvent.Event.Offers = offers;
 
         existingEvent.District = district;
         existingEvent.Event.Title = title;
@@ -157,6 +272,17 @@ public class EventService(IMongoDatabase database)
         existingEvent.Event.EndDate = endDate;
         existingEvent.Event.Location = location;
         existingEvent.Event.SourceUrl = dto.SourceUrl?.Trim() ?? existingEvent.Event.SourceUrl;
+        existingEvent.Event.AlternateName = alternateName;
+        existingEvent.Event.ImageUrl = imageUrl;
+        existingEvent.Event.DoorTime = dto.DoorTime ?? existingEvent.Event.DoorTime;
+        existingEvent.Event.IsAccessibleForFree =
+            dto.IsAccessibleForFree ?? existingEvent.Event.IsAccessibleForFree;
+        existingEvent.Event.PhysicalAccessibility =
+            dto.PhysicalAccessibility ?? existingEvent.Event.PhysicalAccessibility;
+        existingEvent.Event.AgeRating = dto.AgeRating ?? existingEvent.Event.AgeRating;
+        existingEvent.Event.MaximumAttendeeCapacity =
+            dto.MaximumAttendeeCapacity ?? existingEvent.Event.MaximumAttendeeCapacity;
+        existingEvent.Event.Keywords = keywords;
         existingEvent.Event.Type = eventType;
         existingEvent.Event.QualityScore = EventQualityService.ComputeQualityScore(
             description,
@@ -254,6 +380,31 @@ public class EventService(IMongoDatabase database)
             .ToList() ?? new();
     }
 
+    private static OfferModel MapOffer(EventOfferRequestDto dto) => new()
+    {
+        Name = dto.Name.Trim(),
+        Price = dto.Price,
+        PriceCurrency = dto.PriceCurrency.Trim().ToUpperInvariant(),
+        Availability = dto.Availability.Trim(),
+        Url = dto.Url?.Trim(),
+        ValidFrom = dto.ValidFrom
+    };
+
+    private static List<OfferModel> MapOffers(
+        IEnumerable<EventOfferRequestDto>? offers)
+    {
+        return offers?
+            .Select(MapOffer)
+            .ToList() ?? new();
+    }
+
+    private static List<string> MapKeywords(IEnumerable<string>? keywords)
+    {
+        return keywords?
+            .Select(keyword => keyword.Trim())
+            .ToList() ?? new();
+    }
+
     private static ScheduleModel? MapSchedule(EventScheduleRequestDto? dto)
   {
       if (dto is null)
@@ -263,9 +414,9 @@ public class EventService(IMongoDatabase database)
       {
           StartDate = dto.StartDate,
           EndDate = dto.EndDate,
-          StartTime = dto.StartTime,
-          EndTime = dto.EndTime,
-          TimeZone = dto.TimeZone ?? "Europe/Lisbon",
+          StartTime = dto.StartTime?.Trim(),
+          EndTime = dto.EndTime?.Trim(),
+          TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
           RepeatDays = dto.RepeatDays
       };
   }
