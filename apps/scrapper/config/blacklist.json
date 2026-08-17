@@ -1,0 +1,12 @@
+[
+  "**.pdf",
+  "**.jpg",
+  "**.png",
+  "**.docx",
+  "**/contactos/**",
+  "**/acessibilidade/**",
+  "**/mapa-do-site/**",
+  "**/login/**",
+  "**/register/**",
+  "**/imprimir/**"
+]
