@@ -1,0 +1,8 @@
+[
+  "**.pdf",
+  "**.jpg",
+  "**/noticias/**",
+  "**/contactos/**",
+  "**/login/**",
+  "**/imprimir/**"
+]
