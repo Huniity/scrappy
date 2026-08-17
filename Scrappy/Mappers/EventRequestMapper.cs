@@ -21,7 +21,8 @@ public static class EventRequestMapper
     /// <returns>A new <see cref="DistrictEvent"/> entity with properties mapped from the provided DTO.</returns>
     public static DistrictEvent ToEntity(this CreateEventDto dto) => new()
     {
-        District = dto.Location.District,
+        District = dto.Location.District
+            ?? throw new ArgumentException("Location district is required.", nameof(dto)),
         Event = new Event
         {
             Title = dto.Title,
@@ -70,7 +71,8 @@ public static class EventRequestMapper
         if (dto.Location is not null)
         {
             eventModel.Location = dto.Location.ToEventLocation();
-            entity.District = dto.Location.District;
+            entity.District = dto.Location.District
+                ?? throw new ArgumentException("Location district is required.", nameof(dto));
         }
         if (dto.Organizer is not null) eventModel.Organizer = dto.Organizer.ToAgentModel();
         if (dto.Promoter is not null) eventModel.Promoter = dto.Promoter.ToAgentModel();
@@ -84,9 +86,12 @@ public static class EventRequestMapper
     public static EventLocation ToEventLocation(this EventLocationRequestDto dto) => new()
     {
         Name = dto.Name,
-        Locality = dto.Locality,
-        District = dto.District,
-        Region = dto.Region,
+        Locality = dto.Locality
+            ?? throw new ArgumentException("Location locality is required.", nameof(dto)),
+        District = dto.District
+            ?? throw new ArgumentException("Location district is required.", nameof(dto)),
+        Region = dto.Region
+            ?? throw new ArgumentException("Location region is required.", nameof(dto)),
         Country = dto.Country,
         DicoCode = dto.DicoCode,
         Latitude = ParseCoordinate(dto.Latitude),
