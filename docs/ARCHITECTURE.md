@@ -29,7 +29,7 @@ This document details the complete data flow, architecture layers, dependencies,
             ▼ (Pop Jobs & Process Rate Limits)
   [ QUEUE WORKER ] (`apps/queue-worker`)
             │
-            ▼ (HTTP POST /api/v1/events)
+            ▼ (HTTP POST /events)
   [ SCRAPPY API Engine ] (`apps/api`)
             │
             ▼ (Validate, Infer Territory, Calculate QualityScore, Map)
@@ -50,7 +50,7 @@ This document details the complete data flow, architecture layers, dependencies,
 ### A. Asynchronous Ingestion Flow (Scraping -> DB)
 1. **Extraction:** Scrapers inside `apps/scraper` extract raw HTML/JSON from Portuguese municipal event pages using Crawlee (Cheerio for fast static extraction, Playwright for dynamic SPAs).
 2. **Buffering & Queueing:** Raw event payloads are pushed as jobs into Redis queues managed by **BullMQ**. This provides fault tolerance, rate limiting, and exponential backoff retries.
-3. **Queue Processing:** `apps/queue-worker` consumes jobs from BullMQ and sends them via HTTP `POST /api/v1/events` to the .NET API.
+3. **Queue Processing:** `apps/queue-worker` consumes jobs from BullMQ and sends them via HTTP `POST /events` to the .NET API.
 4. **Ingestion & Validation (.NET API):**
    - **Validator:** Cleans raw HTML text and validates mandatory fields (`Title`, `StartDate`, `SourceUrl`).
    - **GeoDataService:** Automatically infers `DistrictName`, `Nuts2Region`, and the 4-digit `DicoCode` based on municipal locality mappings.
@@ -64,7 +64,7 @@ This document details the complete data flow, architecture layers, dependencies,
 
 #### 1. REST Frontend Client Flow (React / Next.js / Mobile)
 ```text
-HTTP Request (GET /api/v1/events/search)
+HTTP Request (GET /events/search)
   └──> EventsController
         └──> EventQueryService (Applies MongoDB FilterDefinition, Pagination, Sorting)
               └──> MongoDB Execution
@@ -74,7 +74,7 @@ HTTP Request (GET /api/v1/events/search)
 
 #### 2. Interoperability Public Flow (AMA / ARTE / Schema.org)
 ```text
-HTTP Request (GET /api/v1/events/{id} with Accept: application/ld+json)
+HTTP Request (GET /events/{id} with Accept: application/ld+json)
   └──> EventsController
         └──> EventService (GetByIdAsync)
               └──> EventSchemaOrgMapper (Converts DistrictEvent -> SchemaOrgEventDto)

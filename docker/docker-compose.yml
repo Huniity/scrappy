@@ -18,7 +18,8 @@ services:
 
 
   mongodb:
-    image: mongo:latest
+    # image: mongo:latest
+    image: mongo:8.3.8-noble
     container_name: scrappy_mongo
     ports:
       - "27017:27017"
@@ -29,12 +30,19 @@ services:
 
 
   redis:
-    image: redis:alpine
+    # image: redis:alpine
+    image: redis:8.10.0-alpine
     container_name: scrappy_redis
     ports:
       - "6379:6379"
     volumes: 
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6379"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   redis_data:

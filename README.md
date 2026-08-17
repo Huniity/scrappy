@@ -1,5 +1,5 @@
 # scrappy
-Event Scrapper for Municípios de Portugal
+Event scraper for Municípios de Portugal
 
 ## Development
 
