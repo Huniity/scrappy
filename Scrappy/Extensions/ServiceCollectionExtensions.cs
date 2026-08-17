@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.OpenApi;
 using MongoDB.Driver;
 using Scrappy.Services;
+using Scrappy.Services.Interfaces;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -178,6 +179,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<EventFilterService>();
         services.AddScoped<EventSortingService>();
         services.AddScoped<EventQueryService>();
+        services.AddSingleton<GeoDataService>();
 
         return services;
     }

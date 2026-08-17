@@ -1,5 +1,7 @@
 
 
+using Scrappy.DTOs.Common;
+
 namespace Scrappy.DTOs.Responses;
 
 /// <summary>
@@ -29,7 +31,7 @@ public class EventLocationResponseDto
     public string District { get; set; } = string.Empty;
 
     /// <summary> Gets or sets the NUTS2 region of the event location. </summary>
-    public string Region { get; set; } = string.Empty;
+    public CodeNameDto Region { get; set; } = new(string.Empty, string.Empty);
 
     /// <summary> Gets or sets the country of the event location, which is always "PT" for this DTO. </summary>
     public string Country { get; set; } = "PT";

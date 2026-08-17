@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models;
 
-namespace Scrappy.Models.Entities;
+namespace Scrappy.Models.Entities.Enums;
 
 /// <summary>
 /// Administrative localities of Portugal.
@@ -627,8 +627,9 @@ public enum LocalityName
     [Display(Name = "Paredes de Coura")]
     ParedesDeCoura,
 
-    /// <summary>Locality of Pedroso / Vila Nova de Gaia</summary>
-    Pedroso,
+    /// <summary>Locality of Castanheira de Pera</summary>
+    [Display(Name = "Castanheira de Pera")]
+    CastanheiraDePera,
 
     /// <summary>Locality of Pedrógão Grande</summary>
     [Display(Name = "Pedrógão Grande")]
@@ -1033,5 +1034,24 @@ public enum LocalityName
     Vizela,
 
     /// <summary>Locality of Vouzela</summary>
-    Vouzela
+    Vouzela,
+
+    /// <summary>Locality of Seia</summary>
+    Seia,
+
+    /// <summary>Locality of Moimenta da Beira</summary>
+    [Display(Name = "Moimenta da Beira")]
+    MoimentaDaBeira,
+
+    /// <summary>Locality of Santa Marta de Penaguião</summary>
+    [Display(Name = "Santa Marta de Penaguião")]
+    SantaMartaDePenaguião,
+
+    /// <summary>Locality of São Vicente</summary>
+    [Display(Name = "São Vicente")]
+    SãoVicente,
+
+    /// <summary>Locality of Vila Nova de Paiva</summary>
+    [Display(Name = "Vila Nova de Paiva")]
+    VilaNovaDePaiva
 }

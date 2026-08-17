@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Scrappy.Models.Entities;
+namespace Scrappy.Models.Entities.Enums;
 
 
 /// <summary>

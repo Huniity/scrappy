@@ -35,7 +35,7 @@ public class SchemaOrgOfferDto
 
     /// <summary> Gets or sets the price of the product. </summary>
     [JsonPropertyName("price")]
-    public string Price { get; set; } = string.Empty;
+    public string Price { get; set; }
 
     /// <summary> Gets or sets the currency of the price, which is always "EUR" for this DTO. </summary>
     [JsonPropertyName("priceCurrency")]
@@ -51,5 +51,5 @@ public class SchemaOrgOfferDto
 
     /// <summary> Gets or sets the date and time from which the product is valid. </summary>
     [JsonPropertyName("validFrom")]
-    public string ValidFrom { get; set; } = string.Empty;
+    public string ValidFrom { get; set; }
 }

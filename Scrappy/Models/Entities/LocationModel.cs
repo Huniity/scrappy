@@ -1,8 +1,11 @@
+
+
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
-namespace Scrappy.Models;
+namespace Scrappy.Models.Entities;
 
-public class EventLocation
+public class LocationModel
 {
     public string Name { get; set; } = string.Empty;
     public LocalityName Locality { get; set; }

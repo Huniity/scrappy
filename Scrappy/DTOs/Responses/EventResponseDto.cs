@@ -130,4 +130,6 @@ public class EventResponseDto
 
     /// <summary> Gets or sets the schedule information of the event. </summary>
     public EventScheduleResponseDto? Schedule { get; set; }
+
+    public List<EventOfferResponseDto> Offers { get; set; } = new();
 }

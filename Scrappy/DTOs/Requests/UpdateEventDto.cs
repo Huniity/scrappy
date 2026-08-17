@@ -1,5 +1,8 @@
+
+
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models.Entities;
+using Scrappy.Models.Entities.Enums;
 
 namespace Scrappy.DTOs.Requests;
 
@@ -119,4 +122,6 @@ public class UpdateEventDto
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }
+
+    public List<EventOfferRequestDto>? Offers { get; set; }
 }

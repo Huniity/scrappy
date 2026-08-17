@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Scrappy.Models;
 using System.ComponentModel;
 
-namespace Scrappy.Models.Entities;
+namespace Scrappy.Models.Entities.Enums;
 
 /// <summary>
 /// Administrative region divisions of Portugal that follows DICO.

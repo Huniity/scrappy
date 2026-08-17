@@ -1,6 +1,7 @@
 
 
 using Scrappy.Models;
+using Scrappy.Models.Entities;
 using Scrappy.DTOs;
 using Scrappy.Common;
 using Scrappy.Validators;
@@ -15,7 +16,7 @@ public class EventSortingService
     {
         var sort = Builders<DistrictEvent>.Sort;
 
-        return sortBy?.ToLower() switch
+        return sortBy?.Trim().ToLowerInvariant() switch
         {
             "date_asc" => sort.Ascending(e => e.Event.StartDate),
             "date_desc" => sort.Descending(e => e.Event.StartDate),
@@ -31,7 +32,7 @@ public class EventSortingService
             // "price_desc" => sort.Descending(e => e.Event.Price),
             // "is_free_asc" => sort.Ascending(e => e.IsFree),
             // "is_free_desc" => sort.Descending(e => e.IsFree),
-            _ => sort.Ascending(e => e.Event.StartDate)
+            _ => sort.Descending(e => e.Event.StartDate)
         };
     }
 }
