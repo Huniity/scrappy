@@ -36,4 +36,6 @@ export type NormalizedEvent = {
     locality?: string;
     streetAddress?: string;
     country?: string;
+    latitude?: string;
+    longitude?: string;
 };

@@ -1,11 +1,16 @@
-import { chromium, type Page } from 'playwright';
+import { chromium } from 'playwright';
+
 import {
     type NormalizedEvent,
 } from './types/events';
 
-import { scrapeViralAgendaEvent, getViralAgendaEventUrls } from './crawlers/viralAgenda';
+import {
+    scrapeViralAgendaEvent,
+    getViralAgendaEventUrls,
+} from './crawlers/viralAgenda';
 
-
+import { classifyEventType } from './enrichment/eventType';
+import { deduplicateEvents } from './deduplication/events';
 
 
 async function main() {
@@ -16,7 +21,8 @@ async function main() {
     try {
         const page = await browser.newPage();
 
-      const uniqueEventUrls = await getViralAgendaEventUrls(page);
+        const uniqueEventUrls =
+            await getViralAgendaEventUrls(page);
 
         console.log(
             'Eventos únicos encontrados:',
@@ -28,7 +34,8 @@ async function main() {
             uniqueEventUrls.slice(0, 5)
         );
 
-        // 4. Criar array onde vamos guardar os eventos
+        // 4. Criar array onde vamos guardar
+        // os eventos encontrados
         const events: NormalizedEvent[] = [];
 
         // 5. Percorrer todos os URLs encontrados
@@ -36,10 +43,11 @@ async function main() {
             console.log('\nA abrir evento:');
             console.log(eventUrl);
 
-            const event = await scrapeViralAgendaEvent(
-                page,
-                eventUrl
-            );
+            const event =
+                await scrapeViralAgendaEvent(
+                    page,
+                    eventUrl
+                );
 
             if (!event) {
                 console.log(
@@ -49,6 +57,11 @@ async function main() {
                 continue;
             }
 
+            console.log(
+                'Tipo classificado:',
+                classifyEventType(event)
+            );
+
             events.push(event);
 
             console.log(
@@ -57,14 +70,29 @@ async function main() {
             );
         }
 
-        // 6. Mostrar resultado final
+        // 6. Mostrar quantos eventos foram normalizados
         console.log(
             '\nTOTAL DE EVENTOS NORMALIZADOS:',
             events.length
         );
 
+        // 7. Remover eventos duplicados
+        const uniqueEvents =
+            deduplicateEvents(events);
+
         console.log(
-            JSON.stringify(events, null, 2)
+            'TOTAL APÓS DEDUPLICAÇÃO:',
+            uniqueEvents.length
+        );
+
+        // 8. Mostrar apenas os eventos finais,
+        // depois da deduplicação
+        console.log(
+            JSON.stringify(
+                uniqueEvents,
+                null,
+                2
+            )
         );
     } finally {
         await browser.close();
