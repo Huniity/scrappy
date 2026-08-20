@@ -27,5 +27,4 @@
 			]
 		}
 	},
-	"postCreateCommand": "npm install -g @openai/codex"
-}
+	"postCreateCommand": ["npm install -g @openai/codex", "npm install -g @anthropic-ai/claude-code"]
