@@ -20,12 +20,55 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"evgo2017.killport-vscode",
-				"Postman.postman-for-vscode",
+				// "evgo2017.killport-vscode",
+				// "Postman.postman-for-vscode",
 				"mongodb.mongodb-vscode",
 				"yoavbls.pretty-ts-errors"
 			]
 		}
 	},
-	"postCreateCommand": "npm install -g @openai/codex @anthropic-ai/claude-code"
+	"postCreateCommand": "npm install -g @openai/codex"
 }
+
+
+// {
+//     "name": "Scrappy Dev Environment",
+//     "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+//     // 1. Cap RAM usage directly at the container level
+//     "runArgs": [
+//         "--memory=512m",
+//         "--memory-swap=512m"
+//     ],
+
+//     "features": {
+//         // 2. Swapped docker-in-docker for docker-outside-of-docker (uses host daemon, saves ~300MB RAM)
+//         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+//             "version": "latest",
+//             "enableNonRootDocker": "true"
+//         },
+//         "ghcr.io/devcontainers/features/dotnet:2": {},
+//         "ghcr.io/devcontainers/features/node:2": {},
+//         "ghcr.io/devcontainers-extra/features/pnpm:2": {},
+//         "ghcr.io/devcontainers-extra/features/typescript:2": {}
+//     },
+
+//     "forwardPorts": [5000, 27017, 6379],
+
+//     "customizations": {
+//         "vscode": {
+//             "extensions": [
+//                 "yoavbls.pretty-ts-errors"
+//             ],
+//             // 3. Force heavy tools to run on the host system instead of inside the container
+//             "settings": {
+//                 "remote.extensionKind": {
+//                     "mongodb.mongodb-vscode": ["ui"]
+//                 }
+//             }
+//         }
+//     },
+
+//     // 4. Removed unused Claude CLI install to save node process memory
+//     "postCreateCommand": "npm install -g @openai/codex"
+// }
