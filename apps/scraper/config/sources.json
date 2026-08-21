@@ -1,3 +1,8 @@
 [
-    "https://www.viralagenda.com/pt/faro/faro"
+    {
+        "sourceId": "viral-agenda",
+        "sourceUrl": "https://www.viralagenda.com/pt",
+        "engine": "cheerio",
+        "timezone": "Europe/Lisbon"
+    }
 ]
