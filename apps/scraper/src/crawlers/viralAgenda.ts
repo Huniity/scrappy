@@ -1,4 +1,5 @@
 import { type Page } from 'playwright';
+
 import {
     type NormalizedEvent,
     type ValidViralAgendaEvent,
@@ -6,7 +7,6 @@ import {
 } from '../types/events';
 
 import { normalizeViralAgendaEvent } from '../normalization/viralAgenda';
-
 
 export async function scrapeViralAgendaEvent(
     page: Page,
@@ -19,7 +19,6 @@ export async function scrapeViralAgendaEvent(
     let latitude: string | undefined;
     let longitude: string | undefined;
 
-    // TESTE TEMPORÁRIO: abrir mapa e extrair coordenadas
     const mapButton = page.getByText('Ver mapa', {
         exact: true,
     });
@@ -27,13 +26,15 @@ export async function scrapeViralAgendaEvent(
     const mapButtonCount = await mapButton.count();
 
     if (mapButtonCount > 0) {
-        await mapButton.first().click();
-
-        const mapLink = page.locator(
-            'a[href*="maps.google.com/maps?ll="]'
-        );
-
         try {
+            await mapButton.first().click({
+                force: true,
+            });
+
+            const mapLink = page.locator(
+                'a[href*="maps.google.com/maps?ll="]'
+            );
+
             await mapLink.first().waitFor({
                 state: 'attached',
                 timeout: 5000,
@@ -52,16 +53,6 @@ export async function scrapeViralAgendaEvent(
                 if (coordinates) {
                     [latitude, longitude] =
                         coordinates.split(',');
-
-                    console.log(
-                        'Latitude:',
-                        latitude
-                    );
-
-                    console.log(
-                        'Longitude:',
-                        longitude
-                    );
                 }
             }
         } catch {
@@ -76,13 +67,10 @@ export async function scrapeViralAgendaEvent(
     }
 
     const jsonLdScripts = await page
-        .locator('script[type="application/ld+json"]')
+        .locator(
+            'script[type="application/ld+json"]'
+        )
         .allTextContents();
-
-    console.log(
-        'Quantidade de JSON-LD:',
-        jsonLdScripts.length
-    );
 
     if (jsonLdScripts.length === 0) {
         return null;
@@ -109,13 +97,15 @@ export async function scrapeViralAgendaEvent(
             };
 
             const normalizedEvent =
-                normalizeViralAgendaEvent(validData);
+                normalizeViralAgendaEvent(
+                    validData
+                );
 
             normalizedEvent.latitude = latitude;
             normalizedEvent.longitude = longitude;
 
             return normalizedEvent;
-        } catch (error) {
+        } catch {
             console.log(
                 'Este JSON-LD não conseguiu ser convertido.'
             );
@@ -129,24 +119,31 @@ export async function getViralAgendaEventUrls(
     page: Page
 ): Promise<string[]> {
     await page.goto(
-        'https://www.viralagenda.com/pt/faro/faro',
+        'https://www.viralagenda.com/pt/',
         {
             waitUntil: 'domcontentloaded',
         }
     );
 
-    console.log('Página:', await page.title());
+    console.log(
+        'Página:',
+        await page.title()
+    );
 
     const eventUrls = await page
         .locator('a[href*="/pt/events/"]')
         .evaluateAll((elements) =>
             elements.map(
                 (element) =>
-                    (element as HTMLAnchorElement).href
+                    (
+                        element as HTMLAnchorElement
+                    ).href
             )
         );
 
-    const uniqueEventUrls = [...new Set(eventUrls)];
+    const uniqueEventUrls = [
+        ...new Set(eventUrls),
+    ];
 
     return uniqueEventUrls;
 }

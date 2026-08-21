@@ -22,6 +22,8 @@
     "*.cs": "dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes --include"
   },
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
     "bullmq": "^6.1.1",
     "crawlee": "^3.18.1",
     "dotenv": "^17.4.2",

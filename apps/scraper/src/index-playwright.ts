@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 
+import { resolveLocation } from './enrichment/location';
 import {
     type NormalizedEvent,
 } from './types/events';
@@ -9,9 +10,7 @@ import {
     getViralAgendaEventUrls,
 } from './crawlers/viralAgenda';
 
-import { classifyEventType } from './enrichment/eventType';
 import { deduplicateEvents } from './deduplication/events';
-
 
 async function main() {
     const browser = await chromium.launch({
@@ -29,20 +28,9 @@ async function main() {
             uniqueEventUrls.length
         );
 
-        console.log(
-            'Primeiros 5:',
-            uniqueEventUrls.slice(0, 5)
-        );
-
-        // 4. Criar array onde vamos guardar
-        // os eventos encontrados
         const events: NormalizedEvent[] = [];
 
-        // 5. Percorrer todos os URLs encontrados
         for (const eventUrl of uniqueEventUrls) {
-            console.log('\nA abrir evento:');
-            console.log(eventUrl);
-
             const event =
                 await scrapeViralAgendaEvent(
                     page,
@@ -51,45 +39,84 @@ async function main() {
 
             if (!event) {
                 console.log(
-                    'Nenhum evento válido encontrado nesta página.'
+                    'Nenhum evento válido encontrado:',
+                    eventUrl
                 );
 
                 continue;
             }
 
-            console.log(
-                'Tipo classificado:',
-                classifyEventType(event)
-            );
+            const resolvedLocation =
+                resolveLocation(event);
+
+            if (resolvedLocation) {
+                event.locality =
+                    resolvedLocation.locality;
+
+                event.latitude =
+                    resolvedLocation.latitude;
+
+                event.longitude =
+                    resolvedLocation.longitude;
+            }
 
             events.push(event);
-
-            console.log(
-                'Evento guardado:',
-                event.title
-            );
         }
 
-        // 6. Mostrar quantos eventos foram normalizados
+        const deduplicatedEvents =
+            deduplicateEvents(events);
+
+        const unresolvedLocationEvents =
+            deduplicatedEvents.filter(
+                (event) => !event.locality
+            );
+
+        const resolvedLocationsCount =
+            deduplicatedEvents.length -
+            unresolvedLocationEvents.length;
+
         console.log(
             '\nTOTAL DE EVENTOS NORMALIZADOS:',
             events.length
         );
 
-        // 7. Remover eventos duplicados
-        const uniqueEvents =
-            deduplicateEvents(events);
-
         console.log(
             'TOTAL APÓS DEDUPLICAÇÃO:',
-            uniqueEvents.length
+            deduplicatedEvents.length
         );
 
-        // 8. Mostrar apenas os eventos finais,
-        // depois da deduplicação
+        console.log(
+            'Eventos com localização resolvida:',
+            resolvedLocationsCount
+        );
+
+        console.log(
+            'Eventos sem localização resolvida:',
+            unresolvedLocationEvents.length
+        );
+
+        if (
+            unresolvedLocationEvents.length > 0
+        ) {
+            console.log(
+                'Eventos sem localização resolvida:',
+                unresolvedLocationEvents.map(
+                    (event) => ({
+                        title: event.title,
+                        venueName:
+                            event.venueName,
+                        locality:
+                            event.locality,
+                        streetAddress:
+                            event.streetAddress,
+                    })
+                )
+            );
+        }
+
         console.log(
             JSON.stringify(
-                uniqueEvents,
+                deduplicatedEvents,
                 null,
                 2
             )
