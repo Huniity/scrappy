@@ -1,9 +1,13 @@
 
 
 import { createCheerioRouter } from 'crawlee';
-import { extractViralAgendaJsonLd } from './sources/viralAgenda/extract';
-import { normalizeViralAgendaEvent } from './src/normalization/viralAgenda';
 import blacklist from './config/blacklist.json';
+import { extractViralAgendaJsonLd } from './sources/viralAgenda/extract';
+import { normalizeViralAgendaDates } from './src/normalization/dates';
+import { normalizeViralAgendaEvent } from './src/normalization/viralAgenda';
+import { classifyEventType } from './src/enrichment/eventType';
+import { rawEventSchema } from '../shared/rawEvent';
+import { normalizedUrl } from '../shared/jobId'
 
 
 export const router = createCheerioRouter();
@@ -17,13 +21,13 @@ export const router = createCheerioRouter();
  * @param {Object} context.request - The current request being processed.
  */
 router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
-  log.info(`Processing URL: ${request.url}`);
+    log.info(`Processing URL: ${request.url}`);
 
-  await enqueueLinks({
-    selector: 'a[href*="/pt/events/"]',
-    label: 'EVENT_DETAIL',
-    exclude: blacklist,
-  });
+    await enqueueLinks({
+        selector: 'a[href*="/pt/events/"]',
+        label: 'EVENT_DETAIL',
+        exclude: blacklist,
+    });
 });
 
 /**
@@ -37,21 +41,57 @@ router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
 router.addHandler(
     'EVENT_DETAIL',
     async ({ request, $, log }) => {
-      const extracted =
-        extractViralAgendaJsonLd($, request.url);
+        const extracted =
+            extractViralAgendaJsonLd($, request.url);
 
-      if (!extracted) {
-        log.warning(
-          `No Viral Agenda event found: ${request.url}`,
+        if (!extracted) {
+            log.warning(
+                `No Viral Agenda event found: ${request.url}`,
+            );
+            return;
+        }
+
+        const normalized = normalizeViralAgendaEvent(extracted);
+        const normalizedDates = normalizeViralAgendaDates(normalized);
+
+        if (!normalizedDates) {
+            log.warning(
+                `Invalid dates for event: ${request.url}`,
+            );
+            return;
+        }
+
+        const normalizedEvent = {
+            ...normalizedDates,
+            type: classifyEventType(normalizedDates),
+        }
+        log.info(
+            `Event found: ${JSON.stringify(normalizedEvent)}`,
         );
-        return;
-      }
 
-      const normalized =
-        normalizeViralAgendaEvent(extracted);
+        const rawEventCandidate = {
+            title: normalizedEvent.title,
+            description: normalizedEvent.description,
+            sourceUrl: normalizedUrl(normalizedEvent.sourceUrl),
+            startDate: normalizedEvent.startDate,
+            endDate: normalizedEvent.endDate,
+            type: normalizedEvent.type,
+            locationName: normalizedEvent.venueName,
+            locality: normalizedEvent.locality,
+        };
 
-      log.info(
-        `Event found: ${JSON.stringify(normalized)}`,
-      );
+        const validation = rawEventSchema.safeParse(rawEventCandidate);
+
+        if (!validation.success) {
+            log.warning(
+                `Invalid raw event data: ${JSON.stringify(validation.error.issues)}`,
+            );
+            return;
+        }
+
+        log.info(
+            `Valid raw event data: ${JSON.stringify(validation.data)}`,
+        );
+
     },
 );
