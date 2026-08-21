@@ -27,10 +27,10 @@ This document details the complete data flow, architecture layers, dependencies,
    [ REDIS + BULLMQ QUEUE ] 
             │
             ▼ (Pop Jobs & Process Rate Limits)
-  [ QUEUE WORKER ] (`apps/queue-worker`)
+  [ INGESTION WORKER ] (`apps/ingestion`)
             │
             ▼ (HTTP POST /events)
-  [ SCRAPPY API Engine ] (`apps/api`)
+  [ SCRAPPY API Engine ] (`Scrappy/`)
             │
             ▼ (Validate, Infer Territory, Calculate QualityScore, Map)
     [ MONGODB DATABASE ]
@@ -39,8 +39,8 @@ This document details the complete data flow, architecture layers, dependencies,
   ┌─────────┴────────────────────────┐
   │                                  │
   ▼ (HTTP REST / JSON)               ▼ (HTTP / application/ld+json)
-[ NEXT.JS FRONTEND ]               [ AMA / ARTE PORTALS & PUBLIC CONSUMERS ]
- (`apps/web`)
+[ FRONTEND ]                       [ AMA / ARTE PORTALS & PUBLIC CONSUMERS ]
+ (planned, not in repo)
 ```
 
 ---
@@ -50,7 +50,7 @@ This document details the complete data flow, architecture layers, dependencies,
 ### A. Asynchronous Ingestion Flow (Scraping -> DB)
 1. **Extraction:** Scrapers inside `apps/scraper` extract raw HTML/JSON from Portuguese municipal event pages using Crawlee (Cheerio for fast static extraction, Playwright for dynamic SPAs).
 2. **Buffering & Queueing:** Raw event payloads are pushed as jobs into Redis queues managed by **BullMQ**. This provides fault tolerance, rate limiting, and exponential backoff retries.
-3. **Queue Processing:** `apps/queue-worker` consumes jobs from BullMQ and sends them via HTTP `POST /events` to the .NET API.
+3. **Queue Processing:** `apps/ingestion` consumes jobs from BullMQ and sends them via HTTP `POST /events` to the .NET API.
 4. **Ingestion & Validation (.NET API):**
    - **Validator:** Cleans raw HTML text and validates mandatory fields (`Title`, `StartDate`, `SourceUrl`).
    - **GeoDataService:** Automatically infers `DistrictName`, `Nuts2Region`, and the 4-digit `DicoCode` based on municipal locality mappings.
@@ -86,7 +86,7 @@ HTTP Request (GET /events/{id} with Accept: application/ld+json)
 
 ## 🧱 Internal API Architecture (.NET 10 Clean Architecture)
 
-Data strictly moves through defined responsibilities inside `apps/api`:
+Data strictly moves through defined responsibilities inside `Scrappy/`:
 
 ```text
 HTTP Request ──> [ Controller ] ──> [ Validator ] ──> [ Extension Mappers ] ──> [ Service Layer ] ──> [ Data Models / MongoDB ]
@@ -109,17 +109,18 @@ HTTP Response <── [ Controller ] <── [ Extension Mappers ] <────
 
 ```text
 scrappy/
+├── Scrappy/          # C# .NET 10 Web API Core
+├── Scrappy.Tests/    # API unit tests
 ├── apps/
-│   ├── api/          # C# .NET 10 Web API Core
 │   ├── scraper/      # Ingestion Crawler Engine (Node.js + Crawlee)
-│   ├── queue-worker/ # BullMQ Async Queue Consumer
-│   └── web/          # Next.js / React Frontend Application
-├── packages/
-│   ├── shared-types/ # Shared TypeScript Contracts
-│   └── eslint-config/ # Uniform Code Formatting
-├── docker/           # Docker Compose Infrastructure (MongoDB + Redis + Services)
+│   ├── ingestion/    # BullMQ queue producer + API worker
+│   └── shared/       # Shared Zod schemas, Redis config, utilities
+├── docker/           # Docker Compose Infrastructure (MongoDB + Redis + API)
 └── docs/             # Technical Specs & Guidelines
 ```
+
+A frontend (`apps/web`) and a `packages/` tier are planned but not present in the
+repository yet. Shared TypeScript contracts currently live in `apps/shared/`.
 
 ---
 
@@ -129,7 +130,7 @@ scrappy/
 | :--- | :--- | :--- |
 | **Scraper** | Web crawling & raw data extraction | Crawlee, Playwright, Cheerio, Node.js |
 | **Queue Manager** | Job scheduling, rate limiting, and retries | BullMQ, Redis |
-| **Queue Worker** | Bridge between Redis queues and API ingestion | Node.js, TypeScript, Axios |
+| **Ingestion Worker** | Bridge between Redis queues and API ingestion | Node.js, TypeScript, `fetch` |
 | **Web API** | Ingestion pipeline, queries, and REST/JSON-LD endpoints | .NET 10, C# |
 | **Database** | Flexible document storage & geospatial queries | MongoDB |
-| **Frontend** | User UI, event search, and filtering | Next.js, React, Tailwind CSS |
+| **Frontend** *(planned)* | User UI, event search, and filtering | Next.js, React, Tailwind CSS |
