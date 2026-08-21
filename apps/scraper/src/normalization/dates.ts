@@ -14,8 +14,11 @@ type DateType = 'start' | 'end';
  * @returns The extracted timezone offset in the format of ±HH:MM, or undefined if no offset is found.
  */
 function getOffset(value: string): string | undefined {
+    if (value.endsWith('Z')) {
+        return 'Z';
+    }
     const match = value.match(/([+-]\d{2}):?(\d{2})$/);
-    return match?.[1];
+    return match ? `${match[1]}:${match[2]}` : undefined;
 }
 
 /**
@@ -55,14 +58,13 @@ function normalizeDate(
             return undefined;
         }
 
-        const time = type === 'start' ? 'T00:00:00' : 'T23:59:59';
+        const time = type === 'start' ? '00:00:00' : '23:59:59';
 
-        const result = `${value}T${time}${fallbackOffset ?? ''}`;
+        const result = `${value}T${time}${fallbackOffset}`;
 
         return isDateValid(result) ? result : undefined;
     }
 
-    // 
     const localDateTime = value.match(
         /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::(\d{2}))?$/,
     );

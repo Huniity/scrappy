@@ -16,7 +16,7 @@ function isTrackingParameter(name: string): boolean {
   );
 }
 
-export function normalizeUrl(rawUrl: string): string {
+export function normalizedUrl(rawUrl: string): string {
   const url = new URL(rawUrl);
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
@@ -56,9 +56,9 @@ function hash(value: string): string {
 }
 
 export function crawlJobId(sourceUrl: string): string {
-  return `crawl-${hash(normalizeUrl(sourceUrl))}`;
+  return `crawl-${hash(normalizedUrl(sourceUrl))}`;
 }
 
 export function ingestionJobId(sourceUrl: string): string {
-  return `ingestion-${hash(normalizeUrl(sourceUrl))}`;
+  return `ingestion-${hash(normalizedUrl(sourceUrl))}`;
 }
