@@ -179,7 +179,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<EventFilterService>();
         services.AddScoped<EventSortingService>();
         services.AddScoped<EventQueryService>();
-        services.AddSingleton<GeoDataService>();
+        services.AddSingleton<IGeoDataService, GeoDataService>();
 
         return services;
     }

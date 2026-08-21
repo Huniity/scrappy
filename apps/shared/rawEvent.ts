@@ -22,14 +22,14 @@ export const rawEventSchema = z
 
     locality: z.string().trim().min(1),
 
-    district: districtSchema,
+    district: districtSchema.optional(),
 
-    region: nuts2RegionSchema,
+    region: nuts2RegionSchema.optional(),
 
     dicoCode: z.string().regex(
     /^\d{4}$/,
     'DICO code must contain exactly four digits',
-    ),
+    ).optional(),
 
     imageUrl: z.string().url().optional(),
 
