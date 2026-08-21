@@ -3,6 +3,7 @@
 import { Queue } from 'bullmq';
 import { redisConnection } from '../shared/redis';
 import { RawEvent } from '../shared/rawEvent';
+import { ingestionJobId } from '../shared/jobId';
 
 
 
@@ -13,7 +14,7 @@ export async function pushToIngestionQueue(eventData: RawEvent): Promise<void> {
   try {
       console.log('Adding jobs to the ingestion queue...');
       await ingestionQueue.add('process-event', eventData, {
-        jobId: eventData.sourceUrl,
+        jobId: ingestionJobId(eventData.sourceUrl),
         attempts: 3,
         backoff: {
           type: 'exponential',
