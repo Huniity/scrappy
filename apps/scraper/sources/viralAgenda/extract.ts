@@ -75,8 +75,21 @@ function isEventNode(node: JsonObject): boolean {
     });
 }
 
+
+function readLocalityFromPage(
+    $: CheerioAPI,
+): string | undefined {
+    return asString(
+        $('[itemprop="streetAddress"]')
+            .first()
+            .text(),
+    );
+}
+
+
 function readLocation(
     value: unknown,
+    $: CheerioAPI,
 ): ValidViralAgendaEvent['location'] | undefined {
     const locationValue = Array.isArray(value)
         ? value.find(isRecord)
@@ -88,20 +101,23 @@ function readLocation(
 
     const name = asString(locationValue.name);
     const addressValue = locationValue.address;
+    const addressObject = isRecord(addressValue)
+        ? addressValue
+        : {};
 
-    const address = isRecord(addressValue)
-        ? {
-            addressLocality: asString(
-                addressValue.addressLocality,
-            ),
-            streetAddress: asString(
-                addressValue.streetAddress,
-            ),
-            addressCountry: asString(
-                addressValue.addressCountry,
-            ),
-        }
-        : undefined;
+    const address = {
+        addressLocality:
+            asString(addressObject.addressLocality)
+            ?? readLocalityFromPage($),
+
+        streetAddress: asString(
+            addressObject.streetAddress,
+        ),
+
+        addressCountry: asString(
+            addressObject.addressCountry,
+        ),
+    };
 
     const hasAddress = Boolean(
         address &&
@@ -140,6 +156,7 @@ function readImage(
 function toValidEvent(
     node: JsonObject,
     fallbackUrl: string,
+    $: CheerioAPI,
 ): ValidViralAgendaEvent | null {
     if (!isEventNode(node)) {
         return null;
@@ -160,7 +177,7 @@ function toValidEvent(
         endDate: asString(node.endDate),
         description: asString(node.description),
         image: readImage(node.image),
-        location: readLocation(node.location),
+        location: readLocation(node.location, $),
     };
 }
 
@@ -193,6 +210,7 @@ export function extractViralAgendaJsonLd(
             const event = toValidEvent(
                 node,
                 fallbackUrl,
+                $,
             );
 
             if (event) {
