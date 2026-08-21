@@ -9,6 +9,7 @@ using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 using Scrappy.Services.Interfaces;
 using Scrappy.Validators;
+using Scrappy.Services.Interfaces;
 using System.Globalization;
 
 namespace Scrappy.Services;
@@ -20,6 +21,18 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
     public async Task<Result<DistrictEvent>> AddEvent(CreateEventDto dto)
     {
+        if (dto.Location.Locality is null)
+            return Result<DistrictEvent>.Failure("Locality is required in the location.");
+        
+        var geoData = geoDataService.Lookup(dto.Location.Locality.Value);
+
+        if (geoData is null)
+            return Result<DistrictEvent>.Failure("Could not find geo data for the provided locality.");
+
+        dto.Location.District = geoData.Value.District;
+        dto.Location.Region = geoData.Value.Region;
+        dto.Location.DicoCode = geoData.Value.DicoCode;
+
         if (!Validator.IsTitleValid(dto.Title))
             return Result<DistrictEvent>.Failure("Invalid title.");
 
