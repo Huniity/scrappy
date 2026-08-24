@@ -1,9 +1,10 @@
-import { type NormalizedEvent } from '../types/events';
+import {
+    type NormalizedEvent,
+} from '../types/events';
 
 import {
     findExactMunicipality,
     findMunicipalityByCoordinates,
-    findMunicipalityInAddress,
 } from '../geo/municipalities';
 
 export type ResolvedLocation = {
@@ -15,11 +16,6 @@ export type ResolvedLocation = {
 export function resolveLocation(
     event: NormalizedEvent
 ): ResolvedLocation | null {
-    const municipalityFromAddress =
-        findMunicipalityInAddress(
-            event.streetAddress
-        );
-
     const municipalityFromLocality =
         findExactMunicipality(
             event.locality
@@ -33,14 +29,22 @@ export function resolveLocation(
         event.longitude
     ) {
         const latitude =
-            Number(event.latitude);
+            Number(
+                event.latitude
+            );
 
         const longitude =
-            Number(event.longitude);
+            Number(
+                event.longitude
+            );
 
         if (
-            Number.isFinite(latitude) &&
-            Number.isFinite(longitude)
+            Number.isFinite(
+                latitude
+            ) &&
+            Number.isFinite(
+                longitude
+            )
         ) {
             municipalityFromCoordinates =
                 findMunicipalityByCoordinates(
@@ -50,42 +54,49 @@ export function resolveLocation(
         }
     }
 
-    const textualMunicipality =
-        municipalityFromAddress ??
-        municipalityFromLocality;
-
     if (
-        textualMunicipality &&
+        municipalityFromLocality &&
         municipalityFromCoordinates
     ) {
         if (
-            textualMunicipality ===
+            municipalityFromLocality ===
             municipalityFromCoordinates
         ) {
             return {
-                locality: textualMunicipality,
-                latitude: event.latitude,
-                longitude: event.longitude,
+                locality:
+                    municipalityFromLocality,
+                latitude:
+                    event.latitude,
+                longitude:
+                    event.longitude,
             };
         }
 
         return {
-            locality: textualMunicipality,
+            locality:
+                municipalityFromLocality,
         };
     }
 
-    if (textualMunicipality) {
+    if (
+        municipalityFromLocality
+    ) {
         return {
-            locality: textualMunicipality,
+            locality:
+                municipalityFromLocality,
         };
     }
 
-    if (municipalityFromCoordinates) {
+    if (
+        municipalityFromCoordinates
+    ) {
         return {
             locality:
                 municipalityFromCoordinates,
-            latitude: event.latitude,
-            longitude: event.longitude,
+            latitude:
+                event.latitude,
+            longitude:
+                event.longitude,
         };
     }
 

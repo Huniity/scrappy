@@ -22,7 +22,7 @@ public class DistrictEvent
     /// <summary> Gets or sets the district associated with the event. </summary>
     [BsonElement("DistrictName")]
     [BsonRepresentation(BsonType.String)]
-    public DistrictName District { get; set; }
+    public DistrictName? District { get; set; }
 
     /// <summary> Gets or sets the event associated with the district. </summary>
     [BsonElement("Event")]

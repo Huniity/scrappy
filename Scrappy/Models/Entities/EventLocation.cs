@@ -24,7 +24,7 @@ public class EventLocation
     /// <summary> Gets or sets the district of the event location. </summary>
     [BsonElement("District")]
     [BsonRepresentation(BsonType.String)]
-    public DistrictName District { get; set; }
+    public DistrictName? District { get; set; }
 
     /// <summary> Gets or sets the NUTS2 region of the event location. </summary>
     [BsonElement("Region")]

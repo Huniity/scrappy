@@ -7,12 +7,13 @@ using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
+using Scrappy.Services.Interfaces;
 using Scrappy.Validators;
 using System.Globalization;
 
 namespace Scrappy.Services;
 
-public class EventService(IMongoDatabase database)
+public class EventService(IMongoDatabase database, IGeoDataService geoDataService)
 {
     private readonly IMongoCollection<DistrictEvent> _eventsCollection =
         database.GetCollection<DistrictEvent>("DistrictEvents");
@@ -22,10 +23,24 @@ public class EventService(IMongoDatabase database)
         if (!Validator.IsTitleValid(dto.Title))
             return Result<DistrictEvent>.Failure("Invalid title.");
 
-        if (!Validator.IsDescriptionValid(dto.Description))
+        var cleanDescription = CreateEventInputNormalizer.NormalizeDescription(
+            dto.Description,
+            dto.Title);
+
+        if (!Validator.IsDescriptionValid(cleanDescription))
             return Result<DistrictEvent>.Failure("Invalid description.");
 
-        if (!Validator.AreDatesValid(dto.StartDate, dto.EndDate))
+        if (!CreateEventInputNormalizer.TryNormalizeDates(
+                dto.StartDate,
+                dto.EndDate,
+                out var startDate,
+                out var endDate,
+                out var dateError))
+        {
+            return Result<DistrictEvent>.Failure(dateError);
+        }
+
+        if (!Validator.AreDatesValid(startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid start or end date.");
 
         if (!Validator.IsAlternateNameValid(dto.AlternateName))
@@ -40,23 +55,32 @@ public class EventService(IMongoDatabase database)
         if (!Validator.IsMaximumAttendeeCapacityValid(dto.MaximumAttendeeCapacity))
             return Result<DistrictEvent>.Failure("Invalid maximum attendee capacity.");
 
-        if (!Validator.IsDoorTimeValid(dto.DoorTime, dto.StartDate))
+        if (!Validator.IsDoorTimeValid(dto.DoorTime, startDate))
             return Result<DistrictEvent>.Failure("Invalid door time.");
 
         if (!Validator.AreKeywordsValid(dto.Keywords))
             return Result<DistrictEvent>.Failure("Invalid keywords.");
 
-        if (!Validator.IsScheduleValid(dto.Schedule, dto.StartDate, dto.EndDate))
+        if (!Validator.IsScheduleValid(dto.Schedule, startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid schedule.");
 
-        if (!Validator.AreOffersValid(dto.Offers, dto.StartDate, dto.EndDate))
+        if (!Validator.AreOffersValid(dto.Offers, startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid offers.");
 
         if (!Validator.IsTypeValid(dto.Type))
             return Result<DistrictEvent>.Failure("Invalid event type.");
 
-        if (!Validator.IsLocationValid(dto.Location))
+        if (!Validator.IsCreateLocationValid(dto.Location))
             return Result<DistrictEvent>.Failure("Invalid location.");
+
+        var geoData = geoDataService.Lookup(dto.Location.Locality!.Value);
+        if (geoData is null)
+        {
+            return Result<DistrictEvent>.Failure(
+                $"No geographic data found for locality '{dto.Location.Locality.Value}'.");
+        }
+
+        var resolvedGeoData = geoData.Value;
 
         if (!Validator.IsSourceUrlValid(dto.SourceUrl))
             return Result<DistrictEvent>.Failure("Invalid source URL.");
@@ -70,32 +94,34 @@ public class EventService(IMongoDatabase database)
         if (!Validator.ArePerformersValid(dto.Performers))
             return Result<DistrictEvent>.Failure("Invalid performers.");
 
-        if (await Validator.IsDuplicateOnCreate(dto, this))
+        if (await Validator.IsDuplicateOnCreate(
+                dto,
+                resolvedGeoData.District,
+                this))
         {
             return Result<DistrictEvent>.Failure(
                 "An event with the same district, title, and start date already exists.");
         }
 
-        var cleanDescription = dto.Description.Trim();
         var cleanLocation = dto.Location.Name.Trim();
         var qualityScore = EventQualityService.ComputeQualityScore(
             cleanDescription,
-            dto.StartDate,
+            startDate,
             cleanLocation,
             dto.Type);
 
         var districtEvent = new DistrictEvent
         {
             Id = ObjectId.GenerateNewId().ToString(),
-            District = dto.Location.District!.Value,
+            District = resolvedGeoData.District,
             Event = new Event
             {
                 Id = ObjectId.GenerateNewId().ToString(),
                 Title = dto.Title.Trim(),
                 Description = cleanDescription,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                Location = MapLocation(dto.Location),
+                StartDate = startDate,
+                EndDate = endDate,
+                Location = MapLocation(dto.Location, resolvedGeoData),
                 SourceUrl = dto.SourceUrl.Trim(),
                 AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
                 ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
@@ -305,6 +331,20 @@ public class EventService(IMongoDatabase database)
         Region = dto.Region!.Value,
         Country = dto.Country.Trim(),
         DicoCode = dto.DicoCode?.Trim(),
+        Latitude = ParseCoordinate(dto.Latitude),
+        Longitude = ParseCoordinate(dto.Longitude)
+    };
+
+    private static EventLocation MapLocation(
+        EventLocationRequestDto dto,
+        (DistrictName? District, Nuts2Region Region, string DicoCode) geoData) => new()
+    {
+        Name = dto.Name.Trim(),
+        Locality = dto.Locality!.Value,
+        District = geoData.District,
+        Region = geoData.Region,
+        Country = "PT",
+        DicoCode = geoData.DicoCode,
         Latitude = ParseCoordinate(dto.Latitude),
         Longitude = ParseCoordinate(dto.Longitude)
     };

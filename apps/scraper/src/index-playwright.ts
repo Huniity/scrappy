@@ -10,6 +10,8 @@ import {
     getViralAgendaEventUrls,
 } from './crawlers/viralAgenda';
 
+import { classifyEventType } from './enrichment/eventType';
+
 import { deduplicateEvents } from './deduplication/events';
 
 async function main() {
@@ -59,6 +61,8 @@ async function main() {
                 event.longitude =
                     resolvedLocation.longitude;
             }
+
+            event.type = classifyEventType(event);
 
             events.push(event);
         }

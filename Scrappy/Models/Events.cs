@@ -24,7 +24,7 @@ public class Event
 
     /// <summary> Gets or sets the description of the event. </summary>
     [BsonElement("Description")]
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
     
     /// <summary> Gets or sets the start date of the event. </summary>
     [BsonElement("StartDate")]

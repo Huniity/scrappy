@@ -57,7 +57,9 @@ public static class EventResponseMapper
         StartDate = entity.Event.StartDate,
         Type = entity.Event.Type?.ToString() ?? string.Empty,
         Locality = entity.Event.Location?.Locality.GetDisplayName() ?? string.Empty,
-        District = entity.District.GetDisplayName(),
+        District = entity.District.HasValue
+            ? entity.District.Value.GetDisplayName()
+            : string.Empty,
         QualityScore = (double)entity.Event.QualityScore,
         IsAccessibleForFree = entity.Event.IsAccessibleForFree
     };
@@ -80,7 +82,9 @@ public static class EventResponseMapper
     {
         Name = location.Name,
         Locality = location.Locality.GetDisplayName(),
-        District = location.District.GetDisplayName(),
+        District = location.District.HasValue
+            ? location.District.Value.GetDisplayName()
+            : string.Empty,
         Region = location.Region.ToCodeName(),
         Country = location.Country,
         DicoCode = location.DicoCode,

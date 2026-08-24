@@ -6,7 +6,9 @@ import {
     type ViralAgendaJsonLd,
 } from '../types/events';
 
-import { normalizeViralAgendaEvent } from '../normalization/viralAgenda';
+import {
+    normalizeViralAgendaEvent,
+} from '../normalization/viralAgenda';
 
 export async function scrapeViralAgendaEvent(
     page: Page,
@@ -16,43 +18,69 @@ export async function scrapeViralAgendaEvent(
         waitUntil: 'domcontentloaded',
     });
 
+    const municipalityName = (
+        await page
+            .locator('a.event-node-link')
+            .first()
+            .textContent()
+    )?.trim();
+
     let latitude: string | undefined;
     let longitude: string | undefined;
 
-    const mapButton = page.getByText('Ver mapa', {
-        exact: true,
-    });
+    const mapButton = page.getByText(
+        'Ver mapa',
+        {
+            exact: true,
+        }
+    );
 
-    const mapButtonCount = await mapButton.count();
+    const mapButtonCount =
+        await mapButton.count();
 
     if (mapButtonCount > 0) {
         try {
-            await mapButton.first().click({
-                force: true,
-            });
+            await mapButton
+                .first()
+                .click({
+                    force: true,
+                });
 
             const mapLink = page.locator(
                 'a[href*="maps.google.com/maps?ll="]'
             );
 
-            await mapLink.first().waitFor({
-                state: 'attached',
-                timeout: 5000,
-            });
-
-            const href = await mapLink
+            await mapLink
                 .first()
-                .getAttribute('href');
+                .waitFor({
+                    state: 'attached',
+                    timeout: 5000,
+                });
+
+            const href =
+                await mapLink
+                    .first()
+                    .getAttribute(
+                        'href'
+                    );
 
             if (href) {
-                const url = new URL(href);
+                const url =
+                    new URL(href);
 
                 const coordinates =
-                    url.searchParams.get('ll');
+                    url.searchParams.get(
+                        'll'
+                    );
 
                 if (coordinates) {
-                    [latitude, longitude] =
-                        coordinates.split(',');
+                    [
+                        latitude,
+                        longitude,
+                    ] =
+                        coordinates.split(
+                            ','
+                        );
                 }
             }
         } catch {
@@ -72,14 +100,22 @@ export async function scrapeViralAgendaEvent(
         )
         .allTextContents();
 
-    if (jsonLdScripts.length === 0) {
+    if (
+        jsonLdScripts.length === 0
+    ) {
         return null;
     }
 
-    for (const jsonText of jsonLdScripts) {
+    for (
+        const jsonText
+        of jsonLdScripts
+    ) {
         try {
-            const data: ViralAgendaJsonLd =
-                JSON.parse(jsonText);
+            const data:
+                ViralAgendaJsonLd =
+                JSON.parse(
+                    jsonText
+                );
 
             if (
                 !data.name ||
@@ -89,20 +125,30 @@ export async function scrapeViralAgendaEvent(
                 continue;
             }
 
-            const validData: ValidViralAgendaEvent = {
-                ...data,
-                name: data.name,
-                url: data.url,
-                startDate: data.startDate,
-            };
+            const validData:
+                ValidViralAgendaEvent = {
+                    ...data,
+                    name: data.name,
+                    url: data.url,
+                    startDate:
+                        data.startDate,
+                };
 
             const normalizedEvent =
                 normalizeViralAgendaEvent(
                     validData
                 );
 
-            normalizedEvent.latitude = latitude;
-            normalizedEvent.longitude = longitude;
+            if (municipalityName) {
+                normalizedEvent.locality =
+                    municipalityName;
+            }
+
+            normalizedEvent.latitude =
+                latitude;
+
+            normalizedEvent.longitude =
+                longitude;
 
             return normalizedEvent;
         } catch {
@@ -119,9 +165,10 @@ export async function getViralAgendaEventUrls(
     page: Page
 ): Promise<string[]> {
     await page.goto(
-        'https://www.viralagenda.com/pt/',
+        'https://www.viralagenda.com/pt/faro/faro',
         {
-            waitUntil: 'domcontentloaded',
+            waitUntil:
+                'domcontentloaded',
         }
     );
 
@@ -131,19 +178,23 @@ export async function getViralAgendaEventUrls(
     );
 
     const eventUrls = await page
-        .locator('a[href*="/pt/events/"]')
-        .evaluateAll((elements) =>
-            elements.map(
-                (element) =>
-                    (
-                        element as HTMLAnchorElement
-                    ).href
-            )
+        .locator(
+            'a[href*="/pt/events/"]'
+        )
+        .evaluateAll(
+            (elements) =>
+                elements.map(
+                    (element) =>
+                        (
+                            element as
+                                HTMLAnchorElement
+                        ).href
+                )
         );
 
-    const uniqueEventUrls = [
-        ...new Set(eventUrls),
+    return [
+        ...new Set(
+            eventUrls
+        ),
     ];
-
-    return uniqueEventUrls;
 }

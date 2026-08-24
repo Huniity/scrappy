@@ -55,7 +55,9 @@ public static class EventSchemaOrgMapper
         dto.AdditionalProperties.Add(new SchemaOrgPropertyValueDto
         {
             Name = "districtName",
-            Value = entity.District.GetDisplayName()
+            Value = entity.District.HasValue
+                ? entity.District.Value.GetDisplayName()
+                : string.Empty
         });
         dto.AdditionalProperties.Add(new SchemaOrgPropertyValueDto
         {

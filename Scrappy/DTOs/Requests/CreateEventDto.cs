@@ -1,8 +1,10 @@
 
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
+using Scrappy.Services;
 
 namespace Scrappy.DTOs.Requests;
 
@@ -69,18 +71,18 @@ public class CreateEventDto
     public string Title { get; set; } = string.Empty;
 
     /// <summary> Gets or sets the description of the event. </summary>
-    [Required(ErrorMessage = "A descrição do evento é obrigatória.")]
-    [MinLength(10, ErrorMessage = "A descrição deve ter pelo menos 10 caracteres.")]
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; }
 
     /// <summary> Gets or sets the alternate name of the event. </summary>
     public string? AlternateName { get; set; }
 
-    /// <summary> Gets or sets the start date and time of the event. </summary>
+    /// <summary> Gets or sets the event start date or ISO 8601 date-time. </summary>
     [Required(ErrorMessage = "A data de início é obrigatória.")]
+    [JsonConverter(typeof(CreateEventDateTimeConverter))]
     public DateTime StartDate { get; set; }
 
-    /// <summary> Gets or sets the end date and time of the event. </summary>
+    /// <summary> Gets or sets the event end date or ISO 8601 date-time. </summary>
+    [JsonConverter(typeof(NullableCreateEventDateTimeConverter))]
     public DateTime? EndDate { get; set; }
     
     /// <summary> Gets or sets the door time of the event. </summary>

@@ -5,6 +5,7 @@ using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
+using Scrappy.Services;
 
 
 namespace Scrappy.Mappers;
@@ -26,10 +27,12 @@ public static class EventRequestMapper
         Event = new Event
         {
             Title = dto.Title,
-            Description = dto.Description,
+            Description = CreateEventInputNormalizer.NormalizeDescription(
+                dto.Description,
+                dto.Title),
             AlternateName = dto.AlternateName ?? string.Empty,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
+            StartDate = CreateEventInputNormalizer.NormalizeStartDate(dto.StartDate),
+            EndDate = CreateEventInputNormalizer.NormalizeEndDate(dto.EndDate),
             DoorTime = dto.DoorTime,
             Type = dto.Type,
             SourceUrl = dto.SourceUrl,

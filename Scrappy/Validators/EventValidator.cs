@@ -69,12 +69,20 @@ public static class Validator
 
     public static bool IsLatitudeValid(string? latitude) =>
         !string.IsNullOrWhiteSpace(latitude) &&
-        double.TryParse(latitude.Trim(), out var lat) &&
+        double.TryParse(
+            latitude.Trim(),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var lat) &&
         lat is >= -90 and <= 90;
 
     public static bool IsLongitudeValid(string? longitude) =>
         !string.IsNullOrWhiteSpace(longitude) &&
-        double.TryParse(longitude.Trim(), out var lon) &&
+        double.TryParse(
+            longitude.Trim(),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var lon) &&
         lon is >= -180 and <= 180;
 
     public static bool IsTitleValid(string? title) =>
@@ -417,17 +425,39 @@ public static class Validator
         return normalizedKeywords.Count == normalizedKeywords.Distinct().Count();
     }
 
+    public static bool IsCreateLocationValid(EventLocationRequestDto? location) =>
+        location is not null &&
+        !string.IsNullOrWhiteSpace(location.Name) &&
+        location.Name.Trim().Length <= 250 &&
+        IsLocalityValid(location.Locality) &&
+        IsCountryValid(location.Country) &&
+        AreCoordinatesValid(location.Latitude, location.Longitude);
+
     public static bool IsLocationValid(EventLocationRequestDto? location) =>
         location is not null &&
         !string.IsNullOrWhiteSpace(location.Name) &&
         location.Name.Trim().Length <= 250 &&
         IsLocalityValid(location.Locality) &&
-        IsDistrictValid(location.District) &&
+        IsDistrictValidForRegion(location.District, location.Region) &&
         IsRegionValid(location.Region) &&
         IsCountryValid(location.Country) &&
         IsDicoCodeValid(location.DicoCode) &&
         IsLatitudeValid(location.Latitude) &&
         IsLongitudeValid(location.Longitude);
+
+    public static bool AreCoordinatesValid(string? latitude, string? longitude) =>
+        (string.IsNullOrWhiteSpace(latitude) && string.IsNullOrWhiteSpace(longitude)) ||
+        (!string.IsNullOrWhiteSpace(latitude) &&
+         !string.IsNullOrWhiteSpace(longitude) &&
+         IsLatitudeValid(latitude) &&
+         IsLongitudeValid(longitude));
+
+    private static bool IsDistrictValidForRegion(
+        DistrictName? district,
+        Nuts2Region? region) =>
+        district.HasValue
+            ? IsDistrictValid(district)
+            : region is Nuts2Region.PT20 or Nuts2Region.PT30;
 
     public static bool IsSourceUrlValid(string? sourceUrl)
     {
@@ -483,18 +513,40 @@ public static class Validator
             eventsResult.Value,
             null,
             candidate.Title,
-            candidate.Location!.District!.Value,
+            candidate.Location!.District,
+            candidate.StartDate);
+    }
+
+    public static async Task<bool> IsDuplicateOnCreate(
+        CreateEventDto candidate,
+        DistrictName? district,
+        EventService eventService)
+    {
+        if (!IsTitleValid(candidate.Title) || candidate.StartDate == default)
+            return false;
+
+        var eventsResult = await eventService.GetAllEvents();
+        if (!eventsResult.IsSuccess || eventsResult.Value is null)
+            return false;
+
+        return HasDuplicate(
+            eventsResult.Value,
+            null,
+            candidate.Title,
+            district,
             candidate.StartDate);
     }
 
     public static async Task<bool> IsDuplicateOnUpdate(
         string eventId,
         string? title,
-        DistrictName district,
+        DistrictName? district,
         DateTime startDate,
         EventService eventService)
     {
-        if (!IsTitleValid(title) || !IsDistrictValid(district) || startDate == default)
+        if (!IsTitleValid(title) ||
+            (district.HasValue && !IsDistrictValid(district)) ||
+            startDate == default)
             return false;
 
         var eventsResult = await eventService.GetAllEvents();
@@ -508,10 +560,12 @@ public static class Validator
         IEnumerable<DistrictEvent> events,
         string? excludedEventId,
         string? title,
-        DistrictName district,
+        DistrictName? district,
         DateTime startDate)
     {
-        if (!IsTitleValid(title) || !IsDistrictValid(district) || startDate == default)
+        if (!IsTitleValid(title) ||
+            (district.HasValue && !IsDistrictValid(district)) ||
+            startDate == default)
             return false;
 
         var cleanTitle = title!.Trim();
