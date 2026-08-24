@@ -45,7 +45,7 @@ async function main() {
             await getViralAgendaEventUrls(page);
 
         console.log(
-            'Eventos únicos encontrados:',
+            'Eventos encontrados:',
             uniqueEventUrls.length
         );
 
@@ -60,7 +60,7 @@ async function main() {
 
             if (!event) {
                 console.log(
-                    'Nenhum evento válido encontrado:',
+                    'IGNORADO: evento inválido:',
                     eventUrl
                 );
 
@@ -94,16 +94,6 @@ async function main() {
                 metadata
             );
 
-            if (
-                Object.keys(metadata).length > 0
-            ) {
-                console.log(
-                    '\nMETADATA EXTRAÍDA:',
-                    event.title,
-                    metadata
-                );
-            }
-
             events.push(event);
         }
 
@@ -115,53 +105,37 @@ async function main() {
                 (event) => !event.locality
             );
 
-        const resolvedLocationsCount =
-            deduplicatedEvents.length -
-            unresolvedLocationEvents.length;
+        const eventsReadyForBackend =
+            deduplicatedEvents.filter(
+                (event) => event.locality
+            );
 
         console.log(
-            '\nTOTAL DE EVENTOS NORMALIZADOS:',
-            events.length
-        );
-
-        console.log(
-            'TOTAL APÓS DEDUPLICAÇÃO:',
+            'Após deduplicação:',
             deduplicatedEvents.length
         );
 
         console.log(
-            'Eventos com localização resolvida:',
-            resolvedLocationsCount
-        );
-
-        console.log(
-            'Eventos sem localização resolvida:',
-            unresolvedLocationEvents.length
+            'Localizações resolvidas:',
+            `${eventsReadyForBackend.length}/${deduplicatedEvents.length}`
         );
 
         if (
             unresolvedLocationEvents.length > 0
         ) {
             console.log(
-                'Eventos sem localização resolvida:',
-                unresolvedLocationEvents.map(
-                    (event) => ({
-                        title: event.title,
-                        venueName:
-                            event.venueName,
-                        locality:
-                            event.locality,
-                        streetAddress:
-                            event.streetAddress,
-                    })
-                )
+                '\nEVENTOS SEM LOCALIZAÇÃO:'
             );
-        }
 
-        const eventsReadyForBackend =
-            deduplicatedEvents.filter(
-                (event) => event.locality
-            );
+            for (
+                const event
+                of unresolvedLocationEvents
+            ) {
+                console.log(
+                    `IGNORADO: ${event.title}`
+                );
+            }
+        }
 
         const backendPayloads =
             eventsReadyForBackend.map(
@@ -225,7 +199,7 @@ async function main() {
         }
 
         console.log(
-            '\nRESULTADO DO ENVIO'
+            '\nRESULTADO'
         );
 
         console.log(
@@ -244,7 +218,7 @@ async function main() {
         );
 
         console.log(
-            'Não enviados por falta de localização:',
+            'Ignorados por falta de localização:',
             unresolvedLocationEvents.length
         );
     } finally {
@@ -254,7 +228,7 @@ async function main() {
 
 main().catch((error) => {
     console.error(
-        'Erro:',
+        'Erro fatal:',
         error
     );
 
