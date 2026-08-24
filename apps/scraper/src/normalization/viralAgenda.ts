@@ -24,5 +24,6 @@ export function normalizeViralAgendaEvent(
 
         country:
             data.location?.address?.addressCountry,
+
     };
 }

@@ -38,4 +38,8 @@ export type NormalizedEvent = {
     country?: string;
     latitude?: string;
     longitude?: string;
+
+    price?: number;
+    ageRating?: number;
+    maximumAttendeeCapacity?: number;
 };

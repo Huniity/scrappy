@@ -206,7 +206,7 @@ public class SchemaOrgEventDto
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
     [JsonPropertyName("isAccessibleForFree")]
-    public bool IsAccessibleForFree { get; set; }
+    public bool? IsAccessibleForFree { get; set; }
 
     /// <summary> Gets or sets the offers associated with the event. </summary>
     [JsonPropertyName("offers")]

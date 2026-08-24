@@ -105,7 +105,7 @@ public class EventResponseDto
     public EventLocationResponseDto? Location { get; set; }
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
-    public bool IsAccessibleForFree { get; set; }
+    public bool? IsAccessibleForFree { get; set; }
 
     /// <summary> Gets or sets a value indicating whether the event is physically accessible. </summary>
     public bool PhysicalAccessibility { get; set; }

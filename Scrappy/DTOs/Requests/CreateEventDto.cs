@@ -105,7 +105,7 @@ public class CreateEventDto
     public string? ImageUrl { get; set; }
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
-    public bool IsAccessibleForFree { get; set; }
+    public bool? IsAccessibleForFree { get; set; }
 
     /// <summary> Gets or sets a value indicating whether the event is physically accessible. </summary>
     public bool PhysicalAccessibility { get; set; }

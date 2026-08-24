@@ -1,6 +1,13 @@
 import { chromium } from 'playwright';
 
-import { resolveLocation } from './enrichment/location';
+import {
+    createEvent,
+} from './api/events';
+
+import {
+    resolveLocation,
+} from './enrichment/location';
+
 import {
     type NormalizedEvent,
 } from './types/events';
@@ -10,9 +17,21 @@ import {
     getViralAgendaEventUrls,
 } from './crawlers/viralAgenda';
 
-import { classifyEventType } from './enrichment/eventType';
+import {
+    extractEventMetadata,
+} from './enrichment/eventMetadata';
 
-import { deduplicateEvents } from './deduplication/events';
+import {
+    classifyEventType,
+} from './enrichment/eventType';
+
+import {
+    deduplicateEvents,
+} from './deduplication/events';
+
+import {
+    mapEventToCreatePayload,
+} from './mappers/backendEvent';
 
 async function main() {
     const browser = await chromium.launch({
@@ -62,7 +81,28 @@ async function main() {
                     resolvedLocation.longitude;
             }
 
-            event.type = classifyEventType(event);
+            event.type =
+                classifyEventType(event);
+
+            const metadata =
+                extractEventMetadata(
+                    event.description
+                );
+
+            Object.assign(
+                event,
+                metadata
+            );
+
+            if (
+                Object.keys(metadata).length > 0
+            ) {
+                console.log(
+                    '\nMETADATA EXTRAÍDA:',
+                    event.title,
+                    metadata
+                );
+            }
 
             events.push(event);
         }
@@ -118,12 +158,94 @@ async function main() {
             );
         }
 
+        const eventsReadyForBackend =
+            deduplicatedEvents.filter(
+                (event) => event.locality
+            );
+
+        const backendPayloads =
+            eventsReadyForBackend.map(
+                mapEventToCreatePayload
+            );
+
         console.log(
-            JSON.stringify(
-                deduplicatedEvents,
-                null,
-                2
-            )
+            '\nA ENVIAR EVENTOS PARA O BACKEND...'
+        );
+
+        let createdCount = 0;
+        let duplicateCount = 0;
+        let errorCount = 0;
+
+        for (
+            const payload
+            of backendPayloads
+        ) {
+            try {
+                const result =
+                    await createEvent(payload);
+
+                if (result.success) {
+                    createdCount++;
+
+                    console.log(
+                        `CRIADO: ${payload.title}`
+                    );
+
+                    continue;
+                }
+
+                if (result.duplicate) {
+                    duplicateCount++;
+
+                    console.log(
+                        `JÁ EXISTE: ${payload.title}`
+                    );
+
+                    continue;
+                }
+
+                errorCount++;
+
+                console.error(
+                    `ERRO ${result.status}: ${payload.title}`
+                );
+
+                console.error(
+                    result.body
+                );
+            } catch (error) {
+                errorCount++;
+
+                console.error(
+                    `ERRO DE LIGAÇÃO: ${payload.title}`
+                );
+
+                console.error(error);
+            }
+        }
+
+        console.log(
+            '\nRESULTADO DO ENVIO'
+        );
+
+        console.log(
+            'Criados:',
+            createdCount
+        );
+
+        console.log(
+            'Duplicados:',
+            duplicateCount
+        );
+
+        console.log(
+            'Erros:',
+            errorCount
+        );
+
+        console.log(
+            'Não enviados por falta de localização:',
+            unresolvedLocationEvents.length
         );
     } finally {
         await browser.close();
@@ -131,6 +253,10 @@ async function main() {
 }
 
 main().catch((error) => {
-    console.error('Erro:', error);
+    console.error(
+        'Erro:',
+        error
+    );
+
     process.exit(1);
 });

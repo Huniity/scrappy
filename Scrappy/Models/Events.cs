@@ -104,7 +104,7 @@ public class Event
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
     [BsonElement("IsAccessibleForFree")]
-    public bool IsAccessibleForFree { get; set; }
+    public bool? IsAccessibleForFree { get; set; }
 
     /// <summary> Gets or sets a value indicating whether the event is physically accessible. </summary>
     [BsonElement("PhysicalAccessibility")]
