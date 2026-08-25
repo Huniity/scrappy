@@ -45,7 +45,7 @@ const ingestionWorker = new Worker(
 				{
 					name: 'Bilhete',
 					price: rawData.price,
-					currency: 'EUR',
+					priceCurrency: 'EUR',
 				},
 			],
 			location: {

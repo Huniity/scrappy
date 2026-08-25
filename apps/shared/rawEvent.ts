@@ -38,11 +38,11 @@ export const rawEventSchema = z
     .max(50)
     .default([]),
 
-    price: z.number().positive().optional(),
+    price: z.number().nonnegative().optional(),
 
-    ageRating: z.number().int().positive().optional(),
+    ageRating: z.number().int().nonnegative().optional(),
 
-    maximumAttendeeCapacity: z.number().int().positive().optional(),
+    maximumAttendeeCapacity: z.number().int().nonnegative().optional(),
 })
 .superRefine((event, context) => {
     if (
