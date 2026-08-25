@@ -3,11 +3,11 @@ import test from 'node:test';
 import {
   crawlJobId,
   ingestionJobId,
-  normalizeUrl,
+  normalizedUrl,
 } from './jobId';
 
 test('normalizes Viral Agenda URLs', () => {
-  const result = normalizeUrl(
+  const result = normalizedUrl(
     'HTTPS://WWW.VIRALAGENDA.COM:443/pt/events/123/?utm_source=facebook&b=2&a=1#map',
   );
 
@@ -19,7 +19,7 @@ test('normalizes Viral Agenda URLs', () => {
 
 test('removes tracking parameters case-insensitively', () => {
   assert.equal(
-    normalizeUrl(
+    normalizedUrl(
       'https://example.com/event?UTM_SOURCE=x&fbclid=y&id=42',
     ),
     'https://example.com/event?id=42',
@@ -28,21 +28,21 @@ test('removes tracking parameters case-insensitively', () => {
 
 test('preserves non-default ports', () => {
   assert.equal(
-    normalizeUrl('https://example.com:8443/event/'),
+    normalizedUrl('https://example.com:8443/event/'),
     'https://example.com:8443/event',
   );
 });
 
 test('keeps the root path', () => {
   assert.equal(
-    normalizeUrl('https://EXAMPLE.COM/#fragment'),
+    normalizedUrl('https://EXAMPLE.COM/#fragment'),
     'https://example.com/',
   );
 });
 
 test('rejects non-http URLs', () => {
   assert.throws(
-    () => normalizeUrl('ftp://example.com/file'),
+    () => normalizedUrl('ftp://example.com/file'),
     /Invalid URL protocol: ftp:/,
   );
 });
