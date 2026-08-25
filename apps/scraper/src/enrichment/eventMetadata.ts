@@ -24,6 +24,24 @@ export function extractEventMetadata(
         ),
     ];
 
+    const excludedKeywords = [
+        'gratuito',
+        'free',
+        'doacão',
+        'donativo',
+        'donation',
+        'contributo',
+        'contribution',
+        'entrada livre',
+        'entrada gratuita',
+        'free entry',
+        'free admission',
+        'taxa',
+        'parque',
+        'estacionamento',
+        'parking'
+    ]
+
     const ageRatingMatch =
     normalizedDescription.match(
         /\bm\/?\s*(\d{1,2})(?!\d)|\+\s*(\d{1,2})(?!\d)|maiores\s+de\s+(\d{1,2})\s+anos/i
@@ -41,28 +59,24 @@ export function extractEventMetadata(
 
     const capacityMatch =
         normalizedDescription.match(
-            /(?:lotação(?:\s+máxima|\s+limitada)?\s*(?:a\s+)?(?::\s*)?(\d{1,5})|capacidade\s+máxima\s*:?\s*(\d{1,5})|máximo(?:\s+de)?\s+(\d{1,5})\s+(?:pessoas|participantes|lugares))/i
+            /(?:lotação(?:\s+máxima|\s+limitada)?\s*(?:a\s+)?(?::\s*)?(\d{1,5})|capacidade\s+máxima\s*:?\s*(\d{1,5})|máximo(?:\s+de)?\s+(\d{1,5})\s+(?:pessoas|participantes|lugares)|máx\.?\s*(\d{1,5}))/i
         );
 
     const capacityValue =
         capacityMatch?.[1] ??
         capacityMatch?.[2] ??
-        capacityMatch?.[3];
+        capacityMatch?.[3] ??
+        capacityMatch?.[4];
 
     const capacity =
         capacityValue
             ? Number(capacityValue)
             : undefined;
 
-    const nonPriceKeywords = [
-        'donativo',
-        'doação',
-        'contributo',
-    ];
 
 
     const hasNonPriceContext =
-        nonPriceKeywords.some((keyword) =>
+        excludedKeywords.some((keyword) =>
             normalizedDescription.includes(keyword)
         );
 

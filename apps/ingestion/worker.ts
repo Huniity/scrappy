@@ -39,6 +39,15 @@ const ingestionWorker = new Worker(
 			endDate: rawData.endDate,
 			imageUrl: rawData.imageUrl,
 			type: rawData.type,
+			ageRating: rawData.ageRating,
+			maximumAttendeeCapacity: rawData.maximumAttendeeCapacity,
+			offers: rawData.price === undefined ? [] : [
+				{
+					name: 'Bilhete',
+					price: rawData.price,
+					currency: 'EUR',
+				},
+			],
 			location: {
 				name: rawData.locationName ?? rawData.locality,
 				locality: apiLocality,
@@ -47,6 +56,7 @@ const ingestionWorker = new Worker(
 				dicoCode: rawData.dicoCode,
 				country: 'PT',
 			},
+
 		};
 		const timestamp = new Date();
 		console.log('Processing job:', job.id, 'with data:', rawData, 'at: ', timestamp);

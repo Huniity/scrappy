@@ -9,6 +9,7 @@ import { classifyEventType } from './src/enrichment/eventType';
 import { rawEventSchema } from '../shared/rawEvent';
 import { normalizedUrl } from '../shared/jobId';
 import { pushToIngestionQueue } from '../ingestion/queue';
+import { extractEventMetadata } from './src/enrichment/eventMetadata';
 
 export const router = createCheerioRouter();
 
@@ -61,8 +62,11 @@ router.addHandler(
             return;
         }
 
+        const metadata = extractEventMetadata(normalizedDates.description);
+
         const normalizedEvent = {
             ...normalizedDates,
+            ...metadata,
             type: classifyEventType(normalizedDates),
         }
         log.info(
@@ -88,6 +92,9 @@ router.addHandler(
             locationName: normalizedEvent.venueName,
             locality: apiLocality,
             imageUrl: normalizedEvent.imageUrl,
+            price: normalizedEvent.price,
+            ageRating: normalizedEvent.ageRating,
+            maximumAttendeeCapacity: normalizedEvent.maximumAttendeeCapacity,
         };
 
         const validation = rawEventSchema.safeParse(rawEventCandidate);

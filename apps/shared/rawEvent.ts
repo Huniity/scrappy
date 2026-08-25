@@ -37,6 +37,12 @@ export const rawEventSchema = z
     .array(z.string().trim().min(1).max(100))
     .max(50)
     .default([]),
+
+    price: z.number().positive().optional(),
+
+    ageRating: z.number().int().positive().optional(),
+
+    maximumAttendeeCapacity: z.number().int().positive().optional(),
 })
 .superRefine((event, context) => {
     if (
