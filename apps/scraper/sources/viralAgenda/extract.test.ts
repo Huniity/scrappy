@@ -9,6 +9,9 @@ import { normalizeViralAgendaEvent } from '../../src/normalization/viralAgenda';
 
 test('extracts an event from JSON-LD graph', () => {
     const $ = load(`
+      <a class="event-node-link" href="/pt/loule">
+        Loulé
+      </a>
       <script type="application/ld+json">
         {
           "@graph": [
@@ -26,7 +29,7 @@ test('extracts an event from JSON-LD graph', () => {
               "location": {
                 "name": "Teatro das Figuras",
                 "address": {
-                  "addressLocality": "Faro",
+                  "addressLocality": "Almancil",
                   "streetAddress": "Largo de São Francisco",
                   "addressCountry": "PT"
                 }
@@ -64,7 +67,7 @@ test('extracts an event from JSON-LD graph', () => {
 
     assert.equal(
         normalized.locality,
-        'Faro',
+        'Almancil',
     );
 
     assert.equal(result.name, 'Concerto de Verão');
@@ -78,6 +81,9 @@ test('extracts an event from JSON-LD graph', () => {
     );
     assert.equal(
         result.location?.address?.addressLocality,
-        'Faro',
+        'Almancil',
     );
+    assert.equal(result.municipality, 'Loulé');
+    assert.equal(normalized.locality, 'Almancil');
+    assert.equal(normalized.municipality, 'Loulé');
 });

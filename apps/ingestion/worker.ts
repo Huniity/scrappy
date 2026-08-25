@@ -9,20 +9,39 @@ import { RawEvent } from '../shared/rawEvent';
 
 const apiUrl = env.API_URL
 
+
+function toLocalityEnumName(value: string): string {
+	return value
+	.trim()
+	.replace(/[()]/g, '')
+	.split(/[\s-]+/)
+	.filter(Boolean)
+	.map((word, index) =>
+		index === 0
+	? word
+	: word[0].toUpperCase() +
+	word.slice(1),
+)
+.join('');
+}
+
 console.log('Inicializing Worker... searching for jobs in the queue...');
 
 const ingestionWorker = new Worker(
 	'events-ingestion-queue', async (job: Job<RawEvent>) => {
 		const rawData = job.data;
+		const apiLocality = toLocalityEnumName(rawData.locality);
 		const apiData = {
 			title: rawData.title,
 			description: rawData.description,
 			sourceUrl: rawData.sourceUrl,
 			startDate: rawData.startDate,
+			endDate: rawData.endDate,
+			imageUrl: rawData.imageUrl,
 			type: rawData.type,
 			location: {
 				name: rawData.locationName ?? rawData.locality,
-				locality: rawData.locality,
+				locality: apiLocality,
 				district: rawData.district,
 				region: rawData.region,
 				dicoCode: rawData.dicoCode,

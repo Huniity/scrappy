@@ -33,7 +33,7 @@ async function main(): Promise<void> {
             },
         ],
 
-        maxRequestsPerCrawl: 20,
+        maxRequestsPerCrawl: 40,
     });
 
     await crawler.run(

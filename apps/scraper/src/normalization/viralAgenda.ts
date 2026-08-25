@@ -61,6 +61,9 @@ export function normalizeViralAgendaEvent(
 
         venueName: cleanText(data.location?.name),
 
+        municipality: 
+            cleanText(data.municipality),
+
         locality:
             cleanText(data.location?.address?.addressLocality),
 

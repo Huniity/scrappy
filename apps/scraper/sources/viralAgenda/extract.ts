@@ -86,6 +86,16 @@ function readLocalityFromPage(
     );
 }
 
+function readMunicipalityFromPage(
+    $: CheerioAPI,
+): string | undefined {
+    return asString(
+        $('a.event-node-link')
+        .first()
+        .text(),
+    );
+}
+
 
 function readLocation(
     value: unknown,
@@ -107,8 +117,9 @@ function readLocation(
 
     const address = {
         addressLocality:
-            asString(addressObject.addressLocality)
-            ?? readLocalityFromPage($),
+            asString(addressObject.addressLocality
+        ),
+
 
         streetAddress: asString(
             addressObject.streetAddress,
@@ -178,6 +189,7 @@ function toValidEvent(
         description: asString(node.description),
         image: readImage(node.image),
         location: readLocation(node.location, $),
+        municipality: readMunicipalityFromPage($),
     };
 }
 

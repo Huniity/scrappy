@@ -7,8 +7,8 @@ import { normalizeViralAgendaDates } from './src/normalization/dates';
 import { normalizeViralAgendaEvent } from './src/normalization/viralAgenda';
 import { classifyEventType } from './src/enrichment/eventType';
 import { rawEventSchema } from '../shared/rawEvent';
-import { normalizedUrl } from '../shared/jobId'
-
+import { normalizedUrl } from '../shared/jobId';
+import { pushToIngestionQueue } from '../ingestion/queue';
 
 export const router = createCheerioRouter();
 
@@ -69,6 +69,15 @@ router.addHandler(
             `Event found: ${JSON.stringify(normalizedEvent)}`,
         );
 
+        const apiLocality = normalizedEvent.municipality ?? normalizedEvent.locality;
+
+        if (!apiLocality) {
+            log.warning(
+                `Missing locality for event: ${request.url}`,
+            );
+            return;
+        }
+
         const rawEventCandidate = {
             title: normalizedEvent.title,
             description: normalizedEvent.description,
@@ -77,7 +86,8 @@ router.addHandler(
             endDate: normalizedEvent.endDate,
             type: normalizedEvent.type,
             locationName: normalizedEvent.venueName,
-            locality: normalizedEvent.locality,
+            locality: apiLocality,
+            imageUrl: normalizedEvent.imageUrl,
         };
 
         const validation = rawEventSchema.safeParse(rawEventCandidate);
@@ -92,6 +102,8 @@ router.addHandler(
         log.info(
             `Valid raw event data: ${JSON.stringify(validation.data)}`,
         );
+
+        await pushToIngestionQueue(validation.data);
 
     },
 );
