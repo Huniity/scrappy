@@ -9,7 +9,6 @@ using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 using Scrappy.Services.Interfaces;
 using Scrappy.Validators;
-using Scrappy.Services.Interfaces;
 using System.Globalization;
 
 namespace Scrappy.Services;
@@ -28,6 +27,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         if (geoData is null)
             return Result<DistrictEvent>.Failure("Could not find geo data for the provided locality.");
+
+        var resolvedGeoData = geoData.Value;
 
         dto.Location.District = geoData.Value.District;
         dto.Location.Region = geoData.Value.Region;
@@ -86,14 +87,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsCreateLocationValid(dto.Location))
             return Result<DistrictEvent>.Failure("Invalid location.");
 
-        var geoData = geoDataService.Lookup(dto.Location.Locality!.Value);
-        if (geoData is null)
-        {
-            return Result<DistrictEvent>.Failure(
-                $"No geographic data found for locality '{dto.Location.Locality.Value}'.");
-        }
 
-        var resolvedGeoData = geoData.Value;
 
         if (!Validator.IsSourceUrlValid(dto.SourceUrl))
             return Result<DistrictEvent>.Failure("Invalid source URL.");
