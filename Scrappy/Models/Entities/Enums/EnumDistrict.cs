@@ -48,5 +48,9 @@ public enum DistrictName
     [Display(Name = "Vila Real")]
     VilaReal,
     /// <summary>District of Viseu</summary>
-    Viseu
+    Viseu,
+    /// <summary>District of Açores</summary>
+    Açores,
+    /// <summary>District of Madeira</summary>
+    Madeira
 }
