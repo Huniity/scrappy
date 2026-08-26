@@ -8,7 +8,7 @@ import {
 } from '../geo/municipalities';
 
 export type ResolvedLocation = {
-    locality: string;
+    municipality: string;
     latitude?: string;
     longitude?: string;
 };
@@ -16,6 +16,11 @@ export type ResolvedLocation = {
 export function resolveLocation(
     event: NormalizedEvent
 ): ResolvedLocation | null {
+    const municipalityFromPage =
+        findExactMunicipality(
+            event.municipality
+        );
+
     const municipalityFromLocality =
         findExactMunicipality(
             event.locality
@@ -50,53 +55,33 @@ export function resolveLocation(
                 findMunicipalityByCoordinates(
                     latitude,
                     longitude
-                );
+            );
         }
-    }
-
-    if (
-        municipalityFromLocality &&
-        municipalityFromCoordinates
-    ) {
-        if (
-            municipalityFromLocality ===
-            municipalityFromCoordinates
-        ) {
-            return {
-                locality:
-                    municipalityFromLocality,
-                latitude:
-                    event.latitude,
-                longitude:
-                    event.longitude,
-            };
-        }
-
-        return {
-            locality:
-                municipalityFromLocality,
-        };
-    }
-
-    if (
-        municipalityFromLocality
-    ) {
-        return {
-            locality:
-                municipalityFromLocality,
-        };
     }
 
     if (
         municipalityFromCoordinates
     ) {
         return {
-            locality:
+            municipality:
                 municipalityFromCoordinates,
             latitude:
                 event.latitude,
             longitude:
                 event.longitude,
+        };
+    }
+
+    const municipalityFromText =
+        municipalityFromPage ??
+        municipalityFromLocality;
+
+    if (
+        municipalityFromText
+    ) {
+        return {
+            municipality:
+                municipalityFromText,
         };
     }
 

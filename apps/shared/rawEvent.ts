@@ -39,7 +39,9 @@ export const rawEventSchema = z
 
     locationName: z.string().trim().min(1),
 
-    locality: z.string().trim().min(1),
+    sourceLocality:z.string().trim().min(1).optional(),
+
+    municipality: z.string().trim().min(1),
 
     district: districtSchema.optional(),
 

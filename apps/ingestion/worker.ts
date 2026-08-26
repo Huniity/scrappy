@@ -1,36 +1,22 @@
 
 
 import { Job, Worker } from 'bullmq';
-import { redisConnection } from '../shared/redis';
+import { toApiLocalityName } from './locality';
 import { env } from '../shared/env';
-import { RawEvent } from '../shared/rawEvent';
+import { redisConnection } from '../shared/redis';
+import { rawEventSchema, RawEvent } from '../shared/rawEvent';
 
-
-
-const apiUrl = env.API_URL
-
-
-function toLocalityEnumName(value: string): string {
-	return value
-	.trim()
-	.replace(/[()]/g, '')
-	.split(/[\s-]+/)
-	.filter(Boolean)
-	.map((word, index) =>
-		index === 0
-	? word
-	: word[0].toUpperCase() +
-	word.slice(1),
-)
-.join('');
-}
+const apiUrl = env.API_URL;
 
 console.log('Inicializing Worker... searching for jobs in the queue...');
 
 const ingestionWorker = new Worker(
 	'events-ingestion-queue', async (job: Job<RawEvent>) => {
-		const rawData = job.data;
-		const apiLocality = toLocalityEnumName(rawData.locality);
+		const rawData = rawEventSchema.parse(job.data);
+		const apiLocality = toApiLocalityName(rawData.municipality, {
+			longitude: rawData.longitude,
+			region: rawData.region,
+		});
 		const apiData = {
 			title: rawData.title,
 			description: rawData.description,
@@ -49,7 +35,7 @@ const ingestionWorker = new Worker(
 				},
 			],
 			location: {
-				name: rawData.locationName ?? rawData.locality,
+				name: rawData.locationName ?? rawData.sourceLocality ?? rawData.municipality,
 				locality: apiLocality,
 				district: rawData.district,
 				region: rawData.region,
@@ -60,8 +46,10 @@ const ingestionWorker = new Worker(
 			},
 
 		};
-		const timestamp = new Date();
-		console.log('Processing job:', job.id, 'with data:', rawData, 'at: ', timestamp);
+		console.log(
+			`Processing job ${job.id} for ${rawData.sourceUrl} ` +
+			`(attempt ${job.attemptsMade + 1}) with locality ${apiLocality}`,
+		);
 
 		try {
 			const response = await fetch(apiUrl, {
@@ -69,15 +57,37 @@ const ingestionWorker = new Worker(
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				signal: AbortSignal.timeout(30_000),
 				body: JSON.stringify(apiData),
 			});
+			const responseBody = await response.text();
+			const isDuplicate =
+				response.status === 400 &&
+				responseBody.includes(
+					'An event with the same district, title, and start date already exists.',
+				);
+
+			if (isDuplicate) {
+				console.warn(
+					`Event from ${rawData.sourceUrl} already exists in the API; ` +
+					'treating it as successfully ingested.',
+				);
+				return;
+			}
 
 			if (!response.ok){
-				const errorData = await response.text();
-				throw new Error(`Failed to send data to API. Status: ${response.status} | Response: ${errorData}`);
+				throw new Error(
+					`Failed to send ${rawData.sourceUrl} to API. ` +
+					`Status: ${response.status} | Response: ${responseBody}`,
+				);
 			}
+
+			console.log(
+				`API accepted job ${job.id} for ${rawData.sourceUrl} ` +
+				`with status ${response.status}.`,
+			);
 		}
-		catch (error: any) {
+		catch (error) {
 			console.error('Error sending data to API:', error);
 			throw error;
 		}

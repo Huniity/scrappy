@@ -81,7 +81,7 @@ router.addHandler(
         const normalizedWithLocation = resolvedLocation
             ? {
                 ...normalizedDates,
-                locality: resolvedLocation.locality,
+                municipality: resolvedLocation.municipality,
                 latitude: resolvedLocation.latitude,
                 longitude: resolvedLocation.longitude,
             }
@@ -101,14 +101,13 @@ router.addHandler(
             `Event found: ${JSON.stringify(normalizedEvent)}`,
         );
 
-        const apiLocality =
-            resolvedLocation?.locality ??
+        const apiMunicipality =
             normalizedEvent.municipality ??
             normalizedEvent.locality;
 
-        if (!apiLocality) {
+        if (!apiMunicipality) {
             log.warning(
-                `Missing locality for event: ${request.url}`,
+                `Missing municipality for event: ${request.url}`,
             );
             return;
         }
@@ -121,7 +120,8 @@ router.addHandler(
             endDate: normalizedEvent.endDate,
             type: normalizedEvent.type,
             locationName: normalizedEvent.venueName,
-            locality: apiLocality,
+            sourceLocality: normalizedEvent.locality, 
+            municipality: apiMunicipality,
             imageUrl: normalizedEvent.imageUrl,
             latitude: normalizedEvent.latitude,
             longitude: normalizedEvent.longitude,
