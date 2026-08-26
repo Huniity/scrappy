@@ -4,6 +4,25 @@ import { z } from 'zod';
 import { eventTypeSchema } from './eventTypes';
 import { districtSchema, nuts2RegionSchema } from './territory';
 
+function coordinateSchema(
+    minimum: number,
+    maximum: number,
+    label: string,
+) {
+    return z
+        .string()
+        .trim()
+        .min(1)
+        .refine((value) => {
+            const coordinate = Number(value);
+
+            return Number.isFinite(coordinate) &&
+                coordinate >= minimum &&
+                coordinate <= maximum;
+        }, `${label} must be a valid coordinate`)
+        .optional();
+}
+
 export const rawEventSchema = z
 .object({
     title: z.string().trim().min(3).max(250),
@@ -43,8 +62,23 @@ export const rawEventSchema = z
     ageRating: z.number().int().nonnegative().optional(),
 
     maximumAttendeeCapacity: z.number().int().nonnegative().optional(),
+
+    latitude: coordinateSchema(-90, 90, 'Latitude'),
+
+    longitude: coordinateSchema(-180, 180, 'Longitude'),
 })
 .superRefine((event, context) => {
+    if (
+        (event.latitude === undefined) !==
+        (event.longitude === undefined)
+    ) {
+        context.addIssue({
+            code: 'custom',
+            path: ['latitude'],
+            message: 'Latitude and longitude must be provided together',
+        });
+    }
+
     if (
     event.endDate &&
     new Date(event.endDate) < new Date(event.startDate)

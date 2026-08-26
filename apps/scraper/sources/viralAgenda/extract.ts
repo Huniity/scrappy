@@ -1,5 +1,21 @@
+
 import type { CheerioAPI } from 'cheerio';
+import type { CheerioCrawlingContext } from 'crawlee';
 import type { ValidViralAgendaEvent } from '../../src/types/events';
+
+
+type ViralAgendaMapResponse = {
+    events_pages?: Array<{
+        latitude?: unknown;
+        longitude?: unknown;
+    }>;
+}
+
+type MapCoordinates = {
+    latitude: string;
+    longitude: string;
+};
+
 
 type JsonObject = Record<string, unknown>;
 
@@ -91,9 +107,141 @@ function readMunicipalityFromPage(
 ): string | undefined {
     return asString(
         $('a.event-node-link')
-        .first()
-        .text(),
+            .first()
+            .text(),
     );
+}
+
+
+export async function extractViralAgendaCoordinates(
+        eventUrl: string,
+        sendRequest: CheerioCrawlingContext['sendRequest'],
+    ): Promise<MapCoordinates | undefined> {
+    const pageUrl = new URL(eventUrl);
+
+    const mapUrl =`${pageUrl.origin}${pageUrl.pathname}/map`;
+
+    const response = await sendRequest<string>({
+        url: mapUrl,
+        method: 'POST',
+        form: {
+            ajax: '1',
+        },
+        headers: {
+            'x-requested-with':
+                'XMLHttpRequest',
+            referer: `${pageUrl.origin}/`,
+            accept: 'application/json, text/javascript, */*; q=0.01',
+        },
+        throwHttpErrors: false,
+    });
+
+    if (response.statusCode !== 200) {
+        return undefined;
+    }
+
+    let data: ViralAgendaMapResponse;
+
+    try {
+        data = JSON.parse(response.body);
+    } catch {
+        return undefined;
+    }
+
+    const mapPage = data.events_pages?.[0];
+
+    const latitude =
+    asString(mapPage?.latitude);
+    const longitude =
+    asString(mapPage?.longitude);
+
+    if (!latitude || !longitude) {
+        return undefined;
+    }
+
+    return {
+        latitude,
+        longitude,
+    };
+}
+
+function readCoordinatesFromMap(
+    $: CheerioAPI,
+): MapCoordinates | undefined {
+    let coordinates: MapCoordinates | undefined;
+
+    $('a[href]').each((_index, element) => {
+        const href = asString($(element).attr('href'));
+
+        if (!href) {
+            return;
+        }
+
+        let mapUrl: URL;
+
+        try {
+            mapUrl = new URL(
+                href,
+                'https://www.viralagenda.com',
+            );
+        } catch {
+            return;
+        }
+
+        const hostname = mapUrl.hostname.toLowerCase();
+        const isGoogleMapsUrl =
+            hostname === 'maps.google.com' ||
+            hostname.startsWith('maps.google.') ||
+            ((hostname === 'google.com' ||
+                hostname.startsWith('www.google.')) &&
+                mapUrl.pathname.startsWith('/maps'));
+
+        if (!isGoogleMapsUrl) {
+            return;
+        }
+
+        const rawCoordinates = mapUrl.searchParams.get('ll');
+        const coordinateParts = rawCoordinates
+            ?.split(',')
+            .map((part) => part.trim());
+
+        if (
+            !coordinateParts ||
+            coordinateParts.length < 2
+        ) {
+            return;
+        }
+
+        const latitude = coordinateParts[0];
+        const longitude = coordinateParts[1];
+
+        if (!latitude || !longitude) {
+            return;
+        }
+
+        const latitudeNumber = Number(latitude);
+        const longitudeNumber = Number(longitude);
+
+        if (
+            !Number.isFinite(latitudeNumber) ||
+            !Number.isFinite(longitudeNumber) ||
+            latitudeNumber < -90 ||
+            latitudeNumber > 90 ||
+            longitudeNumber < -180 ||
+            longitudeNumber > 180
+        ) {
+            return;
+        }
+
+        coordinates = {
+            latitude,
+            longitude,
+        };
+
+        return false;
+    });
+
+    return coordinates;
 }
 
 
@@ -180,6 +328,8 @@ function toValidEvent(
         return null;
     }
 
+    const coordinates = readCoordinatesFromMap($);
+
     return {
         '@type': readType(node['@type']),
         name,
@@ -190,6 +340,8 @@ function toValidEvent(
         image: readImage(node.image),
         location: readLocation(node.location, $),
         municipality: readMunicipalityFromPage($),
+        latitude: coordinates?.latitude,
+        longitude: coordinates?.longitude,
     };
 }
 

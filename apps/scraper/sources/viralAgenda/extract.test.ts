@@ -12,6 +12,11 @@ test('extracts an event from JSON-LD graph', () => {
       <a class="event-node-link" href="/pt/loule">
         Loulé
       </a>
+      <a
+        href="https://maps.google.com/maps?zoom=16&ll=37.1378%2C-8.0201"
+      >
+        Ver mapa
+      </a>
       <script type="application/ld+json">
         {
           "@graph": [
@@ -84,6 +89,10 @@ test('extracts an event from JSON-LD graph', () => {
         'Almancil',
     );
     assert.equal(result.municipality, 'Loulé');
+    assert.equal(result.latitude, '37.1378');
+    assert.equal(result.longitude, '-8.0201');
     assert.equal(normalized.locality, 'Almancil');
     assert.equal(normalized.municipality, 'Loulé');
+    assert.equal(normalized.latitude, '37.1378');
+    assert.equal(normalized.longitude, '-8.0201');
 });

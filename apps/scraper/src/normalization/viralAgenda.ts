@@ -72,5 +72,11 @@ export function normalizeViralAgendaEvent(
 
         country:
             cleanText(data.location?.address?.addressCountry),
+
+        latitude:
+            data.latitude,
+
+        longitude:
+            data.longitude,
     };
 }

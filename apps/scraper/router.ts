@@ -2,7 +2,7 @@
 
 import { createCheerioRouter } from 'crawlee';
 import blacklist from './config/blacklist.json';
-import { extractViralAgendaJsonLd } from './sources/viralAgenda/extract';
+import { extractViralAgendaCoordinates, extractViralAgendaJsonLd } from './sources/viralAgenda/extract';
 import { normalizeViralAgendaDates } from './src/normalization/dates';
 import { normalizeViralAgendaEvent } from './src/normalization/viralAgenda';
 import { classifyEventType } from './src/enrichment/eventType';
@@ -10,6 +10,7 @@ import { rawEventSchema } from '../shared/rawEvent';
 import { normalizedUrl } from '../shared/jobId';
 import { pushToIngestionQueue } from '../ingestion/queue';
 import { extractEventMetadata } from './src/enrichment/eventMetadata';
+import { resolveLocation } from './src/enrichment/location';
 
 export const router = createCheerioRouter();
 
@@ -41,7 +42,7 @@ router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
  */
 router.addHandler(
     'EVENT_DETAIL',
-    async ({ request, $, log }) => {
+    async ({ request, $, log, sendRequest }) => {
         const extracted =
             extractViralAgendaJsonLd($, request.url);
 
@@ -52,7 +53,20 @@ router.addHandler(
             return;
         }
 
-        const normalized = normalizeViralAgendaEvent(extracted);
+        const coordinates = await extractViralAgendaCoordinates(
+            request.url,
+            sendRequest,
+        );
+
+        const extractedWithCoordinates = {
+            ...extracted,
+            latitude: coordinates?.latitude,
+            longitude: coordinates?.longitude,
+        }
+
+        //   log.info(`Coordinates: ${coordinates?.latitude}, ${coordinates?.longitude}`);
+
+        const normalized = normalizeViralAgendaEvent(extractedWithCoordinates);
         const normalizedDates = normalizeViralAgendaDates(normalized);
 
         if (!normalizedDates) {
@@ -62,18 +76,35 @@ router.addHandler(
             return;
         }
 
-        const metadata = extractEventMetadata(normalizedDates.description);
+        const resolvedLocation = resolveLocation(normalizedDates);
+
+        const normalizedWithLocation = resolvedLocation
+            ? {
+                ...normalizedDates,
+                locality: resolvedLocation.locality,
+                latitude: resolvedLocation.latitude,
+                longitude: resolvedLocation.longitude,
+            }
+            : normalizedDates;
+
+        const metadata = extractEventMetadata(
+            normalizedWithLocation.description,
+        );
 
         const normalizedEvent = {
-            ...normalizedDates,
+            ...normalizedWithLocation,
             ...metadata,
-            type: classifyEventType(normalizedDates),
-        }
+            type: classifyEventType(normalizedWithLocation),
+        };
+
         log.info(
             `Event found: ${JSON.stringify(normalizedEvent)}`,
         );
 
-        const apiLocality = normalizedEvent.municipality ?? normalizedEvent.locality;
+        const apiLocality =
+            resolvedLocation?.locality ??
+            normalizedEvent.municipality ??
+            normalizedEvent.locality;
 
         if (!apiLocality) {
             log.warning(
@@ -92,6 +123,8 @@ router.addHandler(
             locationName: normalizedEvent.venueName,
             locality: apiLocality,
             imageUrl: normalizedEvent.imageUrl,
+            latitude: normalizedEvent.latitude,
+            longitude: normalizedEvent.longitude,
             price: normalizedEvent.price,
             ageRating: normalizedEvent.ageRating,
             maximumAttendeeCapacity: normalizedEvent.maximumAttendeeCapacity,
@@ -106,9 +139,9 @@ router.addHandler(
             return;
         }
 
-        log.info(
-            `Valid raw event data: ${JSON.stringify(validation.data)}`,
-        );
+        // log.info(
+        //     `Valid raw event data: ${JSON.stringify(validation.data)}`,
+        // );
 
         await pushToIngestionQueue(validation.data);
 

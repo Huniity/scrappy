@@ -21,6 +21,26 @@
     assert.deepEqual(result.keywords, []);
   });
 
+  test('keeps a valid coordinate pair', () => {
+    const result = rawEventSchema.parse({
+      ...validEvent,
+      latitude: '37.1378',
+      longitude: '-8.0201',
+    });
+
+    assert.equal(result.latitude, '37.1378');
+    assert.equal(result.longitude, '-8.0201');
+  });
+
+  test('rejects incomplete coordinate pairs', () => {
+    const result = rawEventSchema.safeParse({
+      ...validEvent,
+      latitude: '37.1378',
+    });
+
+    assert.equal(result.success, false);
+  });
+
   test('rejects a short description', () => {
     const result = rawEventSchema.safeParse({
       ...validEvent,

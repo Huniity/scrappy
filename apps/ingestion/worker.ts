@@ -55,6 +55,8 @@ const ingestionWorker = new Worker(
 				region: rawData.region,
 				dicoCode: rawData.dicoCode,
 				country: 'PT',
+				latitude: rawData.latitude,
+				longitude: rawData.longitude,
 			},
 
 		};

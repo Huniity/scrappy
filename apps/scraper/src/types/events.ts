@@ -23,6 +23,8 @@ export type ValidViralAgendaEvent = ViralAgendaJsonLd & {
     url: string;
     startDate: string;
     municipality?: string;
+    latitude?: string;
+    longitude?: string;
 };
 
 export type NormalizedEvent = {
