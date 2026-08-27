@@ -147,7 +147,6 @@ public class EventResponseDto
     public List<EventAudienceResponseDto> Audience { get; set; } = new();
 
     /// <summary> Gets or sets the attendance mode of the event. </summary>
-    [JsonPropertyName("eventAttendanceMode")]
     public string? AttendanceMode { get; set; }
 
     /// <summary> Gets or sets the schedule information of the event. </summary>

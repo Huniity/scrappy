@@ -228,63 +228,67 @@ public class SchemaOrgEventDto
     [JsonPropertyName("eventStatus")]
     public string EventStatus { get; set; } = "https://schema.org/EventScheduled";
 
-    /// <summary> Gets or sets the location of the event, which is represented by a SchemaOrgPlaceDto object. </summary>
+    /// <summary> Gets or sets the location of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("location")]
     public SchemaOrgPlaceDto? Location { get; set; }
 
-    /// <summary> Gets or sets the owner of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the owner of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("owner")]
     public List<SchemaOrgAgentDto>? Owner { get; set; }
 
-    /// <summary> Gets or sets the maintainer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the organizer of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("organizer")]
     public List<SchemaOrgAgentDto>? Organizer { get; set; }
 
-    /// <summary> Gets or sets the promoter of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the maintainer of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
+    [JsonPropertyName("maintainer")]
+    public List<SchemaOrgAgentDto>? Maintainer { get; set; }
+
+    /// <summary> Gets or sets the promoter of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("promoter")]
     public List<SchemaOrgAgentDto>? Promoter { get; set; }
 
-    /// <summary> Gets or sets the maintainer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the funder of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("funder")]
     public List<SchemaOrgAgentDto>? Funder { get; set; }
 
-    /// <summary> Gets or sets the maintainer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the performer of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("performer")]
     public List<SchemaOrgAgentDto>? Performer { get; set; }
 
-    /// <summary> Gets or sets the maintainer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the actor of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("actor")]
     public List<SchemaOrgAgentDto>? Actor { get; set; }
 
-    /// <summary> Gets or sets the director of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the director of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("director")]
     public List<SchemaOrgAgentDto>? Director { get; set; }
 
-    /// <summary> Gets or sets the composer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the composer of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("composer")]
     public List<SchemaOrgAgentDto>? Composer { get; set; }
 
-    /// <summary> Gets or sets the maintainer of the event, which is represented by a <SchemaOrgAgentDto> object. </summary>
+    /// <summary> Gets or sets the audience of the event, which is represented by a <see cref="SchemaOrgAgentDto"/> object. </summary>
     [JsonPropertyName("audience")]
     public List<SchemaOrgAudienceDto>? Audience { get; set; }
 
-    /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
+    /// <summary> Gets or sets the event schedule of the event, which is represented by a string value. </summary>
     [JsonPropertyName("eventSchedule")]
     public SchemaOrgScheduleDto? EventSchedule { get; set; }
 
-    /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
+    /// <summary> Gets or sets the subevent of the event, which is represented by a string value. </summary>
     [JsonPropertyName("subEvent")]
     public List<SchemaOrgEventDto>? SubEvent { get; set; }
 
-    /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
+    /// <summary> Gets or sets the superevent of the event, which is represented by a string value. </summary>
     [JsonPropertyName("superEvent")]
     public SchemaOrgEventDto? SuperEvent { get; set; }
 
     /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
     [JsonPropertyName("eventAttendanceMode")]
     public string? EventAttendanceMode { get; set; }
-
-    /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
+    
+    /// <summary> Gets or sets the additional properties of the event, which is represented by a list of <see cref="SchemaOrgPropertyValueDto"/> objects. </summary>
     [JsonPropertyName("additionalProperty")]
     public List<SchemaOrgPropertyValueDto> AdditionalProperties { get; set; } = new();
 }
