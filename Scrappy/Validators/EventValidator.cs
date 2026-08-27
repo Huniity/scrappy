@@ -5,6 +5,7 @@ using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 using Scrappy.Services;
 using System.Globalization;
+using System.Xml;
 
 namespace Scrappy.Validators;
 
@@ -15,6 +16,11 @@ public static class Validator
     private const int MaxKeywords = 50;
     private const int MaxKeywordLength = 100;
     private const int MaxSearchTermLength = 100;
+    private const int MaxAgents = 50;
+    private const int MaxAudiences = 50;
+    private const int MaxAudienceNameLength = 250;
+    private const int MaxAudienceTypeLength = 100;
+    private const int MaxDurationLength = 50;
 
     private static readonly HashSet<string> ValidSortOptions =
         new(StringComparer.OrdinalIgnoreCase)
@@ -480,23 +486,30 @@ public static class Validator
 
     public static bool IsAgentValid(EventAgentRequestDto? agent) =>
         agent is null ||
-        (IsAgentNameValid(agent.Name) &&
-         IsAgentTypeValid(agent.Type) &&
-         IsOptionalUrlValid(agent.Url) &&
-         IsOptionalUrlValid(agent.SameAs));
+        (
+            IsAgentNameValid(agent.Name) &&
+            IsAgentTypeValid(agent.Type) &&
+            IsOptionalUrlValid(agent.Url) &&
+            IsOptionalUrlValid(agent.ImageUrl) &&
+            IsOptionalUrlValid(agent.SameAs)
+        );
+
+    public static bool AreAgentsValid(IEnumerable<EventAgentRequestDto>? agents)
+    {
+        if (agents is null)
+            return true;
+        
+        var agentList = agents.ToList();
+
+        return agentList.Count <= MaxAgents &&
+               agentList.All(agent =>
+                   agent is not null && IsAgentValid(agent));
+    }
 
     public static bool ArePerformersValid(
         IEnumerable<EventAgentRequestDto>? performers)
-    {
-        if (performers is null)
-            return true;
-
-        var performerList = performers.ToList();
-
-        return performerList.Count <= MaxPerformers &&
-               performerList.All(performer =>
-                   performer is not null && IsAgentValid(performer));
-    }
+        =>
+        AreAgentsValid(performers);
 
     public static async Task<bool> IsDuplicateOnCreate(
         CreateEventDto candidate,
@@ -578,4 +591,61 @@ public static class Validator
                 cleanTitle,
                 StringComparison.OrdinalIgnoreCase));
     }
+
+    public static bool IsAudienceValid(
+        EventAudienceRequestDto? audience)
+    {
+        if (audience is null)
+            return true;
+
+        var hasValue =
+            !string.IsNullOrWhiteSpace(audience.Name) ||
+            !string.IsNullOrWhiteSpace(audience.AudienceType);
+
+        return hasValue &&
+                (string.IsNullOrWhiteSpace(audience.Name) ||
+                audience.Name.Trim().Length <=
+                MaxAudienceNameLength) &&
+
+                (string.IsNullOrWhiteSpace(audience.AudienceType) ||
+                audience.AudienceType.Trim().Length <=
+                MaxAudienceTypeLength);
+    }
+
+    public static bool AreAudiencesValid(
+        IEnumerable<EventAudienceRequestDto>? audiences)
+    {
+        if (audiences is null)
+            return true;
+
+        var audienceList = audiences.ToList();
+
+        return audienceList.Count <= MaxAudiences &&
+                audienceList.All(IsAudienceValid);
+    }
+
+    public static bool IsAttendanceModeValid(
+      EventAttendanceMode? attendanceMode) =>
+      !attendanceMode.HasValue || Enum.IsDefined(attendanceMode.Value);
+
+      public static bool IsDurationValid(string? duration)
+        {
+            if (string.IsNullOrWhiteSpace(duration))
+                return true;
+
+            var value = duration.Trim();
+
+            if (value.Length > MaxDurationLength)
+                return false;
+
+            try
+            {
+                XmlConvert.ToTimeSpan(value);
+                return true;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
 }

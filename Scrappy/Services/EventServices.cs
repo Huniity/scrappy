@@ -184,7 +184,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         await _eventsCollection.InsertOneAsync(districtEvent);
         return Result<DistrictEvent>.Success(districtEvent);
-    };
+    }
 
     public async Task<Result<DistrictEvent>> UpdateEvent(
         string id,
@@ -404,7 +404,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             existingEvent);
 
         return Result<DistrictEvent>.Success(existingEvent);
-    };
+    }
 
     private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
     {
@@ -444,7 +444,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             out var coordinate)
             ? coordinate
             : null;
-    };
+    }
 
     public async Task<Result<DistrictEvent>> DeleteEvent(string id)
     {
@@ -457,13 +457,13 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return districtEvent is null
             ? Result<DistrictEvent>.Failure("Event not found")
             : Result<DistrictEvent>.Success(districtEvent);
-    };
+    }
 
     public async Task<Result<IEnumerable<DistrictEvent>>> GetAllEvents()
     {
         var events = await _eventsCollection.Find(_ => true).ToListAsync();
         return Result<IEnumerable<DistrictEvent>>.Success(events);
-    };
+    }
 
     public async Task<Result<DistrictEvent>> GetEventById(string id)
     {
@@ -477,16 +477,16 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return districtEvent is null
             ? Result<DistrictEvent>.Failure($"Event with id {id} not found.")
             : Result<DistrictEvent>.Success(districtEvent);
-    };
+    }
 
-        private static AgentModel MapAgent(EventAgentRequestDto dto) => new()
-        {
-            Name = dto.Name.Trim(),
-            Type = dto.Type,
-            Url = dto.Url?.Trim(),
-            Image = dto.Image?.Trim(),
-            SameAs = dto.SameAs?.Trim()
-        };
+    private static AgentModel MapAgent(EventAgentRequestDto dto) => new()
+    {
+        Name = dto.Name.Trim(),
+        Type = dto.Type,
+        Url = dto.Url?.Trim(),
+        Image = dto.Image?.Trim(),
+        SameAs = dto.SameAs?.Trim()
+    };
 
     private static List<AgentModel> MapAgents( IEnumerable<EventAgentRequestDto>? agents)
     {
@@ -494,7 +494,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             .Where(agent => agent is not null)
             .Select(MapAgent)
             .ToList() ?? new();
-    };
+    }
 
     private static OfferModel MapOffer(EventOfferRequestDto dto) => new()
     {
@@ -512,7 +512,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return offers?
             .Select(MapOffer)
             .ToList() ?? new();
-    };
+    }
 
     private static AudienceModel MapAudience(EventAudienceRequestDto dto) => new()
     {
@@ -525,14 +525,14 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return audiences?
             .Select(MapAudience)
             .ToList() ?? new();
-    };
+    }
 
     private static List<string> MapKeywords(IEnumerable<string>? keywords)
     {
         return keywords?
             .Select(keyword => keyword.Trim())
             .ToList() ?? new();
-    };
+    }
 
     private static ScheduleModel? MapSchedule(EventScheduleRequestDto? dto)
     {
@@ -548,5 +548,5 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
             RepeatDays = dto.RepeatDays
         };
-    };
+    }
 }
