@@ -1,6 +1,7 @@
 
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 
@@ -141,8 +142,13 @@ public class UpdateEventDto
     /// <summary> Gets or sets the audience of the event. </summary>
     public List<EventAudienceRequestDto>? Audience { get; set; }
 
+    /// <summary> Gets or sets the attendance mode of the event. </summary>
+    [JsonPropertyName("eventAttendanceMode")]
+    public EventAttendanceMode? AttendanceMode { get; set; }
+
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }
 
+    /// <summary> Gets or sets the attendance mode of the event. </summary>
     public List<EventOfferRequestDto>? Offers { get; set; }
 }

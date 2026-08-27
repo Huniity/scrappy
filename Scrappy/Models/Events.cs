@@ -128,7 +128,7 @@ public class Event
 
     /// <summary> Gets or sets the promoter of the event. </summary>
     [BsonElement("Promoter")]
-    public List<AgentModel> Promoter { get; set; }
+    public List<AgentModel> Promoter { get; set; } = new();
 
     /// <summary> Gets or sets the performers associated with the event. </summary>
     [BsonElement("Performers")]
@@ -136,7 +136,7 @@ public class Event
 
     /// <summary> Gets or sets the maintainers of the event. </summary>
     [BsonElement("Maintainer")]
-    public List<AgentModel> Maintener { get; set; } = new();
+    public List<AgentModel> Maintainer { get; set; } = new();
 
     /// <summary> Gets or sets the funders of the event. </summary>
     [BsonElement("Funder")]
@@ -160,7 +160,8 @@ public class Event
 
     /// <summary> Gets or sets the attendance mode of the event. </summary>
     [BsonElement("EventAttendanceMode")]
-    public EventAttendanceMode? EventAttendanceMode { get; set; }
+    [BsonRepresentation(BsonType.String)]
+    public EventAttendanceMode? AttendanceMode { get; set; }
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     [BsonElement("Schedule")]

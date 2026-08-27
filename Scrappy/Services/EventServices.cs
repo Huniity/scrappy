@@ -75,7 +75,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsDurationValid(dto.Duration))
             return Result<DistrictEvent>.Failure("Invalid duration.");
 
-        if (!Validator.IsEventAttendanceModeValid(dto.AttendanceMode))
+        if (!Validator.IsAttendanceModeValid(dto.AttendanceMode))
             return Result<DistrictEvent>.Failure("Invalid attendance mode.");
 
         if (!Validator.AreKeywordsValid(dto.Keywords))
@@ -283,14 +283,19 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             !Validator.IsDoorTimeValid(dto.DoorTime, startDate))
         {
             return Result<DistrictEvent>.Failure("Invalid door time.");
+        }                
+
+        if (dto.Duration is not null &&
+            !Validator.IsDurationValid(dto.Duration))
+        {
+            return Result<DistrictEvent>.Failure("Invalid duration.");
         }
 
-        if (dto.Duration is not null)
-            eventModel.Duration = dto.Duration.Trim();
-
-        if (dto.AttendanceMode.HasValue)
-            eventModel.AttendanceMode = dto.AttendanceMode;
-                
+        if (dto.AttendanceMode.HasValue &&
+            !Validator.IsAttendanceModeValid(dto.AttendanceMode))
+        {
+            return Result<DistrictEvent>.Failure("Invalid attendance mode.");
+        }
 
         if (dto.Keywords is not null &&
             !Validator.AreKeywordsValid(dto.Keywords))
@@ -398,6 +403,11 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             startDate,
             locationName,
             eventType);
+        existingEvent.Event.Duration = dto.Duration?.Trim() ?? existingEvent.Event.Duration;
+
+        if (dto.AttendanceMode.HasValue)
+            existingEvent.Event.AttendanceMode =
+            dto.AttendanceMode;
 
         await _eventsCollection.ReplaceOneAsync(
             e => e.Id == existingEvent.Id,
@@ -484,7 +494,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         Name = dto.Name.Trim(),
         Type = dto.Type,
         Url = dto.Url?.Trim(),
-        Image = dto.Image?.Trim(),
+        ImageUrl = dto.ImageUrl?.Trim(),
         SameAs = dto.SameAs?.Trim()
     };
 
@@ -516,8 +526,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
     private static AudienceModel MapAudience(EventAudienceRequestDto dto) => new()
     {
-        Name = dto.Name.Trim(),
-        AudienceType = dto.AudienceType.Trim()
+        Name = dto.Name?.Trim(),
+        AudienceType = dto.AudienceType?.Trim()
     };
 
     private static List<AudienceModel> MapAudiences(IEnumerable<EventAudienceRequestDto>? audiences)

@@ -32,4 +32,7 @@ public class EventAgentRequestDto
 
     /// <summary> Gets or sets the "sameAs" URL of the event agent, which is used to indicate that the agent is the same as another entity. </summary>
     public string? SameAs { get; set; }
+
+    /// <summary> Gets or sets the image URL of the event agent. </summary>
+    public string? ImageUrl { get; set; }
 }
