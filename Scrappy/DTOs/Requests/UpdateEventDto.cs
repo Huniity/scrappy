@@ -84,6 +84,9 @@ public class UpdateEventDto
     public DateTime? DoorTime { get; set; }
 
     /// <summary> Gets or sets the type of the event. </summary>
+    public string? Duration { get; set; }
+
+    /// <summary> Gets or sets the type of the event. </summary>
     public EventType? Type { get; set; }
 
     /// <summary> Gets or sets the location of the event. </summary>
@@ -112,13 +115,31 @@ public class UpdateEventDto
     public List<string>? Keywords { get; set; }
 
     /// <summary> Gets or sets the organizer of the event. </summary>
-    public EventAgentRequestDto? Organizer { get; set; }
+    public List<EventAgentRequestDto>? Organizer { get; set; }
+
+    /// <summary> Gets or sets the maintainer of the event. </summary>
+    public List<EventAgentRequestDto>? Maintainer { get; set; }
+
+    /// <summary> Gets or sets the funder of the event. </summary>
+    public List<EventAgentRequestDto>? Funder { get; set; }
+
+    /// <summary> Gets or sets the composer of the event. </summary>
+    public List<EventAgentRequestDto>? Composer { get; set; }
+
+    /// <summary> Gets or sets the director of the event. </summary>
+    public List<EventAgentRequestDto>? Director { get; set; }
 
     /// <summary> Gets or sets the promoter of the event. </summary>
-    public EventAgentRequestDto? Promoter { get; set; }
+    public List<EventAgentRequestDto>? Promoter { get; set; }
+
+    /// <summary> Gets or sets the actor of the event. </summary>
+    public List<EventAgentRequestDto>? Actor { get; set; }
 
     /// <summary> Gets or sets the performers of the event. </summary>
     public List<EventAgentRequestDto>? Performers { get; set; }
+
+    /// <summary> Gets or sets the audience of the event. </summary>
+    public List<EventAudienceRequestDto>? Audience { get; set; }
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }

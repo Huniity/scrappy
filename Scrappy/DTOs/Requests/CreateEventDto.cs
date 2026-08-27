@@ -88,6 +88,9 @@ public class CreateEventDto
     /// <summary> Gets or sets the door time of the event. </summary>
     public DateTime? DoorTime { get; set; }
 
+    /// <summary> Gets or sets the duration of the event in ISO 8601 duration format. </summary>
+    public string? Duration { get; set; }
+
     /// <summary> Gets or sets the type of the event. </summary>
     [Required(ErrorMessage = "O tipo do evento é obrigatório.")]
     public EventType? Type { get; set; }
@@ -113,6 +116,10 @@ public class CreateEventDto
     /// <summary> Gets or sets the age rating of the event. </summary>
     public int? AgeRating { get; set; }
 
+    /// <summary> Gets or sets the attendance mode of the event. </summary>
+    [JsonPropertyName("eventAttendanceMode")]
+    public EventAttendanceMode? AttendanceMode { get; set; }
+
     /// <summary> Gets or sets the maximum attendee capacity of the event. </summary>
     public int? MaximumAttendeeCapacity { get; set; }
 
@@ -120,16 +127,35 @@ public class CreateEventDto
     public List<string> Keywords { get; set; } = new();
 
     /// <summary> Gets or sets the organizer of the event. </summary>
-    public EventAgentRequestDto? Organizer { get; set; }
+    public List<EventAgentRequestDto> Organizer { get; set; } = new();
 
     /// <summary> Gets or sets the promoter of the event. </summary>
-    public EventAgentRequestDto? Promoter { get; set; }
+    public List<EventAgentRequestDto> Promoter { get; set; } = new();
 
     /// <summary> Gets or sets the performers of the event. </summary>
     public List<EventAgentRequestDto> Performers { get; set; } = new();
 
+    /// <summary> Gets or sets the actors of the event. </summary>
+    public List<EventAgentRequestDto> Actor { get; set; } = new();
+
+    /// <summary> Gets or sets the composers of the event. </summary>
+    public List<EventAgentRequestDto> Composer { get; set; } = new();
+
+    /// <summary> Gets or sets the directors of the event. </summary>
+    public List<EventAgentRequestDto> Director { get; set; } = new();
+
+    /// <summary> Gets or sets the producers of the event. </summary>
+    public List<EventAgentRequestDto> Maintainer { get; set; } = new();
+
+    /// <summary> Gets or sets the funders of the event. </summary>
+    public List<EventAgentRequestDto> Funder { get; set; } = new();
+
+    /// <summary> Gets or sets the audience of the event. </summary>
+    public List<EventAudienceRequestDto> Audience { get; set; } = new();
+
     /// <summary> Gets or sets the schedule of the event. </summary>
     public EventScheduleRequestDto? Schedule { get; set; }
 
+    /// <summary> Gets or sets the offers of the event. </summary>
     public List<EventOfferRequestDto> Offers { get; set; } = new();
 }

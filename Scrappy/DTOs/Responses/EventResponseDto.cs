@@ -120,16 +120,39 @@ public class EventResponseDto
     public List<string> Keywords { get; set; } = new();
 
     /// <summary> Gets or sets the organizer information of the event. </summary>
-    public EventAgentResponseDto? Organizer { get; set; }
+    public List<EventAgentResponseDto> Organizer { get; set; } = new();
 
     /// <summary> Gets or sets the promoter information of the event. </summary>
-    public EventAgentResponseDto? Promoter { get; set; }
+    public List<EventAgentResponseDto> Promoter { get; set; } = new();
 
     /// <summary> Gets or sets the list of performers associated with the event. </summary>
     public List<EventAgentResponseDto> Performers { get; set; } = new();
 
+    /// <summary> Gets or sets the list of actors associated with the event. </summary>
+    public List<EventAgentResponseDto> Actor { get; set; } = new();
+    
+    /// <summary> Gets or sets the list of maintainers associated with the event. </summary>
+    public List<EventAgentResponseDto> Composer { get; set; } = new();
+    
+    /// <summary> Gets or sets the list of directors associated with the event. </summary>
+    public List<EventAgentResponseDto> Director { get; set; } = new();
+    
+    /// <summary> Gets or sets the list of maintainers associated with the event. </summary>
+    public List<EventAgentResponseDto> Maintainer { get; set; } = new();
+    
+    /// <summary> Gets or sets the list of funders associated with the event. </summary>
+    public List<EventAgentResponseDto> Funder { get; set; } = new();
+    
+    /// <summary> Gets or sets the list of audiences associated with the event. </summary>
+    public List<EventAudienceResponseDto> Audience { get; set; } = new();
+
+    /// <summary> Gets or sets the attendance mode of the event. </summary>
+    [JsonPropertyName("eventAttendanceMode")]
+    public string? AttendanceMode { get; set; }
+
     /// <summary> Gets or sets the schedule information of the event. </summary>
     public EventScheduleResponseDto? Schedule { get; set; }
 
+    /// <summary> Gets or sets the offers associated with the event. </summary>
     public List<EventOfferResponseDto> Offers { get; set; } = new();
 }

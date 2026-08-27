@@ -26,4 +26,7 @@ public class EventAgentResponseDto
 
     /// <summary> Gets or sets the sameAs URL of the event agent. </summary>
     public string? SameAs { get; set; }
+
+    /// <summary> Gets or sets the image URL of the event agent. </summary>
+    public string? ImageUrl { get; set; }
 }
