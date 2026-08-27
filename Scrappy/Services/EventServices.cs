@@ -72,6 +72,12 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsDoorTimeValid(dto.DoorTime, startDate))
             return Result<DistrictEvent>.Failure("Invalid door time.");
 
+        if (!Validator.IsDurationValid(dto.Duration))
+            return Result<DistrictEvent>.Failure("Invalid duration.");
+
+        if (!Validator.IsEventAttendanceModeValid(dto.AttendanceMode))
+            return Result<DistrictEvent>.Failure("Invalid attendance mode.");
+
         if (!Validator.AreKeywordsValid(dto.Keywords))
             return Result<DistrictEvent>.Failure("Invalid keywords.");
 
@@ -92,14 +98,34 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsSourceUrlValid(dto.SourceUrl))
             return Result<DistrictEvent>.Failure("Invalid source URL.");
 
-        if (!Validator.IsAgentValid(dto.Organizer))
-            return Result<DistrictEvent>.Failure("Invalid organizer.");
+    
+        if (!Validator.AreAgentsValid(dto.Organizer))
+            return Result<DistrictEvent>.Failure("Invalid organizers.");
 
-        if (!Validator.IsAgentValid(dto.Promoter))
-            return Result<DistrictEvent>.Failure("Invalid promoter.");
+        if (!Validator.AreAgentsValid(dto.Promoter))
+            return Result<DistrictEvent>.Failure("Invalid promoters.");
 
-        if (!Validator.ArePerformersValid(dto.Performers))
+        if (!Validator.AreAgentsValid(dto.Maintainer))
+            return Result<DistrictEvent>.Failure("Invalid maintainers.");
+
+        if (!Validator.AreAgentsValid(dto.Performers))
             return Result<DistrictEvent>.Failure("Invalid performers.");
+
+        if (!Validator.AreAgentsValid(dto.Funder))
+            return Result<DistrictEvent>.Failure("Invalid funders.");
+
+        if (!Validator.AreAgentsValid(dto.Actor))
+            return Result<DistrictEvent>.Failure("Invalid actors.");
+
+        if (!Validator.AreAgentsValid(dto.Director))
+            return Result<DistrictEvent>.Failure("Invalid directors.");
+
+        if (!Validator.AreAgentsValid(dto.Composer))
+            return Result<DistrictEvent>.Failure("Invalid composers.");
+
+        if (!Validator.AreAudiencesValid(dto.Audience))
+            return Result<DistrictEvent>.Failure("Invalid audience.");
+
 
         if (await Validator.IsDuplicateOnCreate(
                 dto,
@@ -139,9 +165,17 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
                 MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
                 Keywords = MapKeywords(dto.Keywords),
                 Type = dto.Type!.Value,
-                Organizer = MapAgent(dto.Organizer),
-                Promoter = MapAgent(dto.Promoter),
+                Organizer = MapAgents(dto.Organizer),
+                Promoter = MapAgents(dto.Promoter),
+                Maintainer = MapAgents(dto.Maintainer),
+                Funder = MapAgents(dto.Funder),
+                Actor = MapAgents(dto.Actor),
+                Director = MapAgents(dto.Director),
+                Composer = MapAgents(dto.Composer),
                 Performers = MapAgents(dto.Performers),
+                Audience = MapAudiences(dto.Audience),
+                Duration = dto.Duration?.Trim(),
+                AttendanceMode = dto.AttendanceMode,
                 Offers = MapOffers(dto.Offers),
                 QualityScore = qualityScore,
                 Schedule = MapSchedule(dto.Schedule)
@@ -150,7 +184,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         await _eventsCollection.InsertOneAsync(districtEvent);
         return Result<DistrictEvent>.Success(districtEvent);
-    }
+    };
 
     public async Task<Result<DistrictEvent>> UpdateEvent(
         string id,
@@ -171,8 +205,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             return Result<DistrictEvent>.Failure("Invalid title.");
         }
 
-        if (dto.Description is not null &&
-            !Validator.IsDescriptionValid(dto.Description))
+        if (dto.Description is not null && !Validator.IsDescriptionValid(dto.Description))
         {
             return Result<DistrictEvent>.Failure("Invalid description.");
         }
@@ -183,20 +216,38 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (dto.Location is not null && !Validator.IsLocationValid(dto.Location))
             return Result<DistrictEvent>.Failure("Invalid location.");
 
-        if (dto.SourceUrl is not null &&
-            !Validator.IsSourceUrlValid(dto.SourceUrl))
+        if (dto.SourceUrl is not null && !Validator.IsSourceUrlValid(dto.SourceUrl))
         {
             return Result<DistrictEvent>.Failure("Invalid source URL.");
         }
 
-        if (!Validator.IsAgentValid(dto.Organizer))
-            return Result<DistrictEvent>.Failure("Invalid organizer.");
+        if (!Validator.AreAgentsValid(dto.Organizer))
+            return Result<DistrictEvent>.Failure("Invalid organizers.");
 
-        if (!Validator.IsAgentValid(dto.Promoter))
-            return Result<DistrictEvent>.Failure("Invalid promoter.");
+        if (!Validator.AreAgentsValid(dto.Promoter))
+            return Result<DistrictEvent>.Failure("Invalid promoters.");
 
-        if (!Validator.ArePerformersValid(dto.Performers))
+        if (!Validator.AreAgentsValid(dto.Maintainer))
+            return Result<DistrictEvent>.Failure("Invalid maintainers.");
+
+        if (!Validator.AreAgentsValid(dto.Performers))
             return Result<DistrictEvent>.Failure("Invalid performers.");
+
+        if (!Validator.AreAgentsValid(dto.Funder))
+            return Result<DistrictEvent>.Failure("Invalid funders.");
+
+        if (!Validator.AreAgentsValid(dto.Actor))
+            return Result<DistrictEvent>.Failure("Invalid actors.");
+
+        if (!Validator.AreAgentsValid(dto.Director))
+            return Result<DistrictEvent>.Failure("Invalid directors.");
+
+        if (!Validator.AreAgentsValid(dto.Composer))
+            return Result<DistrictEvent>.Failure("Invalid composers.");
+
+        if (!Validator.AreAudiencesValid(dto.Audience))
+            return Result<DistrictEvent>.Failure("Invalid audience.");
+
 
         var startDate = dto.StartDate ?? existingEvent.Event.StartDate;
         var endDate = dto.EndDate ?? existingEvent.Event.EndDate;
@@ -233,6 +284,13 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         {
             return Result<DistrictEvent>.Failure("Invalid door time.");
         }
+
+        if (dto.Duration is not null)
+            eventModel.Duration = dto.Duration.Trim();
+
+        if (dto.AttendanceMode.HasValue)
+            eventModel.AttendanceMode = dto.AttendanceMode;
+                
 
         if (dto.Keywords is not null &&
             !Validator.AreKeywordsValid(dto.Keywords))
@@ -284,13 +342,31 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         }
 
         if (dto.Organizer is not null)
-            existingEvent.Event.Organizer = MapAgent(dto.Organizer);
+            existingEvent.Event.Organizer = MapAgents(dto.Organizer);
 
         if (dto.Promoter is not null)
-            existingEvent.Event.Promoter = MapAgent(dto.Promoter);
+            existingEvent.Event.Promoter = MapAgents(dto.Promoter);
+
+        if (dto.Maintainer is not null)
+            existingEvent.Event.Maintainer = MapAgents(dto.Maintainer);
 
         if (dto.Performers is not null)
             existingEvent.Event.Performers = MapAgents(dto.Performers);
+
+        if (dto.Funder is not null)
+            existingEvent.Event.Funder = MapAgents(dto.Funder);
+
+        if (dto.Actor is not null)
+            existingEvent.Event.Actor = MapAgents(dto.Actor);
+
+        if (dto.Director is not null)
+            existingEvent.Event.Director = MapAgents(dto.Director);
+
+        if (dto.Composer is not null)
+            existingEvent.Event.Composer = MapAgents(dto.Composer);
+
+        if (dto.Audience is not null)
+            existingEvent.Event.Audience = MapAudiences(dto.Audience);
 
         if (dto.Schedule is not null)
             existingEvent.Event.Schedule = schedule;
@@ -328,7 +404,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             existingEvent);
 
         return Result<DistrictEvent>.Success(existingEvent);
-    }
+    };
 
     private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
     {
@@ -368,7 +444,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             out var coordinate)
             ? coordinate
             : null;
-    }
+    };
 
     public async Task<Result<DistrictEvent>> DeleteEvent(string id)
     {
@@ -381,13 +457,13 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return districtEvent is null
             ? Result<DistrictEvent>.Failure("Event not found")
             : Result<DistrictEvent>.Success(districtEvent);
-    }
+    };
 
     public async Task<Result<IEnumerable<DistrictEvent>>> GetAllEvents()
     {
         var events = await _eventsCollection.Find(_ => true).ToListAsync();
         return Result<IEnumerable<DistrictEvent>>.Success(events);
-    }
+    };
 
     public async Task<Result<DistrictEvent>> GetEventById(string id)
     {
@@ -401,31 +477,24 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return districtEvent is null
             ? Result<DistrictEvent>.Failure($"Event with id {id} not found.")
             : Result<DistrictEvent>.Success(districtEvent);
-    }
+    };
 
-    private static AgentModel? MapAgent(EventAgentRequestDto? dto)
-    {
-        if (dto is null)
-            return null;
-
-        return new AgentModel
+        private static AgentModel MapAgent(EventAgentRequestDto dto) => new()
         {
             Name = dto.Name.Trim(),
             Type = dto.Type,
             Url = dto.Url?.Trim(),
+            Image = dto.Image?.Trim(),
             SameAs = dto.SameAs?.Trim()
         };
-    }
 
-    private static List<AgentModel> MapAgents(
-        IEnumerable<EventAgentRequestDto>? agents)
+    private static List<AgentModel> MapAgents( IEnumerable<EventAgentRequestDto>? agents)
     {
         return agents?
-            .Select(MapAgent)
             .Where(agent => agent is not null)
-            .Cast<AgentModel>()
+            .Select(MapAgent)
             .ToList() ?? new();
-    }
+    };
 
     private static OfferModel MapOffer(EventOfferRequestDto dto) => new()
     {
@@ -443,28 +512,41 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         return offers?
             .Select(MapOffer)
             .ToList() ?? new();
-    }
+    };
+
+    private static AudienceModel MapAudience(EventAudienceRequestDto dto) => new()
+    {
+        Name = dto.Name.Trim(),
+        AudienceType = dto.AudienceType.Trim()
+    };
+
+    private static List<AudienceModel> MapAudiences(IEnumerable<EventAudienceRequestDto>? audiences)
+    {
+        return audiences?
+            .Select(MapAudience)
+            .ToList() ?? new();
+    };
 
     private static List<string> MapKeywords(IEnumerable<string>? keywords)
     {
         return keywords?
             .Select(keyword => keyword.Trim())
             .ToList() ?? new();
-    }
+    };
 
     private static ScheduleModel? MapSchedule(EventScheduleRequestDto? dto)
-  {
-      if (dto is null)
-          return null;
+    {
+        if (dto is null)
+            return null;
 
-      return new ScheduleModel
-      {
-          StartDate = dto.StartDate,
-          EndDate = dto.EndDate,
-          StartTime = dto.StartTime?.Trim(),
-          EndTime = dto.EndTime?.Trim(),
-          TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
-          RepeatDays = dto.RepeatDays
-      };
-  }
+        return new ScheduleModel
+        {
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            StartTime = dto.StartTime?.Trim(),
+            EndTime = dto.EndTime?.Trim(),
+            TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
+            RepeatDays = dto.RepeatDays
+        };
+    };
 }
