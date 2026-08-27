@@ -124,15 +124,43 @@ public class Event
 
     /// <summary> Gets or sets the organizer of the event. </summary>
     [BsonElement("Organizer")]
-    public AgentModel? Organizer { get; set; }
+    public List<AgentModel> Organizer { get; set; } = new();
 
     /// <summary> Gets or sets the promoter of the event. </summary>
     [BsonElement("Promoter")]
-    public AgentModel? Promoter { get; set; }
+    public List<AgentModel> Promoter { get; set; }
 
     /// <summary> Gets or sets the performers associated with the event. </summary>
     [BsonElement("Performers")]
     public List<AgentModel> Performers { get; set; } = new();
+
+    /// <summary> Gets or sets the maintainers of the event. </summary>
+    [BsonElement("Maintainer")]
+    public List<AgentModel> Maintener { get; set; } = new();
+
+    /// <summary> Gets or sets the funders of the event. </summary>
+    [BsonElement("Funder")]
+    public List<AgentModel> Funder { get; set; } = new();
+
+    /// <summary> Gets or sets the actors of the event. </summary>
+    [BsonElement("Actor")]
+    public List<AgentModel> Actor { get; set; } = new();
+
+    /// <summary> Gets or sets the directors of the event. </summary>
+    [BsonElement("Director")]
+    public List<AgentModel> Director { get; set; } = new();
+
+    /// <summary> Gets or sets the producers of the event. </summary>
+    [BsonElement("Composer")]
+    public List<AgentModel> Composer { get; set; } = new();
+
+    /// <summary> Gets or sets the audience associated with the event. </summary>
+    [BsonElement("AudienceType")]
+    public List<AudienceModel> Audience { get; set; } = new();
+
+    /// <summary> Gets or sets the attendance mode of the event. </summary>
+    [BsonElement("EventAttendanceMode")]
+    public EventAttendanceMode? EventAttendanceMode { get; set; }
 
     /// <summary> Gets or sets the schedule of the event. </summary>
     [BsonElement("Schedule")]
