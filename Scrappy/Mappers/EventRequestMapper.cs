@@ -43,8 +43,8 @@ public static class EventRequestMapper
             MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
             Keywords = dto.Keywords,
             Location = dto.Location.ToEventLocation(),
-            Organizer = dto.Organizer?.ToAgentModel(),
-            Promoter = dto.Promoter?.ToAgentModel(),
+            Organizer = dto.Organizer.Select(ToAgentModel).ToList(),
+            Promoter = dto.Promoter.Select(ToAgentModel).ToList(),
             Performers = dto.Performers.Select(ToAgentModel).ToList(),
             Schedule = dto.Schedule?.ToScheduleModel()
         }
@@ -77,8 +77,8 @@ public static class EventRequestMapper
             entity.District = dto.Location.District
                 ?? throw new ArgumentException("Location district is required.", nameof(dto));
         }
-        if (dto.Organizer is not null) eventModel.Organizer = dto.Organizer.ToAgentModel();
-        if (dto.Promoter is not null) eventModel.Promoter = dto.Promoter.ToAgentModel();
+        if (dto.Organizer is not null) eventModel.Organizer = dto.Organizer.Select(ToAgentModel).ToList();
+        if (dto.Promoter is not null) eventModel.Promoter = dto.Promoter.Select(ToAgentModel).ToList();
         if (dto.Performers is not null) eventModel.Performers = dto.Performers.Select(ToAgentModel).ToList();
         if (dto.Schedule is not null) eventModel.Schedule = dto.Schedule.ToScheduleModel();
     }
@@ -109,7 +109,8 @@ public static class EventRequestMapper
         Name = dto.Name,
         Type = dto.Type,
         Url = dto.Url,
-        SameAs = dto.SameAs
+        SameAs = dto.SameAs,
+        ImageUrl = dto.ImageUrl,
     };
 
     // <summary> Maps a <see cref="EventScheduleRequestDto"/> to a <see cref="ScheduleModel"/>. </summary>

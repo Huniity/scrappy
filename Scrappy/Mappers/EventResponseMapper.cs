@@ -39,8 +39,8 @@ public static class EventResponseMapper
             MaximumAttendeeCapacity = eventModel.MaximumAttendeeCapacity,
             Keywords = eventModel.Keywords,
             Location = eventModel.Location?.ToResponseDto(),
-            Organizer = eventModel.Organizer?.ToResponseDto(),
-            Promoter = eventModel.Promoter?.ToResponseDto(),
+            Organizer = eventModel.Organizer.Select(ToResponseDto).ToList(),
+            Promoter = eventModel.Promoter.Select(ToResponseDto).ToList(),
             Performers = eventModel.Performers.Select(ToResponseDto).ToList(),
             Schedule = eventModel.Schedule?.ToResponseDto()
         };
@@ -100,6 +100,7 @@ public static class EventResponseMapper
         Name = agent.Name,
         Type = agent.Type?.ToString() ?? string.Empty,
         Url = agent.Url,
+        ImageUrl = agent.ImageUrl,
         SameAs = agent.SameAs
     };
 

@@ -43,8 +43,8 @@ public static class EventSchemaOrgMapper
             Keywords = eventModel.Keywords,
             EventStatus = ToSchemaEventStatus(eventModel.Status),
             Location = eventModel.Location?.ToSchemaPlace(),
-            Organizer = eventModel.Organizer?.ToSchemaAgent(),
-            Promoter = eventModel.Promoter?.ToSchemaAgent(),
+            Organizer = eventModel.Organizer.Select(ToSchemaAgent).ToList(),
+            Promoter = eventModel.Promoter?.Select(ToSchemaAgent).ToList(),
             Performer = eventModel.Performers.Select(ToSchemaAgent).ToList(),
             EventSchedule = eventModel.Schedule?.ToSchemaOrgSchedule(),
 #if OFFER_MODEL_AVAILABLE
@@ -103,6 +103,7 @@ public static class EventSchemaOrgMapper
         Type = agent.Type?.ToString() ?? "Organization",
         Name = agent.Name,
         Url = agent.Url,
+        ImageUrl = agent.ImageUrl,
         SameAs = agent.SameAs
     };
 
