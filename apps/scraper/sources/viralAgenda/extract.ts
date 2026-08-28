@@ -355,6 +355,88 @@ function readStringOrStrings(
     return undefined;
 }
 
+function readKeywordsFromPage(
+    $: CheerioAPI,
+): string[] | undefined {
+    const keywords = new Map<string, string>();
+    const tagLinkSelector =
+        'a[href*="/pt/tags/"], a[href*="/pt/tag/"]';
+
+    const addKeyword = (value: string | undefined) => {
+        const keyword = value
+            ?.replace(/^#+\s*/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if (!keyword) {
+            return;
+        }
+
+        const key = keyword.toLocaleLowerCase('pt-PT');
+
+        if (!keywords.has(key)) {
+            keywords.set(key, keyword);
+        }
+    };
+
+    const collectTagLinks = (selector: string) => {
+        $(selector)
+            .find(tagLinkSelector)
+            .each((_index, element) => {
+                addKeyword(asString($(element).text()));
+            });
+    };
+
+    for (const selector of [
+        '.event-node-tags',
+        '.event-tags',
+        '.event-node',
+    ]) {
+        collectTagLinks(selector);
+
+        if (keywords.size > 0) {
+            break;
+        }
+    }
+
+    if (keywords.size === 0) {
+        $('*')
+            .filter((_index, element) => {
+                if ($(element).children().length > 0) {
+                    return false;
+                }
+
+                return asString($(element).text())
+                    ?.toLocaleLowerCase('pt-PT') === 'tags';
+            })
+            .each((_index, element) => {
+                $(element)
+                    .parent()
+                    .find(tagLinkSelector)
+                    .each((_tagIndex, tagElement) => {
+                        addKeyword(asString($(tagElement).text()));
+                    });
+            });
+    }
+
+    if (keywords.size === 0) {
+        $('meta[name="keywords"], meta[property="article:tag"]')
+            .each((_index, element) => {
+                const content = asString($(element).attr('content'));
+
+                content
+                    ?.split(',')
+                    .forEach((keyword) => {
+                        addKeyword(keyword);
+                    });
+            });
+    }
+
+    return keywords.size > 0
+        ? [...keywords.values()]
+        : undefined;
+}
+
 function readSchemaAgent(
     value: unknown,
 ): SchemaAgent | undefined {
@@ -539,6 +621,9 @@ function toValidEvent(
     }
 
     const coordinates = readCoordinatesFromMap($);
+    const structuredKeywords = readStringOrStrings(
+        node.keywords,
+    );
 
 
     return {
@@ -569,7 +654,9 @@ function toValidEvent(
         eventStatus: asString(node.eventStatus),
         doorTime: asString(node.doorTime),
         duration: asString(node.duration),
-        keywords: readStringOrStrings(node.keywords),
+        keywords:
+            structuredKeywords ??
+            readKeywordsFromPage($),
         offers: readSchemaOffers(node.offers),
         eventSchedule: readSchemaSchedule(node.eventSchedule),
         audience: readSchemaAudiences(node.audience),

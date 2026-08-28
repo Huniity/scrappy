@@ -51,10 +51,32 @@
       );
   });
 
-  test('infers free access when there are no offers or prices', () => {
+  test('leaves free access unknown when there are no offers or prices', () => {
       assert.equal(
           extractEventMetadata('Evento cultural ao ar livre.').isAccessibleForFree,
-          true,
+          undefined,
+      );
+  });
+
+  test('prioritizes structured offers over text price markers', () => {
+      assert.deepEqual(
+          extractEventMetadata(
+              'Entrada gratuita. Bilhete: 15€.',
+              [{ name: 'Bilhete', price: 0 }],
+          ),
+          {
+              isAccessibleForFree: true,
+          },
+      );
+
+      assert.deepEqual(
+          extractEventMetadata(
+              'Entrada gratuita. Bilhete: 15€.',
+              [{ name: 'Bilhete', price: 15 }],
+          ),
+          {
+              isAccessibleForFree: false,
+          },
       );
   });
 

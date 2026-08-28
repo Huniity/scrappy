@@ -78,14 +78,14 @@ export function extractEventMetadata(
 ): EventMetadata {
 
 
-    if (!description) {
+    if (!description && offers.length === 0) {
         return {};
     }
 
     const metadata: EventMetadata = {};
 
     const normalizedDescription =
-        description.toLowerCase();
+        description?.toLowerCase() ?? '';
 
     const priceMatches = [
         ...normalizedDescription.matchAll(
@@ -96,6 +96,7 @@ export function extractEventMetadata(
     const excludedKeywords = [
         'gratuito',
         'free',
+        'doação',
         'doacão',
         'donativo',
         'donation',
@@ -138,6 +139,7 @@ export function extractEventMetadata(
 
 
     if (
+        offers.length === 0 &&
         !hasNonPriceContext &&
         priceMatches.length === 1
     ) {
@@ -152,20 +154,18 @@ export function extractEventMetadata(
         }
     }
 
-    const hasFreeMarker = /\b(?:entrada\s+(?:gratuita|gratuito|livre)|gratuit[oa]|free\s+(?:entrance|entry|admission))\b/i.test(
+    const hasFreeMarker = /(?:entrada\s+(?:gratuita|gratuito|livre)|gratuit[oa]|free\s+(?:entrance|entry|admission))\b/i.test(
         normalizedDescription,
     );
 
-    if (hasFreeMarker) {
+    if (offers.length > 0) {
+        metadata.isAccessibleForFree = offers.every(
+            (offer) => offer.price === 0,
+        );
+    } else if (hasFreeMarker) {
         metadata.isAccessibleForFree = true;
-    } else if (
-        metadata.price !== undefined ||
-        priceMatches.length > 0 ||
-        offers.some((offer) => offer.price > 0)
-    ) {
+    } else if (metadata.price !== undefined) {
         metadata.isAccessibleForFree = false;
-    } else {
-        metadata.isAccessibleForFree = offers.length === 0;
     }
 
     if (

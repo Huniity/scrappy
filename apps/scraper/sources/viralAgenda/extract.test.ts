@@ -96,3 +96,33 @@ test('extracts an event from JSON-LD graph', () => {
     assert.equal(normalized.latitude, '37.1378');
     assert.equal(normalized.longitude, '-8.0201');
 });
+
+test('falls back to HTML tags when JSON-LD keywords are empty', () => {
+    const $ = load(`
+      <div class="event-node-tags">
+        <a href="/pt/tags/tradi%C3%A7ao">#tradição</a>
+        <a href="/pt/tags/musica">#musica</a>
+        <a href="/pt/tags/cultura">#cultura</a>
+      </div>
+      <script type="application/ld+json">
+        {
+          "@type": "Event",
+          "name": "Feira dos Moços 2026",
+          "url": "https://www.viralagenda.com/pt/events/1838299",
+          "startDate": "2026-08-28T17:00:00+01:00",
+          "keywords": []
+        }
+      </script>
+    `);
+
+    const result = extractViralAgendaJsonLd(
+        $,
+        'https://www.viralagenda.com/pt/events/fallback',
+    );
+
+    assert.deepEqual(result?.keywords, [
+        'tradição',
+        'musica',
+        'cultura',
+    ]);
+});
