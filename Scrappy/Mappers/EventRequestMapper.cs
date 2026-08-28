@@ -46,6 +46,14 @@ public static class EventRequestMapper
             Organizer = dto.Organizer.Select(ToAgentModel).ToList(),
             Promoter = dto.Promoter.Select(ToAgentModel).ToList(),
             Performers = dto.Performers.Select(ToAgentModel).ToList(),
+            Maintainer = dto.Maintainer.Select(ToAgentModel).ToList(),
+            Actor = dto.Actor.Select(ToAgentModel).ToList(),
+            Director = dto.Director.Select(ToAgentModel).ToList(),
+            Composer = dto.Composer.Select(ToAgentModel).ToList(),
+            Funder = dto.Funder.Select(ToAgentModel).ToList(),
+            Audience = dto.Audience.Select(ToAudienceModel).ToList(),
+            Duration = dto.Duration?.Trim(),
+            AttendanceMode = dto.AttendanceMode,
             Schedule = dto.Schedule?.ToScheduleModel()
         }
     };
@@ -80,10 +88,20 @@ public static class EventRequestMapper
         if (dto.Organizer is not null) eventModel.Organizer = dto.Organizer.Select(ToAgentModel).ToList();
         if (dto.Promoter is not null) eventModel.Promoter = dto.Promoter.Select(ToAgentModel).ToList();
         if (dto.Performers is not null) eventModel.Performers = dto.Performers.Select(ToAgentModel).ToList();
+        if (dto.Maintainer is not null) eventModel.Maintainer = dto.Maintainer.Select(ToAgentModel).ToList();
+        if (dto.Actor is not null) eventModel.Actor = dto.Actor.Select(ToAgentModel).ToList();
+        if (dto.Director is not null) eventModel.Director = dto.Director.Select(ToAgentModel).ToList();
+        if (dto.Composer is not null) eventModel.Composer = dto.Composer.Select(ToAgentModel).ToList();
+        if (dto.Funder is not null) eventModel.Funder = dto.Funder.Select(ToAgentModel).ToList();
+        if (dto.Audience is not null) eventModel.Audience = dto.Audience.Select(ToAudienceModel).ToList();
+        if (dto.Duration is not null) eventModel.Duration = dto.Duration?.Trim();
+        if (dto.AttendanceMode.HasValue) eventModel.AttendanceMode = dto.AttendanceMode;
+        
         if (dto.Schedule is not null) eventModel.Schedule = dto.Schedule.ToScheduleModel();
+
     }
 
-    // <summary> Maps a <see cref="EventLocationRequestDto"/> to an <see cref="EventLocation"/> model. </summary>
+    /// <summary> Maps a <see cref="EventLocationRequestDto"/> to an <see cref="EventLocation"/> model. </summary>
     /// <param name="dto">The <see cref="EventLocationRequestDto"/> to map.</param>
     /// <returns>A new <see cref="EventLocation"/> model with properties mapped from the provided DTO.</returns>
     public static EventLocation ToEventLocation(this EventLocationRequestDto dto) => new()
@@ -101,7 +119,7 @@ public static class EventRequestMapper
         Longitude = ParseCoordinate(dto.Longitude)
     };
 
-    // <summary> Maps a <see cref="EventAgentRequestDto"/> to an <see cref="AgentModel"/>. </summary>
+    /// <summary> Maps a <see cref="EventAgentRequestDto"/> to an <see cref="AgentModel"/>. </summary>
     /// <param name="dto">The <see cref="EventAgentRequestDto"/> to map.</param>
     /// <returns>A new <see cref="AgentModel"/> with properties mapped from the provided DTO.</returns>
     public static AgentModel ToAgentModel(this EventAgentRequestDto dto) => new()
@@ -113,7 +131,7 @@ public static class EventRequestMapper
         ImageUrl = dto.ImageUrl,
     };
 
-    // <summary> Maps a <see cref="EventScheduleRequestDto"/> to a <see cref="ScheduleModel"/>. </summary>
+    /// <summary> Maps a <see cref="EventScheduleRequestDto"/> to a <see cref="ScheduleModel"/>. </summary>
     /// <param name="dto">The <see cref="EventScheduleRequestDto"/> to map.</param>
     /// <returns>A new <see cref="ScheduleModel"/> with properties mapped from the provided DTO.</returns>
     public static ScheduleModel ToScheduleModel(this EventScheduleRequestDto dto) => new()
@@ -126,11 +144,17 @@ public static class EventRequestMapper
         RepeatDays = dto.RepeatDays
     };
 
-    // <summary> Parses a string representation of a coordinate into a nullable double. </summary>
+    /// <summary> Parses a string representation of a coordinate into a nullable double. </summary>
     /// <param name="value">The string representation of the coordinate.</param>
     /// <returns>A nullable double representing the coordinate, or null if parsing fails.</returns>
     private static double? ParseCoordinate(string? value) =>
         double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var coordinate)
             ? coordinate
             : null;
+
+    private static AudienceModel ToAudienceModel(this EventAudienceRequestDto dto) => new()
+    {
+        Name = dto.Name?.Trim(),
+        AudienceType = dto.AudienceType?.Trim()
+    };
 }

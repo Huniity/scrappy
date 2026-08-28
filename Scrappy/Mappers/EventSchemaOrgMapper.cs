@@ -46,10 +46,15 @@ public static class EventSchemaOrgMapper
             Organizer = eventModel.Organizer.Select(ToSchemaAgent).ToList(),
             Promoter = eventModel.Promoter?.Select(ToSchemaAgent).ToList(),
             Performer = eventModel.Performers.Select(ToSchemaAgent).ToList(),
+            Maintainer = eventModel.Maintainer.Select(ToSchemaAgent).ToList(),
+            Actor = eventModel.Actor.Select(ToSchemaAgent).ToList(),
+            Director = eventModel.Director.Select(ToSchemaAgent).ToList(),
+            Composer = eventModel.Composer.Select(ToSchemaAgent).ToList(),
+            Funder = eventModel.Funder.Select(ToSchemaAgent).ToList(),
+            Audience = eventModel.Audience.Select(ToSchemaAudience).ToList(),
+            EventAttendanceMode = ToSchemaAttendanceMode(eventModel.AttendanceMode),
+            Offers = eventModel.Offers.Select(ToSchemaOrgOffer).ToList(),
             EventSchedule = eventModel.Schedule?.ToSchemaOrgSchedule(),
-#if OFFER_MODEL_AVAILABLE
-            Offers = eventModel.Offers?.Select(ToSchemaOrgOffer).ToList()
-#endif
         };
 
         dto.AdditionalProperties.Add(new SchemaOrgPropertyValueDto
@@ -86,8 +91,7 @@ public static class EventSchemaOrgMapper
             Country = location.Country,
             DicoCode = location.DicoCode ?? string.Empty
         },
-        Geo = location.Latitude.HasValue && location.Longitude.HasValue
-            ? new SchemaOrgGeoDto
+        Geo = location.Latitude.HasValue && location.Longitude.HasValue? new SchemaOrgGeoDto
             {
                 Latitude = location.Latitude.Value,
                 Longitude = location.Longitude.Value
@@ -111,7 +115,6 @@ public static class EventSchemaOrgMapper
     /// <summary> Maps an <see cref="ScheduleModel"/> to a <see cref="SchemaOrgScheduleDto"/>. </summary>
     /// <param name="schedule">The <see cref="ScheduleModel"/> to map.</param>
     /// <returns>A new <see cref="SchemaOrgScheduleDto"/> with properties mapped from the provided model.</returns>
-    
     public static SchemaOrgScheduleDto ToSchemaOrgSchedule(this ScheduleModel schedule) => new()
     {
         Type = "Schedule",
@@ -123,7 +126,9 @@ public static class EventSchemaOrgMapper
         ByDay = schedule.RepeatDays?.Select(day => $"https://schema.org/{day}").ToList()
     };
 
-#if OFFER_MODEL_AVAILABLE
+    /// <summary> Maps an <see cref="OfferModel"/> to a <see cref="SchemaOrgOfferDto"/>. </summary>
+    /// <param name="offer">The <see cref="OfferModel"/> to map.</param>
+    /// <returns>A new <see cref="SchemaOrgOfferDto"/> with properties mapped from the provided model.</returns>
     public static SchemaOrgOfferDto ToSchemaOrgOffer(this OfferModel offer) => new()
     {
         Type = "Offer",
@@ -131,10 +136,9 @@ public static class EventSchemaOrgMapper
         Price = offer.Price.ToString("F2", CultureInfo.InvariantCulture),
         PriceCurrency = offer.PriceCurrency ?? "EUR",
         Availability = offer.Availability ?? "https://schema.org/InStock",
-        Url = offer.Url,
+        Url = offer.Url ?? string.Empty,
         ValidFrom = offer.ValidFrom?.ToString("O", CultureInfo.InvariantCulture) ?? string.Empty
     };
-#endif
 
     /// <summary> Maps an <see cref="EventStatus"/> to a Schema.org event status URL. </summary>
     /// <param name="status">The <see cref="EventStatus"/> to map.</param>
@@ -149,9 +153,29 @@ public static class EventSchemaOrgMapper
         _ => "https://schema.org/EventScheduled"
     };
 
-    // <summary> Returns null if the provided string is null, empty, or whitespace; otherwise, returns the original string. </summary>
+    /// <summary> Returns null if the provided string is null, empty, or whitespace; otherwise, returns the original string. </summary>
     /// <param name="value">The string to check.</param>
     /// <returns>Null if the string is null, empty, or whitespace; otherwise, returns the original string.</returns>
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;
+
+    /// <summary> Maps an <see cref="AudienceModel"/> to a <see cref="SchemaOrgAudienceDto"/>. </summary>
+    /// <param name="audience">The <see cref="AudienceModel"/> to map.</param>
+    /// <returns>A new <see cref="SchemaOrgAudienceDto"/> with properties mapped.</returns>
+    private static SchemaOrgAudienceDto ToSchemaAudience(AudienceModel audience) => new()
+    {
+        Name = audience.Name,
+        AudienceType = audience.AudienceType ?? string.Empty
+    };
+
+    /// <summary> Maps an <see cref="EventAttendanceMode"/> to a Schema.org attendance mode URL. </summary>
+    /// <param name="mode">The <see cref="EventAttendanceMode"/> to map.</param>
+    /// <returns>A string representing the Schema.org attendance mode URL corresponding to the provided mode.</returns>
+    private static string? ToSchemaAttendanceMode(EventAttendanceMode? mode) => mode switch
+    {
+        EventAttendanceMode.InPerson => "https://schema.org/OfflineEventAttendanceMode",
+        EventAttendanceMode.Online => "https://schema.org/OnlineEventAttendanceMode",
+        EventAttendanceMode.Hybrid => "https://schema.org/MixedEventAttendanceMode",
+        _ => null
+    };
 }

@@ -22,6 +22,10 @@ public class SchemaOrgAudienceDto
     [JsonPropertyName("@type")]
     public string Type { get; set; } = "Audience";
 
+    /// <summary> Gets or sets the name of the audience, which can be used to provide a descriptive name for the audience. </summary>
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
     /// <summary> Gets or sets the type of audience type (Adult, general, etc). </summary>
     [JsonPropertyName("audienceType")]
     public string AudienceType { get; set; } = string.Empty;

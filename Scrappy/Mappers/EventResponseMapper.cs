@@ -13,7 +13,7 @@ namespace Scrappy.Mappers;
 /// </summary> 
 public static class EventResponseMapper
 {
-    // <summary> Maps a <see cref="DistrictEvent"/> entity to an <see cref="EventResponseDto"/>. </summary>
+    /// <summary> Maps a <see cref="DistrictEvent"/> entity to an <see cref="EventResponseDto"/>. </summary>
     /// <param name="entity">The <see cref="DistrictEvent"/> entity to map.</param>
     /// <returns>A new <see cref="EventResponseDto"/> with properties mapped from the provided entity.</returns>
     public static EventResponseDto ToResponseDto(this DistrictEvent entity)
@@ -42,6 +42,14 @@ public static class EventResponseMapper
             Organizer = eventModel.Organizer.Select(ToResponseDto).ToList(),
             Promoter = eventModel.Promoter.Select(ToResponseDto).ToList(),
             Performers = eventModel.Performers.Select(ToResponseDto).ToList(),
+            Maintainer = eventModel.Maintainer.Select(ToResponseDto).ToList(),
+            Actor = eventModel.Actor.Select(ToResponseDto).ToList(),
+            Director = eventModel.Director.Select(ToResponseDto).ToList(),
+            Composer = eventModel.Composer.Select(ToResponseDto).ToList(),
+            Funder = eventModel.Funder.Select(ToResponseDto).ToList(),
+            Audience = eventModel.Audience.Select(ToResponseDto).ToList(),
+            AttendanceMode = eventModel.AttendanceMode?.ToString(),
+            Offers = eventModel.Offers.Select(ToResponseDto).ToList(),
             Schedule = eventModel.Schedule?.ToResponseDto()
         };
     }
@@ -92,7 +100,7 @@ public static class EventResponseMapper
         Longitude = location.Longitude
     };
 
-    // <summary> Maps an <see cref="AgentModel"/> to an <see cref="EventAgentResponseDto"/>. </summary>
+    /// <summary> Maps an <see cref="AgentModel"/> to an <see cref="EventAgentResponseDto"/>. </summary>
     /// <param name="agent">The <see cref="AgentModel"/> to map.</param>
     /// <returns>A new <see cref="EventAgentResponseDto"/> with properties mapped from the provided model.</returns>
     private static EventAgentResponseDto ToResponseDto(this AgentModel agent) => new()
@@ -104,7 +112,7 @@ public static class EventResponseMapper
         SameAs = agent.SameAs
     };
 
-    // <summary> Maps a <see cref="ScheduleModel"/> to an <see cref="EventScheduleResponseDto"/>. </summary>
+    /// <summary> Maps a <see cref="ScheduleModel"/> to an <see cref="EventScheduleResponseDto"/>. </summary>
     /// <param name="schedule">The <see cref="ScheduleModel"/> to map.</param>
     /// <returns>A new <see cref="EventScheduleResponseDto"/> with properties mapped from the provided model.</returns>
     private static EventScheduleResponseDto ToResponseDto(this ScheduleModel schedule) => new()
@@ -115,5 +123,27 @@ public static class EventResponseMapper
         EndTime = schedule.EndTime,
         TimeZone = schedule.TimeZone,
         RepeatDays = schedule.RepeatDays?.Select(day => day.ToString()).ToList()
+    };
+
+    /// <summary> Maps an <see cref="AudienceModel"/> to an <see cref="EventAudienceResponseDto"/>. </summary>
+    /// <param name="audience">The <see cref="AudienceModel"/> to map.</param>
+    /// <returns>A new <see cref="EventAudienceResponseDto"/> with properties mapped from the provided model.</returns>
+    private static EventAudienceResponseDto ToResponseDto(this AudienceModel audience) => new()
+    {
+        Name = audience.Name,
+        AudienceType = audience.AudienceType
+    };
+
+    /// <summary> Maps an <see cref="OfferModel"/> to an <see cref="EventOfferResponseDto"/>. </summary>
+    /// <param name="offer">The <see cref="OfferModel"/> to map.</param>
+    /// <returns>A new <see cref="EventOfferResponseDto"/> with properties mapped from the provided model.</returns>
+    private static EventOfferResponseDto ToResponseDto(this OfferModel offer) => new()
+    {
+        Name = offer.Name,
+        Price = offer.Price,
+        PriceCurrency = offer.PriceCurrency,
+        Availability = offer.Availability,
+        Url = offer.Url,
+        ValidFrom = offer.ValidFrom
     };
 }
