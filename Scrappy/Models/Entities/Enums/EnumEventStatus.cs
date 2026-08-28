@@ -25,4 +25,7 @@ public enum EventStatus
     /// <summary> Completed Type </summary>
     [Display( Name= "Completado")]
     Completed,
+    /// <summary> Moved Online Type </summary>
+    [Display( Name= "Online")]
+    MovedOnline,
 }

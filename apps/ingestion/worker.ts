@@ -54,6 +54,7 @@ const ingestionWorker = new Worker(
 			eventAttendanceMode: rawData.eventAttendanceMode,
 			doorTime: rawData.doorTime,
 			duration: rawData.duration,
+			eventStatus: rawData.eventStatus,
 			keywords: rawData.keywords,
 			schedule: rawData.schedule,
 			audience: rawData.audience,

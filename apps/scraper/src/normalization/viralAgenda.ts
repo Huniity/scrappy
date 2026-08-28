@@ -1,13 +1,13 @@
 
 
-import { 
+import {
     type NormalizedAudience,
     type SchemaAudience,
 } from "../types/audience";
 
 import {
     type NormalizedAttendanceMode,
-    attendanceModeMap 
+    attendanceModeMap
 } from "../types/attendance";
 
 import {
@@ -17,7 +17,6 @@ import {
 
 import {
     type NormalizedEvent,
-
 } from '../types/normalizedEvent';
 
 import {
@@ -31,11 +30,13 @@ import {
 } from '../types/schedule';
 
 import {
-
     type ValidViralAgendaEvent,
 } from '../types/viralAgenda';
 
-
+import {
+    eventStatusMap,
+    type NormalizedEventStatus,
+} from '../types/status';
 
 /**
  * Normalizes a viral agenda event by cleaning up its text fields.
@@ -235,6 +236,19 @@ function normalizeAttendanceMode(
 }
 
 /**
+ * Normalizes the event status of an event.
+ * @param value The event status to normalize.
+ * @returns The normalized event status, or undefined if the input is invalid.
+ */
+function normalizeEventStatus(
+    value: string | undefined,
+): NormalizedEventStatus | undefined {
+    if (!value) return undefined;
+
+    return eventStatusMap[value.trim()];
+}
+
+/**
  * Cleans up text by removing HTML tags and extra whitespace.
  * @param value The string to clean.
  * @returns The cleaned string, or undefined if the input is undefined or empty after cleaning.
@@ -328,7 +342,7 @@ export function normalizeViralAgendaEvent(
             normalizeAttendanceMode(data.eventAttendanceMode),
 
         eventStatus:
-            cleanText(data.eventStatus),
+            normalizeEventStatus(data.eventStatus),
 
         doorTime:
             cleanText(data.doorTime),

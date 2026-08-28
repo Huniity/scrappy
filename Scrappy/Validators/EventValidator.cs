@@ -396,7 +396,8 @@ public static class Validator
     public static bool IsAlternateNameValid(string? alternateName) =>
         string.IsNullOrWhiteSpace(alternateName) ||
         alternateName.Trim().Length <= 250;
-
+    public static bool IsEventStatusValid(EventStatus? status) => !status.HasValue || Enum.IsDefined(status.Value);
+    
     public static bool IsAgeRatingValid(int? ageRating) =>
         !ageRating.HasValue || ageRating.Value >= 0;
 

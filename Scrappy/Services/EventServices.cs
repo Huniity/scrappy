@@ -78,6 +78,9 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsAttendanceModeValid(dto.AttendanceMode))
             return Result<DistrictEvent>.Failure("Invalid attendance mode.");
 
+        if (!Validator.IsEventStatusValid(dto.Status))
+            return Result<DistrictEvent>.Failure( "Invalid event status.");
+
         if (!Validator.AreKeywordsValid(dto.Keywords))
             return Result<DistrictEvent>.Failure("Invalid keywords.");
 
@@ -162,6 +165,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
                 IsAccessibleForFree = dto.IsAccessibleForFree,
                 PhysicalAccessibility = dto.PhysicalAccessibility,
                 AgeRating = dto.AgeRating,
+                Status = dto.Status ?? EventStatus.Scheduled,
                 MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
                 Keywords = MapKeywords(dto.Keywords),
                 Type = dto.Type!.Value,
@@ -297,6 +301,12 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             return Result<DistrictEvent>.Failure("Invalid attendance mode.");
         }
 
+        if (!Validator.IsEventStatusValid(dto.Status))
+        {
+            return Result<DistrictEvent>.Failure(
+                "Invalid event status.");
+        }
+
         if (dto.Keywords is not null &&
             !Validator.AreKeywordsValid(dto.Keywords))
         {
@@ -408,6 +418,9 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (dto.AttendanceMode.HasValue)
             existingEvent.Event.AttendanceMode =
             dto.AttendanceMode;
+
+        if (dto.Status.HasValue)
+            existingEvent.Event.Status = dto.Status.Value;
 
         await _eventsCollection.ReplaceOneAsync(
             e => e.Id == existingEvent.Id,

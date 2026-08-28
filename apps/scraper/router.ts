@@ -133,6 +133,7 @@ router.addHandler(
             eventAttendanceMode: normalizedEvent.eventAttendanceMode,
             doorTime: normalizedEvent.doorTime,
             duration: normalizedEvent.duration,
+            eventStatus: normalizedEvent.eventStatus,
             keywords: normalizedEvent.keywords,
             offers: normalizedEvent.offers,
             schedule: normalizedEvent.schedule,

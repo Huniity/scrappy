@@ -108,6 +108,10 @@ public class UpdateEventDto
 
     /// <summary> Gets or sets the age rating for the event. </summary>
     public int? AgeRating { get; set; }
+    
+    /// <summary> Gets or sets the status of the event. </summary>
+    [JsonPropertyName("eventStatus")]
+    public EventStatus? Status { get; set; }
 
     /// <summary> Gets or sets the maximum attendee capacity for the event. </summary>
     public int? MaximumAttendeeCapacity { get; set; }

@@ -123,6 +123,10 @@ public class CreateEventDto
     /// <summary> Gets or sets the maximum attendee capacity of the event. </summary>
     public int? MaximumAttendeeCapacity { get; set; }
 
+    /// <summary> Gets or sets the status of the event. </summary>
+    [JsonPropertyName("eventStatus")]
+    public EventStatus? Status { get; set; }
+
     /// <summary> Gets or sets the keywords associated with the event. </summary>
     public List<string> Keywords { get; set; } = new();
 

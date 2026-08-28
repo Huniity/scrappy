@@ -158,9 +158,18 @@ export const rawEventSchema = z
             'Hybrid',
         ]).optional(),
 
-        doorTime: z.string().datetime({ offset:true }).optional(),
+        doorTime: z.string().datetime({ offset: true }).optional(),
 
         duration: z.string().trim().min(1).max(50).optional(),
+
+        eventStatus: z.enum([
+            'Scheduled',
+            'Cancelled',
+            'Postponed',
+            'Rescheduled',
+            'MovedOnline',
+            'Completed',
+        ]).optional(),
 
         organizer: agentsSchema,
         promoter: agentsSchema,

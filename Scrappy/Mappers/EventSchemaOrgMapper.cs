@@ -150,6 +150,7 @@ public static class EventSchemaOrgMapper
         EventStatus.Postponed => "https://schema.org/EventPostponed",
         EventStatus.Rescheduled => "https://schema.org/EventRescheduled",
         EventStatus.Completed => "https://schema.org/EventCompleted",
+        EventStatus.MovedOnline => "https://schema.org/EventMovedOnline",
         _ => "https://schema.org/EventScheduled"
     };
 
