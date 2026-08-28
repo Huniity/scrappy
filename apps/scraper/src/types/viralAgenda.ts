@@ -29,6 +29,7 @@ export type ViralAgendaJsonLd = {
     endDate?: string;
     description?: string;
     image?: string;
+    maximumAttendeeCapacity?: number;
     isAccessibleForFree?: boolean;
     eventAttendanceMode?: string;
     eventStatus?: string;

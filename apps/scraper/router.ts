@@ -89,11 +89,18 @@ router.addHandler(
 
         const metadata = extractEventMetadata(
             normalizedWithLocation.description,
+            normalizedWithLocation.offers,
         );
 
         const normalizedEvent = {
             ...normalizedWithLocation,
             ...metadata,
+            isAccessibleForFree:
+                normalizedWithLocation.isAccessibleForFree ??
+                metadata.isAccessibleForFree,
+            maximumAttendeeCapacity:
+                normalizedWithLocation.maximumAttendeeCapacity ??
+                metadata.maximumAttendeeCapacity,
             type: classifyEventType(normalizedWithLocation),
         };
 

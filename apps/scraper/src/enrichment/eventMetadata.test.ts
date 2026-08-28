@@ -11,6 +11,7 @@
               price: 15,
               ageRating: 6,
               maximumAttendeeCapacity: 30,
+              isAccessibleForFree: false,
           },
       );
   });
@@ -23,6 +24,7 @@
           {
               ageRating: 12,
               maximumAttendeeCapacity: 60,
+              isAccessibleForFree: true,
           },
       );
   });
@@ -30,6 +32,35 @@
   test('extracts Portuguese decimal prices', () => {
       assert.deepEqual(
           extractEventMetadata('Preço: 12,50 €.'),
-          { price: 12.5 },
+          {
+              price: 12.5,
+              isAccessibleForFree: false,
+          },
+      );
+  });
+
+  test('infers free access from Portuguese and English markers', () => {
+      assert.equal(
+          extractEventMetadata('Entrada gratuita.').isAccessibleForFree,
+          true,
+      );
+
+      assert.equal(
+          extractEventMetadata('Free entrance.').isAccessibleForFree,
+          true,
+      );
+  });
+
+  test('infers free access when there are no offers or prices', () => {
+      assert.equal(
+          extractEventMetadata('Evento cultural ao ar livre.').isAccessibleForFree,
+          true,
+      );
+  });
+
+  test('does not infer free access when a paid price exists', () => {
+      assert.equal(
+          extractEventMetadata('Bilhete: 15€.').isAccessibleForFree,
+          false,
       );
   });

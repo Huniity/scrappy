@@ -38,6 +38,12 @@ import {
     type NormalizedEventStatus,
 } from '../types/status';
 
+import {
+    extractDoorTimeFromDescription,
+    extractDurationFromDescription,
+    extractMaximumAttendeeCapacityFromDescription,
+} from '../enrichment/eventMetadata';
+
 /**
  * Normalizes a viral agenda event by cleaning up its text fields.
  * @param data The event data to normalize.
@@ -259,23 +265,31 @@ function normalizeDoorTime(
     value: string | undefined,
     startDate: string,
 ): string | undefined {
-    if (!value) return undefined;
+    if (!value) {
+        return undefined;
+    }
 
     const cleaned = value
         .trim()
         .toLowerCase()
         .replace(/\s+/g, '');
 
-    if (cleaned.includes('t')) {
-        return value.trim();
+    if (/^\d{4}-\d{2}-\d{2}t\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:z|[+-]\d{2}:?\d{2})$/i.test(cleaned)) {
+        return Number.isNaN(new Date(value.trim()).getTime())
+            ? undefined
+            : value.trim();
     }
 
-    const match = cleaned.match(/^(\d{1,2})(?::|h)?(\d{ 2}) ? $ /);
+    const match = cleaned.match(
+        /^(\d{1,2})(?:h(\d{2})?|:(\d{2}))$/,
+    );
 
-    if (!match) return undefined;
+    if (!match) {
+        return undefined;
+    }
 
     const hours = Number(match[1]);
-    const minutes = Number(match[2] ?? '00');
+    const minutes = Number(match[2] ?? match[3] ?? '00');
 
     if (
         hours < 0 ||
@@ -286,11 +300,66 @@ function normalizeDoorTime(
         return undefined;
     }
 
-    const date = startDate.slice(0, 10);
-    const offset =
-        startDate.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1] ?? 'Z';
+    const date = startDate.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    const offsetMatch = startDate.match(/(Z|[+-]\d{2}:?\d{2})$/i);
 
-    return `${date}T${String(hours).padStart(2, '0')}: ${String(minutes).padStart(2, '0')}:00${offset}`;
+    if (!date) {
+        return undefined;
+    }
+
+    const offset = offsetMatch?.[1]?.toUpperCase() === 'Z'
+        ? 'Z'
+        : offsetMatch?.[1]?.replace(
+            /([+-]\d{2})(\d{2})$/,
+            '$1:$2',
+        ) ?? 'Z';
+
+    return `${date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00${offset}`;
+}
+
+function normalizeDuration(
+    value: string | undefined,
+): string | undefined {
+    const cleaned = cleanText(value);
+
+    if (!cleaned) {
+        return undefined;
+    }
+
+    if (/^P(?:\d+[YMD]|T)/i.test(cleaned)) {
+        return cleaned.toUpperCase();
+    }
+
+    const compactMatch = cleaned.match(
+        /^(\d{1,2})\s*h\s*(\d{1,2})$/i,
+    );
+
+    const hourMatch = cleaned.match(
+        /(\d{1,3})\s*(?:h|horas?|hours?)\b/i,
+    );
+
+    const minuteMatch = cleaned.match(
+        /(\d{1,4})\s*(?:m|min|minutos?|minutes?)\b/i,
+    );
+
+    const hours = Number(
+        compactMatch?.[1] ?? hourMatch?.[1] ?? '0',
+    );
+    const minutes = Number(
+        compactMatch?.[2] ?? minuteMatch?.[1] ?? '0',
+    );
+
+    if (
+        !Number.isInteger(hours) ||
+        !Number.isInteger(minutes) ||
+        hours < 0 ||
+        minutes < 0 ||
+        (hours === 0 && minutes === 0)
+    ) {
+        return undefined;
+    }
+
+    return `PT${hours > 0 ? `${hours}H` : ''}${minutes > 0 ? `${minutes}M` : ''}`;
 }
 
 /**
@@ -386,6 +455,12 @@ export function normalizeViralAgendaEvent(
         isAccessibleForFree:
             data.isAccessibleForFree,
 
+        maximumAttendeeCapacity:
+            data.maximumAttendeeCapacity ??
+            extractMaximumAttendeeCapacityFromDescription(
+                data.description,
+            ),
+
         eventAttendanceMode:
             normalizeAttendanceMode(data.eventAttendanceMode),
 
@@ -393,10 +468,17 @@ export function normalizeViralAgendaEvent(
             normalizeEventStatus(data.eventStatus),
 
         doorTime:
-            normalizeDoorTime(data.doorTime, data.startDate),
+            normalizeDoorTime(
+                data.doorTime ??
+                extractDoorTimeFromDescription(data.description),
+                data.startDate,
+            ),
 
         duration:
-            cleanText(data.duration),
+            normalizeDuration(
+                data.duration ??
+                extractDurationFromDescription(data.description),
+            ),
 
         keywords:
             asArray(data.keywords)

@@ -37,6 +37,18 @@ function asString(value: unknown): string | undefined {
     return result.length > 0 ? result : undefined;
 }
 
+function asNonNegativeInteger(value: unknown): number | undefined {
+    const number = typeof value === 'number'
+        ? value
+        : typeof value === 'string'
+            ? Number(value)
+            : NaN;
+
+    return Number.isInteger(number) && number >= 0
+        ? number
+        : undefined;
+}
+
 function readType(value: unknown): string | undefined {
     if (typeof value === 'string') {
         return value;
@@ -550,6 +562,8 @@ function toValidEvent(
         director: readSchemaAgents(node.director),
         composer: readSchemaAgents(node.composer),
         alternateName: asString(node.alternateName),
+        maximumAttendeeCapacity:
+            asNonNegativeInteger(node.maximumAttendeeCapacity),
         isAccessibleForFree: typeof node.isAccessibleForFree === 'boolean' ? node.isAccessibleForFree : undefined,
         eventAttendanceMode: asString(node.eventAttendanceMode),
         eventStatus: asString(node.eventStatus),

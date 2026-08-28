@@ -86,12 +86,21 @@ async function main() {
 
             const metadata =
                 extractEventMetadata(
-                    event.description
+                    event.description,
+                    event.offers,
                 );
 
             Object.assign(
                 event,
-                metadata
+                {
+                    ...metadata,
+                    isAccessibleForFree:
+                        event.isAccessibleForFree ??
+                        metadata.isAccessibleForFree,
+                    maximumAttendeeCapacity:
+                        event.maximumAttendeeCapacity ??
+                        metadata.maximumAttendeeCapacity,
+                },
             );
 
             events.push(event);

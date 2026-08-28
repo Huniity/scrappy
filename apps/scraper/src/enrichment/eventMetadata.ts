@@ -1,11 +1,80 @@
+import type { NormalizedOffer } from '../types/offer';
+
 export type EventMetadata = {
     price?: number;
     ageRating?: number;
     maximumAttendeeCapacity?: number;
+    isAccessibleForFree?: boolean;
 };
 
+export function extractDoorTimeFromDescription(
+    description: string | undefined,
+): string | undefined {
+    if (!description) {
+        return undefined;
+    }
+
+    const match = description.match(
+        /\b(?:abertura\s+de\s+portas?|portas?|entrada\s+do\s+público)\b[^0-9]{0,30}(\d{1,2}\s*(?:h|:)\s*\d{2})\b/i,
+    );
+
+    return match?.[1];
+}
+
+export function extractDurationFromDescription(
+    description: string | undefined,
+): string | undefined {
+    if (!description) {
+        return undefined;
+    }
+
+    const match = description.match(
+        /(?:duração|duration)\b[^0-9]{0,30}((?:\d{1,2}\s*h\s*\d{1,2})|(?:\d{1,3}\s*(?:horas?|hours?|h))|(?:\d{1,4}\s*(?:minutos?|minutes?|min|m)))/i,
+    );
+
+    return match?.[1];
+}
+
+export function extractMaximumAttendeeCapacityFromDescription(
+    description: string | undefined,
+): number | undefined {
+    if (!description) {
+        return undefined;
+    }
+
+    const normalizedDescription = description.toLowerCase();
+
+    const labelledCapacityMatch = normalizedDescription.match(
+        /(?:lotação(?:\s+(?:máxima|limitada))?|capacidade(?:\s+máxima)?)\b[^0-9]{0,30}(\d{1,5})/i,
+    );
+
+    const maximumCapacityMatch = normalizedDescription.match(
+        /\b(?:máximo(?:\s+de)?|máx\.?)\b[^0-9]{0,20}(\d{1,5})\s*(?:pessoas?|participantes?|lugares?)/i,
+    );
+
+    const vacanciesMatch = normalizedDescription.match(
+        /\b(\d{1,5})\s+vagas?\b/i,
+    );
+
+    const capacityValue =
+        labelledCapacityMatch?.[1] ??
+        maximumCapacityMatch?.[1] ??
+        vacanciesMatch?.[1];
+
+    if (!capacityValue) {
+        return undefined;
+    }
+
+    const capacity = Number(capacityValue);
+
+    return Number.isInteger(capacity) && capacity >= 0
+        ? capacity
+        : undefined;
+}
+
 export function extractEventMetadata(
-    description: string | undefined
+    description: string | undefined,
+    offers: NormalizedOffer[] = [],
 ): EventMetadata {
 
 
@@ -57,23 +126,9 @@ export function extractEventMetadata(
             ? Number(ageRatingValue)
             : undefined;
 
-    const capacityMatch =
-        normalizedDescription.match(
-            /(?:lotação(?:\s+máxima|\s+limitada)?\s*(?:a\s+)?(?::\s*)?(\d{1,5})|capacidade\s+máxima\s*:?\s*(\d{1,5})|máximo(?:\s+de)?\s+(\d{1,5})\s+(?:pessoas|participantes|lugares)|máx\.?\s*(\d{1,5}))/i
-        );
-
-    const capacityValue =
-        capacityMatch?.[1] ??
-        capacityMatch?.[2] ??
-        capacityMatch?.[3] ??
-        capacityMatch?.[4];
-
-    const capacity =
-        capacityValue
-            ? Number(capacityValue)
-            : undefined;
-
-
+    const capacity = extractMaximumAttendeeCapacityFromDescription(
+        description,
+    );
 
     const hasNonPriceContext =
         excludedKeywords.some((keyword) =>
@@ -97,6 +152,22 @@ export function extractEventMetadata(
         }
     }
 
+    const hasFreeMarker = /\b(?:entrada\s+(?:gratuita|gratuito|livre)|gratuit[oa]|free\s+(?:entrance|entry|admission))\b/i.test(
+        normalizedDescription,
+    );
+
+    if (hasFreeMarker) {
+        metadata.isAccessibleForFree = true;
+    } else if (
+        metadata.price !== undefined ||
+        priceMatches.length > 0 ||
+        offers.some((offer) => offer.price > 0)
+    ) {
+        metadata.isAccessibleForFree = false;
+    } else {
+        metadata.isAccessibleForFree = offers.length === 0;
+    }
+
     if (
         ageRating !== undefined &&
         Number.isFinite(ageRating)
@@ -105,8 +176,7 @@ export function extractEventMetadata(
     }
 
     if (
-        capacity !== undefined &&
-        Number.isFinite(capacity)
+        capacity !== undefined
     ) {
         metadata.maximumAttendeeCapacity =
             capacity;
