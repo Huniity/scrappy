@@ -165,36 +165,143 @@ export async function getViralAgendaEventUrls(
     page: Page
 ): Promise<string[]> {
     await page.goto(
-        'https://www.viralagenda.com/pt/faro/faro',
+        'https://www.viralagenda.com/pt/faro/',
         {
             waitUntil:
                 'domcontentloaded',
         }
     );
 
-    console.log(
-        'Página:',
-        await page.title()
-    );
+    const eventUrls =
+        new Set<string>();
 
-    const eventUrls = await page
-        .locator(
-            'a[href*="/pt/events/"]'
-        )
-        .evaluateAll(
-            (elements) =>
-                elements.map(
-                    (element) =>
-                        (
-                            element as
-                                HTMLAnchorElement
-                        ).href
+    while (true) {
+        const pastMarker =
+            page.locator(
+                'li.viral-event-past'
+            );
+
+        const eventLinks =
+            page.locator(
+                'a[href*="/pt/events/"]'
+            );
+
+        const links =
+            await eventLinks
+                .evaluateAll(
+                    (elements) =>
+                        elements.map(
+                            (element) =>
+                                (
+                                    element as HTMLAnchorElement
+                                ).href
+                        )
+                );
+
+        for (
+            const href of links
+        ) {
+            const url =
+                new URL(href);
+
+            if (
+                !/^\/pt\/events\/\d+\/[^/]+\/?$/i.test(
+                    url.pathname
                 )
+            ) {
+                continue;
+            }
+
+            eventUrls.add(
+                url.origin +
+                url.pathname.replace(
+                    /\/+$/,
+                    ''
+                )
+            );
+        }
+
+        console.log(
+            `Viral Agenda carregados: ${eventUrls.size}`
         );
 
+
+        if (
+            await pastMarker.count() > 0
+        ) {
+            console.log(
+                'Marcador "Passados" encontrado.'
+            );
+
+            break;
+        }
+
+
+        const previousCount =
+            await eventLinks.count();
+
+        if (
+            previousCount === 0
+        ) {
+            break;
+        }
+
+
+        const lastEventLink =
+            eventLinks.nth(
+                previousCount - 1
+            );
+
+        await lastEventLink
+            .scrollIntoViewIfNeeded();
+
+
+        // Faz mais um pequeno scroll para garantir
+        // que atingimos o trigger do infinite scroll.
+        await page.mouse.wheel(
+            0,
+            1000
+        );
+
+
+        try {
+            await page.waitForFunction(
+                (previousLinkCount) => {
+                    const currentCount =
+                        document.querySelectorAll(
+                            'a[href*="/pt/events/"]'
+                        ).length;
+
+                    const past =
+                        document.querySelector(
+                            'li.viral-event-past'
+                        );
+
+                    return (
+                        currentCount >
+                            previousLinkCount ||
+                        past !==
+                            null
+                    );
+                },
+                previousCount,
+                {
+                    timeout:
+                        8000,
+                }
+            );
+        }
+        catch {
+            console.log(
+                'Não foram carregados mais eventos.'
+            );
+
+            break;
+        }
+    }
+
+
     return [
-        ...new Set(
-            eventUrls
-        ),
+        ...eventUrls,
     ];
 }

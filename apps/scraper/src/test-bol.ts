@@ -1,4 +1,5 @@
 import {
+    type Page,
     chromium,
 } from 'playwright';
 
@@ -162,6 +163,72 @@ async function main() {
                 }
             );
 
+        const fieldCoverage = {
+            description:
+                successfulEvents.filter(
+                    (event) =>
+                        event.description
+                ).length,
+
+            price:
+                successfulEvents.filter(
+                    (event) =>
+                        event.price !==
+                        undefined
+                ).length,
+
+            ageRating:
+                successfulEvents.filter(
+                    (event) =>
+                        event.ageRating !==
+                        undefined
+                ).length,
+
+            coordinates:
+                successfulEvents.filter(
+                    (event) =>
+                        event.latitude &&
+                        event.longitude
+                ).length,
+
+            locality:
+                successfulEvents.filter(
+                    (event) =>
+                        event.locality
+                ).length,
+
+            streetAddress:
+                successfulEvents.filter(
+                    (event) =>
+                        event.streetAddress
+                ).length,
+
+            imageUrl:
+                successfulEvents.filter(
+                    (event) =>
+                        event.imageUrl
+                ).length,
+
+            venueName:
+                successfulEvents.filter(
+                    (event) =>
+                        event.venueName
+                ).length,
+        };
+
+        const eventsWithoutPrice =
+            successfulEvents.filter(
+                (event) =>
+                    event.price ===
+                    undefined
+            );
+
+        const eventsWithoutAgeRating =
+            successfulEvents.filter(
+                (event) =>
+                    event.ageRating ===
+                    undefined
+            );
 
         const output = {
             generatedAt:
@@ -186,12 +253,18 @@ async function main() {
                 ignoredByReason,
             },
 
+            fieldCoverage,
+
+            eventsWithoutAgeRating,
+
             successfulEvents,
 
             ignoredEvents,
 
             errorEvents,
         };
+
+
 
 
         const outputPath =
@@ -238,25 +311,29 @@ async function main() {
 
 
         console.log(
-            '\nIgnorados por motivo:'
+            '\nCobertura dos campos:'
         );
+
 
         for (
             const [
-                reason,
+                field,
                 count,
             ] of Object.entries(
-                ignoredByReason
+                fieldCoverage
             )
         ) {
-            if (
-                count === 0
-            ) {
-                continue;
-            }
+            const percentage =
+                successCount > 0
+                    ? (
+                        count /
+                        successCount *
+                        100
+                    ).toFixed(1)
+                    : '0.0';
 
             console.log(
-                `- ${reason}: ${count}`
+                `- ${field}: ${count}/${successCount} (${percentage}%)`
             );
         }
 
@@ -265,6 +342,37 @@ async function main() {
             `\nResultados guardados em: ${outputPath}`
         );
 
+        console.log(
+            `\nEventos sem preço: ${eventsWithoutPrice.length}`
+        );
+
+        for (
+            const event of eventsWithoutPrice
+        ) {
+            console.log(
+                `- ${event.title}`
+            );
+
+            console.log(
+                `  ${event.sourceUrl}`
+            );
+        }
+
+        console.log(
+            `\nEventos sem ageRating: ${eventsWithoutAgeRating.length}`
+        );
+
+        for (
+            const event of eventsWithoutAgeRating
+        ) {
+            console.log(
+                `- ${event.title}`
+            );
+
+            console.log(
+                `  ${event.sourceUrl}`
+            );
+        }
 
         if (
             errorEvents.length > 0

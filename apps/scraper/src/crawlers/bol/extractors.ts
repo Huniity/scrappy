@@ -181,31 +181,46 @@ export async function extractBolSessionText(
 export async function extractBolDescription(
     page: Page
 ): Promise<string | undefined> {
-    const synopsisHeading =
-        page.getByRole(
-            'heading',
-            {
-                name:
-                    'Sinopse',
-                exact: true,
-            }
-        );
+    const headings = [
+        'Sinopse',
+        'Breve Introdução',
+    ];
 
-    if (
-        await synopsisHeading.count() === 0
+    for (
+        const headingName of headings
     ) {
-        return undefined;
+        const heading =
+            page.getByRole(
+                'heading',
+                {
+                    name:
+                        headingName,
+                    exact:
+                        true,
+                }
+            );
+
+        if (
+            await heading.count() === 0
+        ) {
+            continue;
+        }
+
+        const description =
+            (
+                await heading
+                    .locator(
+                        'xpath=following::*[normalize-space()][1]'
+                    )
+                    .textContent()
+            )?.trim();
+
+        if (description) {
+            return description;
+        }
     }
 
-    return (
-        (
-            await synopsisHeading
-                .locator(
-                    'xpath=following::*[normalize-space()][1]'
-                )
-                .textContent()
-        )?.trim() || undefined
-    );
+    return undefined;
 }
 
 export async function extractBolAddress(
