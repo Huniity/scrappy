@@ -3,19 +3,52 @@
 using Microsoft.AspNetCore.Mvc;
 using Scrappy.DTOs.Common;
 using Scrappy.DTOs.Requests;
+using Scrappy.DTOs.Responses;
+using Scrappy.DTOs.SchemaOrg;
+using Scrappy.Mappers;
 using Scrappy.Services;
 using Scrappy.Exceptions;
 using MongoDB.Bson;
 
 namespace Scrappy.Controllers;
 
+
+/// <summary>
+/// Controller for managing events, providing endpoints for creating, retrieving, updating, and deleting events.
+///
+/// </summary>
 [ApiController]
 [Route("events")]
 public class EventsController(
     EventService eventService,
     ILogger<EventsController> logger) : ControllerBase
 {
+    /// <summary> Retrieves the Schema.org representation of an event by its ID. </summary>
+    /// <param name="id">The ID of the event to retrieve.</param>
+    /// <returns>A JSON-LD representation of the event in Schema.org format, or an error response if the event is not found or the ID is invalid.</returns>
+    [HttpGet("{id:length(24)}/schema-org")]
+    [Produces("application/ld+json")]
+    public async Task<IActionResult> GetSchemaOrgById(string id)
+    {
+        if (!ObjectId.TryParse(id, out _))
+            return BadRequest(new { error = "Invalid event id." });
 
+        var result = await eventService.GetEventById(id);
+
+        if (!result.IsSuccess)
+            return NotFound(new { error = result.Error });
+
+        var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+        var schema =result.Value!.ToSchemaOrgDto(baseUrl);
+
+        return new JsonResult(schema)
+        {
+            ContentType = "application/ld+json"
+        };
+    }
+
+    /// <summary> Retrieves all events. </summary>
+    /// <returns>A list of all events.</returns>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -27,6 +60,9 @@ public class EventsController(
         return Ok(result.Value);
     }
 
+    /// <summary> Retrieves an event by its ID. </summary>
+    /// <param name="id">The ID of the event to retrieve.</param>
+    /// <returns>The event with the specified ID, or a 404 Not Found if the event is not found or the ID is invalid.</returns>
     [HttpGet("{id:length(24)}")]
     public async Task<IActionResult> GetById(string id)
     {
@@ -41,6 +77,9 @@ public class EventsController(
         return Ok(result.Value);
     }
 
+    /// <summary> Creates a new event. </summary>
+    /// <param name="dto">The data transfer object containing the event details.</param>
+    /// <returns>The created event, or an error response if the creation fails.</returns>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
     {
@@ -65,6 +104,10 @@ public class EventsController(
         }
     }
 
+    /// <summary> Updates an existing event by its ID. </summary>
+    /// <param name="id">The ID of the event to update.</param>
+    /// <param name="dto">The data transfer object containing the updated event details.</param>
+    /// <returns>The updated event, or an error response if the update fails.</returns>
     [HttpPatch("{id:length(24)}")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateEventDto dto)
     {
@@ -94,6 +137,9 @@ public class EventsController(
         }
     }
 
+    /// <summary> Deletes an event by its ID. </summary>
+    /// <param name="id">The ID of the event to delete.</param>
+    /// <returns>A success response if the deletion is successful, or an error response if it fails.</returns>
     [HttpDelete("{id:length(24)}")]
     public async Task<IActionResult> Delete(string id)
     {
@@ -108,4 +154,5 @@ public class EventsController(
         }
         return Ok(result.Value);
     }
+
 }
