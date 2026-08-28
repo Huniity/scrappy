@@ -50,6 +50,13 @@ function limitText(
 export function normalizeViralAgendaEvent(
     data: ValidViralAgendaEvent
 ): NormalizedEvent {
+
+    const rawType = data['@type'];
+
+    const normalizedType = Array.isArray(rawType)
+        ? rawType[0]
+        : rawType;
+
     return {
         title: cleanText(data.name) ?? data.name,
         sourceUrl: data.url,
@@ -57,7 +64,7 @@ export function normalizeViralAgendaEvent(
         endDate: data.endDate,
         description: limitText(cleanText(data.description), 2000),
         imageUrl: data.image,
-        type: data['@type'],
+        type: normalizedType,
 
         venueName: cleanText(data.location?.name),
 

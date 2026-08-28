@@ -1,7 +1,7 @@
 
 import type { CheerioAPI } from 'cheerio';
 import type { CheerioCrawlingContext } from 'crawlee';
-import type { ValidViralAgendaEvent } from '../../src/types/events';
+import type { SchemaAgent, SchemaAudience, SchemaOffer, SchemaSchedule, ValidViralAgendaEvent } from '../../src/types/events';
 
 
 type ViralAgendaMapResponse = {
@@ -114,12 +114,12 @@ function readMunicipalityFromPage(
 
 
 export async function extractViralAgendaCoordinates(
-        eventUrl: string,
-        sendRequest: CheerioCrawlingContext['sendRequest'],
-    ): Promise<MapCoordinates | undefined> {
+    eventUrl: string,
+    sendRequest: CheerioCrawlingContext['sendRequest'],
+): Promise<MapCoordinates | undefined> {
     const pageUrl = new URL(eventUrl);
 
-    const mapUrl =`${pageUrl.origin}${pageUrl.pathname}/map`;
+    const mapUrl = `${pageUrl.origin}${pageUrl.pathname}/map`;
 
     const response = await sendRequest<string>({
         url: mapUrl,
@@ -151,9 +151,9 @@ export async function extractViralAgendaCoordinates(
     const mapPage = data.events_pages?.[0];
 
     const latitude =
-    asString(mapPage?.latitude);
+        asString(mapPage?.latitude);
     const longitude =
-    asString(mapPage?.longitude);
+        asString(mapPage?.longitude);
 
     if (!latitude || !longitude) {
         return undefined;
@@ -266,7 +266,7 @@ function readLocation(
     const address = {
         addressLocality:
             asString(addressObject.addressLocality
-        ),
+            ),
 
 
         streetAddress: asString(
@@ -289,6 +289,8 @@ function readLocation(
 
     return {
         name,
+        sameAs: asString(locationValue.sameAs),
+        url: asString(locationValue.url),
         address: hasAddress ? address : undefined,
     };
 }
@@ -312,6 +314,198 @@ function readImage(
     return undefined;
 }
 
+function readStringOrStrings(
+    value: unknown,
+): string | string[] | undefined {
+    if (typeof value === 'string') {
+        return asString(value);
+    }
+
+    if (Array.isArray(value)) {
+        const values = value
+            .map(asString)
+            .filter(
+                (item): item is string =>
+                    Boolean(item),
+            );
+
+        return values.length === 1
+            ? values[0]
+            : values.length > 0
+                ? values
+                : undefined;
+    }
+
+    return undefined;
+}
+
+function readSchemaAgent(
+    value: unknown,
+): SchemaAgent | undefined {
+    if (typeof value === 'string') {
+        const name = asString(value);
+        return name ? { name } : undefined;
+    }
+
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    const name = asString(value.name);
+
+    if (!name) {
+        return undefined;
+    }
+
+    return {
+        '@type': readType(value['@type']),
+        name,
+        url: asString(value.url),
+        image: readImage(value.image),
+        sameAs: readStringOrStrings(value.sameAs),
+    };
+}
+
+function readSchemaAgents(
+    value: unknown,
+): SchemaAgent[] | undefined {
+    const values = Array.isArray(value)
+        ? value
+        : [value];
+
+    const agents = values
+        .map(readSchemaAgent)
+        .filter(
+            (agent): agent is SchemaAgent =>
+                Boolean(agent),
+        );
+
+    return agents.length > 0 ? agents : undefined;
+}
+
+function readSchemaAudience(
+    value: unknown,
+): SchemaAudience | undefined {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    return {
+        '@type': readType(value['@type']),
+        name: asString(value.name),
+        audienceType: readStringOrStrings(
+            value.audienceType,
+        ),
+    };
+}
+
+function readSchemaAudiences(
+    value: unknown,
+): SchemaAudience[] | undefined {
+    const values = Array.isArray(value)
+        ? value
+        : [value];
+
+    const audiences = values
+        .map(readSchemaAudience)
+        .filter(
+            (audience): audience is SchemaAudience =>
+                Boolean(audience),
+        );
+
+    return audiences.length > 0 ? audiences : undefined;
+}
+
+function readNumericPrice(
+    value: unknown,
+): number | undefined {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value >= 0
+            ? value
+            : undefined;
+    }
+
+    const parsed = Number(
+        asString(value)?.replace(',', '.'),
+    );
+
+    return Number.isFinite(parsed) && parsed >= 0
+        ? parsed
+        : undefined;
+}
+
+function readSchemaOffer(
+    value: unknown,
+): SchemaOffer | undefined {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    const price = readNumericPrice(value.price);
+
+    if (price === undefined) {
+        return undefined;
+    }
+
+    return {
+        '@type': readType(value['@type']),
+        name: asString(value.name) ?? 'Bilhete',
+        price,
+        priceCurrency: asString(value.priceCurrency),
+        availability: asString(value.availability),
+        validFrom: asString(value.validFrom),
+        url: asString(value.url),
+    };
+}
+
+function readSchemaOffers(
+    value: unknown,
+): SchemaOffer[] | undefined {
+    const values = Array.isArray(value)
+        ? value
+        : [value];
+
+    const offers = values
+        .map(readSchemaOffer)
+        .filter(
+            (offer): offer is SchemaOffer =>
+                Boolean(offer),
+        );
+
+    return offers.length > 0 ? offers : undefined;
+}
+
+function readSchemaSchedule(
+    value: unknown,
+): SchemaSchedule | undefined {
+    const schedule = Array.isArray(value)
+        ? value.find(isRecord)
+        : value;
+
+    if (!isRecord(schedule)) {
+        return undefined;
+    }
+
+    const startDate = asString(schedule.startDate);
+
+    if (!startDate) {
+        return undefined;
+    }
+
+    return {
+        '@type': readType(schedule['@type']),
+        startDate,
+        endDate: asString(schedule.endDate),
+        startTime: asString(schedule.startTime),
+        endTime: asString(schedule.endTime),
+        scheduleTimezone: asString(
+            schedule.scheduleTimezone,
+        ),
+        byDay: readStringOrStrings(schedule.byDay),
+    };
+}
+
+
 function toValidEvent(
     node: JsonObject,
     fallbackUrl: string,
@@ -330,6 +524,7 @@ function toValidEvent(
 
     const coordinates = readCoordinatesFromMap($);
 
+
     return {
         '@type': readType(node['@type']),
         name,
@@ -342,6 +537,24 @@ function toValidEvent(
         municipality: readMunicipalityFromPage($),
         latitude: coordinates?.latitude,
         longitude: coordinates?.longitude,
+        organizer: readSchemaAgents(node.organizer),
+        promoter: readSchemaAgents(node.promoter),
+        maintainer: readSchemaAgents(node.maintainer),
+        performer: readSchemaAgents(node.performer),
+        funder: readSchemaAgents(node.funder),
+        actor: readSchemaAgents(node.actor),
+        director: readSchemaAgents(node.director),
+        composer: readSchemaAgents(node.composer),
+        alternateName: asString(node.alternateName),
+        isAccessibleForFree: typeof node.isAccessibleForFree === 'boolean' ? node.isAccessibleForFree : undefined,
+        eventAttendanceMode: asString(node.eventAttendanceMode),
+        eventStatus: asString(node.eventStatus),
+        doorTime: asString(node.doorTime),
+        duration: asString(node.duration),
+        keywords: readStringOrStrings(node.keywords),
+        offers: readSchemaOffers(node.offers),
+        eventSchedule: readSchemaSchedule(node.eventSchedule),
+        audience: readSchemaAudiences(node.audience),
     };
 }
 

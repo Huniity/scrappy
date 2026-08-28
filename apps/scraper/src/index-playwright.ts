@@ -71,7 +71,7 @@ async function main() {
                 resolveLocation(event);
 
             if (resolvedLocation) {
-                event.locality =
+                event.municipality =
                     resolvedLocation.municipality;
 
                 event.latitude =
