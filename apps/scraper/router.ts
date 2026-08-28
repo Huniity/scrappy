@@ -128,6 +128,22 @@ router.addHandler(
             price: normalizedEvent.price,
             ageRating: normalizedEvent.ageRating,
             maximumAttendeeCapacity: normalizedEvent.maximumAttendeeCapacity,
+            alternateName: normalizedEvent.alternateName,
+            isAccessibleForFree: normalizedEvent.isAccessibleForFree,
+            eventAttendanceMode: normalizedEvent.eventAttendanceMode,
+            doorTime: normalizedEvent.doorTime,
+            duration: normalizedEvent.duration,
+            keywords: normalizedEvent.keywords,
+            offers: normalizedEvent.offers,
+            schedule: normalizedEvent.schedule,
+            organizer: normalizedEvent.organizer,
+            promoter: normalizedEvent.promoter,
+            maintainer: normalizedEvent.maintainer,
+            performers: normalizedEvent.performers,
+            funder: normalizedEvent.funder,
+            actor: normalizedEvent.actor,
+            director: normalizedEvent.director,
+            composer: normalizedEvent.composer,
         };
 
         const validation = rawEventSchema.safeParse(rawEventCandidate);

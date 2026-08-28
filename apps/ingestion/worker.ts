@@ -8,6 +8,18 @@ import { rawEventSchema, RawEvent } from '../shared/rawEvent';
 
 const apiUrl = env.API_URL;
 
+type RawAgent = RawEvent['organizer'][number];
+
+function toApiAgent(agent: RawAgent) {
+	return {
+		name: agent.name,
+		type: agent.type,
+		url: agent.url,
+		imageUrl: agent.image,
+		sameAs: typeof agent.sameAs === 'string' ? agent.sameAs : agent.sameAs?.[0],
+	};
+}
+
 console.log('Inicializing Worker... searching for jobs in the queue...');
 
 const ingestionWorker = new Worker(
@@ -27,13 +39,6 @@ const ingestionWorker = new Worker(
 			type: rawData.type,
 			ageRating: rawData.ageRating,
 			maximumAttendeeCapacity: rawData.maximumAttendeeCapacity,
-			offers: rawData.price === undefined ? [] : [
-				{
-					name: 'Bilhete',
-					price: rawData.price,
-					priceCurrency: 'EUR',
-				},
-			],
 			location: {
 				name: rawData.locationName ?? rawData.sourceLocality ?? rawData.municipality,
 				locality: apiLocality,
@@ -44,6 +49,34 @@ const ingestionWorker = new Worker(
 				latitude: rawData.latitude,
 				longitude: rawData.longitude,
 			},
+			alternateName: rawData.alternateName,
+			isAccessibleForFree: rawData.isAccessibleForFree,
+			eventAttendanceMode: rawData.eventAttendanceMode,
+			doorTime: rawData.doorTime,
+			duration: rawData.duration,
+			keywords: rawData.keywords,
+			schedule: rawData.schedule,
+			audience: rawData.audience,
+			organizer: rawData.organizer?.map(toApiAgent),
+			promoter: rawData.promoter?.map(toApiAgent),
+			maintainer: rawData.maintainer?.map(toApiAgent),
+			performers: rawData.performers?.map(toApiAgent),
+			funder: rawData.funder?.map(toApiAgent),
+			actor: rawData.actor?.map(toApiAgent),
+			director: rawData.director?.map(toApiAgent),
+			composer: rawData.composer?.map(toApiAgent),
+			offers:
+				rawData.offers.length > 0
+					? rawData.offers
+					: rawData.price === undefined
+						? []
+						: [
+							{
+								name: 'Bilhete',
+								price: rawData.price,
+								priceCurrency: 'EUR',
+							},
+						],
 
 		};
 		console.log(
