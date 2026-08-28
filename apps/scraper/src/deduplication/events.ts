@@ -1,4 +1,6 @@
-import { type NormalizedEvent } from "../types/events";
+
+
+import { type NormalizedEvent } from "../types/normalizedEvent";
 
 function normalizeTitle(title: string): string {
     return title

@@ -1,17 +1,40 @@
 
 
+import { 
+    type NormalizedAudience,
+    type SchemaAudience,
+} from "../types/audience";
+
+import {
+    type NormalizedAttendanceMode,
+    attendanceModeMap 
+} from "../types/attendance";
+
+import {
+    type NormalizedAgent,
+    type SchemaAgent,
+} from '../types/agent';
+
 import {
     type NormalizedEvent,
-    type NormalizedAgent,
-    type NormalizedAudience,
+
+} from '../types/normalizedEvent';
+
+import {
     type NormalizedOffer,
-    type NormalizedSchedule,
-    type SchemaAgent,
-    type SchemaAudience,
     type SchemaOffer,
+} from '../types/offer';
+
+import {
+    type NormalizedSchedule,
     type SchemaSchedule,
+} from '../types/schedule';
+
+import {
+
     type ValidViralAgendaEvent,
-} from "../types/events";
+} from '../types/viralAgenda';
+
 
 
 /**
@@ -141,7 +164,7 @@ function normalizeOffer(
     return {
         name: cleanText(offer.name) ?? 'Bilhete',
         price,
-        priceCurrency: cleanText(offer.priceCurrency) ?.toUpperCase() ?? 'EUR',
+        priceCurrency: cleanText(offer.priceCurrency)?.toUpperCase() ?? 'EUR',
         availability: cleanText(offer.availability),
         validFrom: cleanText(offer.validFrom),
         url: cleanText(offer.url),
@@ -179,7 +202,7 @@ function normalizeSchedule(
     }
 
     const repeatDays = asArray(value.byDay)
-        .map((day) => cleanText(day) ?.replace('https://schema.org/', ''),
+        .map((day) => cleanText(day)?.replace('https://schema.org/', ''),
         )
         .filter(
             (day): day is string => Boolean(day),
@@ -196,6 +219,19 @@ function normalizeSchedule(
                 ? repeatDays
                 : undefined,
     };
+}
+
+/**
+ * Normalizes the attendance mode of an event.
+ * @param value The attendance mode to normalize.
+ * @returns The normalized attendance mode, or undefined if the input is invalid.
+ */
+function normalizeAttendanceMode(
+    value: string | undefined,
+): NormalizedAttendanceMode | undefined {
+    if (!value) return undefined;
+
+    return attendanceModeMap[value.trim()];
 }
 
 /**
@@ -289,14 +325,14 @@ export function normalizeViralAgendaEvent(
             data.isAccessibleForFree,
 
         eventAttendanceMode:
-            cleanText(data.eventAttendanceMode),
-            
+            normalizeAttendanceMode(data.eventAttendanceMode),
+
         eventStatus:
             cleanText(data.eventStatus),
 
         doorTime:
             cleanText(data.doorTime),
-            
+
         duration:
             cleanText(data.duration),
 
@@ -307,17 +343,17 @@ export function normalizeViralAgendaEvent(
                     (keyword): keyword is string =>
                         Boolean(keyword),
                 ),
-        
+
         offers:
             normalizeOffers(data.offers),
 
         schedule:
             normalizeSchedule(data.eventSchedule),
-        
+
         audience:
             normalizeAudiences(data.audience),
-    
-        
+
+
         organizer:
             normalizeAgents(data.organizer),
 

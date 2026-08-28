@@ -1,8 +1,12 @@
 
+
 import type { CheerioAPI } from 'cheerio';
 import type { CheerioCrawlingContext } from 'crawlee';
-import type { SchemaAgent, SchemaAudience, SchemaOffer, SchemaSchedule, ValidViralAgendaEvent } from '../../src/types/events';
-
+import type { SchemaAgent } from '../../src/types/agent';
+import type { SchemaAudience } from '../../src/types/audience';
+import type { SchemaOffer } from '../../src/types/offer';
+import type { SchemaSchedule } from '../../src/types/schedule';
+import type { ValidViralAgendaEvent } from '../../src/types/viralAgenda';
 
 type ViralAgendaMapResponse = {
     events_pages?: Array<{

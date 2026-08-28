@@ -1,6 +1,8 @@
+
+
 import {
     type NormalizedEvent,
-} from '../types/events';
+} from '../types/normalizedEvent';
 
 import {
     findExactMunicipality,

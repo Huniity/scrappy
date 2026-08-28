@@ -1,6 +1,6 @@
 
 
-import type { NormalizedEvent } from '../types/events';
+import type { NormalizedEvent } from '../types/normalizedEvent';
 
 /**
  * Date type can be either 'start' or 'end', indicating whether the date is a start date or an end date.

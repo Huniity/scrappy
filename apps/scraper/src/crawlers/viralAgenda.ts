@@ -1,10 +1,17 @@
+
+
 import { type Page } from 'playwright';
 
 import {
-    type NormalizedEvent,
+    
     type ValidViralAgendaEvent,
     type ViralAgendaJsonLd,
-} from '../types/events';
+} from '../types/viralAgenda';
+
+import {
+    type NormalizedEvent
+} from '../types/normalizedEvent';
+
 
 import {
     normalizeViralAgendaEvent,
