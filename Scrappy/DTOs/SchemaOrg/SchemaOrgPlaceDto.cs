@@ -42,6 +42,14 @@ public class SchemaOrgPlaceDto
     /// <summary> Gets or sets the address of the place, represented as a SchemaOrgAddressDto object. </summary>
     [JsonPropertyName("address")]
     public SchemaOrgAddressDto? Address { get; set; }
+        
+    /// <summary> Gets or sets the URL of the place. </summary>
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+    
+    /// <summary> Gets or sets the "same as" URL of the place, which can be used to identify the same place across different platforms. </summary>
+    [JsonPropertyName("sameAs")]
+    public string? SameAs { get; set; }
 
     /// <summary> Gets or sets the geographical coordinates of the place, represented as a SchemaOrgGeoDto object. </summary>
     [JsonPropertyName("geo")]

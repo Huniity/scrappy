@@ -39,6 +39,12 @@ public class EventLocationResponseDto
     /// <summary> Gets or sets the DICO code of the event location. </summary>
     public string? DicoCode { get; set; }
 
+    /// <summary> Gets or sets the URL of the event location. </summary>
+    public string? Url { get; set; }
+
+    /// <summary> Gets or sets the "same as" URL of the event location. </summary>
+    public string? SameAs { get; set; }
+
     /// <summary> Gets or sets the latitude of the event location. </summary>
     public double? Latitude { get; set; }
 

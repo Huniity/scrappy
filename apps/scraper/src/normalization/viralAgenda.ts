@@ -248,6 +248,51 @@ function normalizeEventStatus(
     return eventStatusMap[value.trim()];
 }
 
+
+/**
+ * Normalizes the door time of an event based on its start date.
+ * @param value The door time to normalize. 
+ * @param startDate The start date of the event, used to construct a full datetime if needed.
+ * @returns The normalized door time as a string in ISO 8601 format, or undefined if the input is invalid.
+ */
+function normalizeDoorTime(
+    value: string | undefined,
+    startDate: string,
+): string | undefined {
+    if (!value) return undefined;
+
+    const cleaned = value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '');
+
+    if (cleaned.includes('t')) {
+        return value.trim();
+    }
+
+    const match = cleaned.match(/^(\d{1,2})(?::|h)?(\d{ 2}) ? $ /);
+
+    if (!match) return undefined;
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2] ?? '00');
+
+    if (
+        hours < 0 ||
+        hours > 23 ||
+        minutes < 0 ||
+        minutes > 59
+    ) {
+        return undefined;
+    }
+
+    const date = startDate.slice(0, 10);
+    const offset =
+        startDate.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1] ?? 'Z';
+
+    return `${date}T${String(hours).padStart(2, '0')}: ${String(minutes).padStart(2, '0')}:00${offset}`;
+}
+
 /**
  * Cleans up text by removing HTML tags and extra whitespace.
  * @param value The string to clean.
@@ -326,6 +371,9 @@ export function normalizeViralAgendaEvent(
         country:
             cleanText(data.location?.address?.addressCountry),
 
+        locationUrl: cleanText(data.location?.url),
+        locationSameAs: cleanText(data.location?.sameAs),
+
         latitude:
             data.latitude,
 
@@ -345,7 +393,7 @@ export function normalizeViralAgendaEvent(
             normalizeEventStatus(data.eventStatus),
 
         doorTime:
-            cleanText(data.doorTime),
+            normalizeDoorTime(data.doorTime, data.startDate),
 
         duration:
             cleanText(data.duration),

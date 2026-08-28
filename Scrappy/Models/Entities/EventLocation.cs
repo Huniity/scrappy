@@ -39,6 +39,14 @@ public class EventLocation
     [BsonElement("DicoCode")]
     public string? DicoCode { get; set; }
 
+    /// <summary> Gets or sets the street address of the event location. </summary>
+    [BsonElement("Url")]
+      public string? Url { get; set; }
+
+    /// <summary> Gets or sets the street address of the event location. </summary>
+    [BsonElement("SameAs")]
+    public string? SameAs { get; set; }
+
     /// <summary> Gets or sets the latitude of the event location in decimal degrees. </summary>
     [BsonElement("Latitude")]
     public double? Latitude { get; set; }

@@ -84,6 +84,8 @@ public static class EventSchemaOrgMapper
     public static SchemaOrgPlaceDto ToSchemaPlace(this EventLocation location) => new()
     {
         Name = location.Name,
+        Url = location.Url,
+        SameAs = location.SameAs,
         Address = new SchemaOrgAddressDto
         {
             Locality = location.Locality.GetDisplayName(),

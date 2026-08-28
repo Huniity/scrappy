@@ -96,6 +96,8 @@ public static class EventResponseMapper
         Region = location.Region.ToCodeName(),
         Country = location.Country,
         DicoCode = location.DicoCode,
+        Url = location.Url,
+        SameAs = location.SameAs,
         Latitude = location.Latitude,
         Longitude = location.Longitude
     };

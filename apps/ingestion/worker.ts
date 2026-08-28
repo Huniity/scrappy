@@ -46,6 +46,8 @@ const ingestionWorker = new Worker(
 				region: rawData.region,
 				dicoCode: rawData.dicoCode,
 				country: 'PT',
+				url: rawData.locationUrl,
+				sameAs: rawData.locationSameAs,
 				latitude: rawData.latitude,
 				longitude: rawData.longitude,
 			},
@@ -109,7 +111,7 @@ const ingestionWorker = new Worker(
 				return;
 			}
 
-			if (!response.ok){
+			if (!response.ok) {
 				throw new Error(
 					`Failed to send ${rawData.sourceUrl} to API. ` +
 					`Status: ${response.status} | Response: ${responseBody}`,
@@ -150,34 +152,34 @@ ingestionWorker.on('error', err => {
 
 let isShuttingDown = false;
 
-  async function shutdown(signal: string): Promise<void> {
-    if (isShuttingDown) {
-      return;
-    }
+async function shutdown(signal: string): Promise<void> {
+	if (isShuttingDown) {
+		return;
+	}
 
-    isShuttingDown = true;
+	isShuttingDown = true;
 
-    console.log(
-      `${signal} received; closing ingestion worker...`,
-    );
+	console.log(
+		`${signal} received; closing ingestion worker...`,
+	);
 
-    try {
-      await ingestionWorker.close();
-      console.log('Ingestion worker closed.');
-      process.exitCode = 0;
-    } catch (error) {
-      console.error(
-        'Failed to close ingestion worker:',
-        error,
-      );
-      process.exitCode = 1;
-    }
-  }
+	try {
+		await ingestionWorker.close();
+		console.log('Ingestion worker closed.');
+		process.exitCode = 0;
+	} catch (error) {
+		console.error(
+			'Failed to close ingestion worker:',
+			error,
+		);
+		process.exitCode = 1;
+	}
+}
 
-  process.once('SIGINT', () => {
-    void shutdown('SIGINT');
-  });
+process.once('SIGINT', () => {
+	void shutdown('SIGINT');
+});
 
-  process.once('SIGTERM', () => {
-    void shutdown('SIGTERM');
-  });
+process.once('SIGTERM', () => {
+	void shutdown('SIGTERM');
+});

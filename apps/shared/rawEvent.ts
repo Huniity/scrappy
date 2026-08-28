@@ -117,6 +117,8 @@ export const rawEventSchema = z
         type: eventTypeSchema.default('Outro'),
 
         locationName: z.string().trim().min(1),
+        locationUrl: z.string().url().optional(),
+        locationSameAs: z.string().url().optional(),
 
         sourceLocality: z.string().trim().min(1).optional(),
 

@@ -115,6 +115,8 @@ public static class EventRequestMapper
             ?? throw new ArgumentException("Location region is required.", nameof(dto)),
         Country = dto.Country,
         DicoCode = dto.DicoCode,
+        Url = dto.Url,
+        SameAs = dto.SameAs,
         Latitude = ParseCoordinate(dto.Latitude),
         Longitude = ParseCoordinate(dto.Longitude)
     };

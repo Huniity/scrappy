@@ -24,6 +24,8 @@ export type NormalizedEvent = {
     type?: string;
     isAccessibleForFree?: boolean;
     venueName?: string;
+    locationUrl?: string;
+    locationSameAs?: string;
     locality?: string;
     municipality?: string;
     streetAddress?: string;

@@ -437,6 +437,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         Region = dto.Region!.Value,
         Country = dto.Country.Trim(),
         DicoCode = dto.DicoCode?.Trim(),
+        Url = dto.Url,
+        SameAs = dto.SameAs,
         Latitude = ParseCoordinate(dto.Latitude),
         Longitude = ParseCoordinate(dto.Longitude)
     };
@@ -451,6 +453,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         Region = geoData.Region,
         Country = "PT",
         DicoCode = geoData.DicoCode,
+        Url = dto.Url,
+        SameAs = dto.SameAs,
         Latitude = ParseCoordinate(dto.Latitude),
         Longitude = ParseCoordinate(dto.Longitude)
     };
