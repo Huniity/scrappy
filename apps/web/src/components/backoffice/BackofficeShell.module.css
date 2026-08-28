@@ -1,0 +1,767 @@
+.shell {
+    min-height:
+        100vh;
+
+    background:
+        var(--bo-bg);
+}
+
+
+.iconRail {
+    position:
+        fixed;
+
+    inset:
+        0 auto 0 0;
+
+    z-index:
+        30;
+
+    width:
+        var(--bo-rail-width);
+
+    border-right:
+        1px solid
+        var(--bo-border);
+
+    background:
+        #ffffff;
+}
+
+
+.logo {
+    height:
+        var(--bo-topbar-height);
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    color:
+        #081473;
+
+    font-size:
+        29px;
+
+    font-weight:
+        700;
+
+    font-style:
+        italic;
+
+    line-height:
+        1;
+
+    border-bottom:
+        1px solid
+        var(--bo-border);
+}
+
+
+.railItems {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    gap:
+        5px;
+
+    padding:
+        10px 5px 72px;
+}
+
+
+.railButton,
+.railBottom {
+    width:
+        50px;
+
+    height:
+        39px;
+
+    border:
+        0;
+
+    border-radius:
+        var(--bo-radius-md);
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    background:
+        transparent;
+
+    color:
+        var(--bo-sidebar-icon);
+
+    cursor:
+        default;
+}
+
+
+.railButtonActive,
+.railBottom {
+    background:
+        var(--bo-primary-soft);
+}
+
+
+.railBottom {
+    position:
+        absolute;
+
+    left:
+        5px;
+
+    bottom:
+        8px;
+}
+
+
+.topbar {
+    position:
+        fixed;
+
+    z-index:
+        20;
+
+    top:
+        0;
+
+    left:
+        var(--bo-rail-width);
+
+    right:
+        0;
+
+    height:
+        var(--bo-topbar-height);
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    padding:
+        0 26px 0 16px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #f1f1f1 0%,
+            #f7f7f7 50%,
+            #ffffff 100%
+        );
+
+    border-bottom:
+        1px solid
+        var(--bo-border);
+}
+
+
+.demoBadge {
+    height:
+        27px;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid
+        #d9dde3;
+
+    border-radius:
+        7px;
+
+    color:
+        #6f7b8c;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.28
+        );
+
+    font-size:
+        12px;
+
+    font-weight:
+        500;
+
+    letter-spacing:
+        0.01em;
+}
+
+
+.topbarRight {
+    height:
+        100%;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        17px;
+}
+
+
+.siteButton {
+    min-width:
+        167px;
+
+    height:
+        35px;
+
+    border:
+        1px solid
+        #d7dde5;
+
+    border-radius:
+        7px;
+
+    padding:
+        0 17px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        9px;
+
+    color:
+        #34445b;
+
+    background:
+        linear-gradient(
+            #ffffff,
+            #f5faff
+        );
+
+    box-shadow:
+        var(--bo-shadow-control);
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+}
+
+
+.siteButton svg {
+    color:
+        #4d75b7;
+}
+
+
+.topDivider {
+    width:
+        1px;
+
+    height:
+        34px;
+
+    background:
+        #202b39;
+}
+
+
+.userBlock {
+    min-width:
+        166px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        flex-end;
+
+    gap:
+        10px;
+
+    text-align:
+        right;
+
+    line-height:
+        1.2;
+}
+
+
+.userBlock strong {
+    display:
+        block;
+
+    color:
+        #26344a;
+
+    font-size:
+        11px;
+
+    font-weight:
+        600;
+}
+
+
+.userBlock span {
+    display:
+        block;
+
+    color:
+        #727d8e;
+
+    font-size:
+        10px;
+}
+
+
+.avatar {
+    width:
+        25px;
+
+    height:
+        25px;
+
+    border-radius:
+        999px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    color:
+        #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #80665e,
+            #273341
+        );
+
+    font-size:
+        10px;
+
+    font-weight:
+        600;
+}
+
+
+.userChevron {
+    color:
+        #38485e !important;
+
+    font-size:
+        16px !important;
+}
+
+
+.breadcrumb {
+    position:
+        fixed;
+
+    z-index:
+        18;
+
+    top:
+        var(--bo-topbar-height);
+
+    left:
+        calc(
+            var(--bo-rail-width) +
+            16px
+        );
+
+    right:
+        0;
+
+    height:
+        var(--bo-breadcrumb-height);
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+    padding:
+        0 12px;
+
+    border:
+        1px solid
+        var(--bo-border);
+
+    border-radius:
+        4px;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        var(--bo-shadow-soft);
+
+    color:
+        #556275;
+
+    font-size:
+        10px;
+}
+
+
+.breadcrumb strong {
+    color:
+        #39475b;
+
+    font-size:
+        10px;
+
+    font-weight:
+        600;
+}
+
+
+.navigation {
+    position:
+        fixed;
+
+    z-index:
+        19;
+
+    top:
+        calc(
+            var(--bo-topbar-height) +
+            var(--bo-breadcrumb-height)
+        );
+
+    bottom:
+        0;
+
+    left:
+        var(--bo-rail-width);
+
+    width:
+        var(--bo-nav-width);
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    background:
+        #f5f5f5;
+
+    border-right:
+        1px solid
+        #d8dade;
+}
+
+
+.navHeader {
+    height:
+        51px;
+
+    flex:
+        0 0 51px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    padding:
+        0 0 0 23px;
+
+    background:
+        #ffffff;
+
+    border-bottom:
+        1px solid
+        var(--bo-border);
+}
+
+
+.navHeader strong {
+    font-size:
+        13px;
+
+    font-weight:
+        600;
+
+    color:
+        #344357;
+}
+
+
+.collapseButton {
+    width:
+        35px;
+
+    height:
+        35px;
+
+    margin-right:
+        -1px;
+
+    border:
+        1px solid
+        var(--bo-border);
+
+    border-radius:
+        8px 0 0 8px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    color:
+        #344357;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        0 1px 4px
+        rgba(
+            31,
+            42,
+            57,
+            0.08
+        );
+}
+
+
+.navScroll {
+    position:
+        relative;
+
+    flex:
+        1;
+
+    overflow:
+        hidden;
+
+    padding:
+        17px 15px 78px 22px;
+}
+
+
+.navScroll::after {
+    content:
+        '';
+
+    position:
+        absolute;
+
+    top:
+        23px;
+
+    bottom:
+        135px;
+
+    right:
+        9px;
+
+    width:
+        4px;
+
+    border-radius:
+        999px;
+
+    background:
+        #354253;
+}
+
+
+.navSection {
+    margin-bottom:
+        26px;
+}
+
+
+.navLabel {
+    margin-bottom:
+        9px;
+
+    color:
+        #7d8795;
+
+    font-size:
+        10px;
+
+    font-weight:
+        500;
+
+    letter-spacing:
+        0.03em;
+}
+
+
+.navItem {
+    min-height:
+        27px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    color:
+        #566276;
+
+    font-size:
+        11px;
+
+    white-space:
+        nowrap;
+}
+
+
+.navItemBold {
+    color:
+        #4b586a;
+
+    font-weight:
+        600;
+}
+
+
+.navItem svg {
+    flex:
+        0 0 auto;
+}
+
+
+.navFooterButton {
+    position:
+        absolute;
+
+    left:
+        -55px;
+
+    bottom:
+        8px;
+
+    width:
+        50px;
+
+    height:
+        39px;
+
+    border:
+        0;
+
+    border-radius:
+        8px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    background:
+        var(--bo-primary-soft);
+
+    color:
+        #344357;
+}
+
+
+.workspace {
+    position:
+        fixed;
+
+    top:
+        calc(
+            var(--bo-topbar-height) +
+            var(--bo-breadcrumb-height)
+        );
+
+    right:
+        0;
+
+    bottom:
+        0;
+
+    left:
+        calc(
+            var(--bo-rail-width) +
+            var(--bo-nav-width)
+        );
+
+    overflow:
+        auto;
+
+    background:
+        #ffffff;
+}
+
+
+@media (
+    max-width:
+        1000px
+) {
+    :global(:root) {
+        --bo-nav-width:
+            180px;
+    }
+
+    .topbar {
+        padding-right:
+            12px;
+    }
+
+    .userBlock {
+        min-width:
+            130px;
+    }
+}

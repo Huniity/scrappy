@@ -1,0 +1,24 @@
+.workspace {
+    min-height:
+        100%;
+
+    background:
+        #ffffff;
+}
+
+
+/*
+    Mantém este ficheiro apenas para o teu módulo
+    de eventos.
+
+    Exemplo futuro:
+
+    .eventsPage { ... }
+    .toolbar { ... }
+    .mapLayout { ... }
+    .eventList { ... }
+    .detailsPanel { ... }
+
+    Assim os estilos do módulo nunca ficam misturados
+    com os estilos que reproduzem o backoffice.
+*/
