@@ -1,15 +1,16 @@
 
 
-import { CheerioCrawler } from 'crawlee';
+import { CheerioCrawler, log, LogLevel } from 'crawlee';
 import sources from './config/sources.json';
 import { crawlJobsSchema } from './source';
 import { router } from './router';
+import { logCrawlFinished, logError } from '../shared/eventLog';
 
-
+log.setLevel(LogLevel.WARNING);
 const crawlJobs =
     crawlJobsSchema.parse(sources);
 
-    
+
 const browserUserAgent =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
     'AppleWebKit/537.36 (KHTML, like Gecko) ' +
@@ -23,6 +24,13 @@ const browserUserAgent =
 async function main(): Promise<void> {
     const crawler = new CheerioCrawler({
         requestHandler: router,
+        failedRequestHandler: async ({ request, log }) => {
+            log.error(
+                `Request failed: ${request.url} ` +
+                `retries=${request.retryCount} ` +
+                `errors=${request.errorMessages?.join(' | ')}`,
+            );
+        },
 
         preNavigationHooks: [
             async (_context, gotOptions) => {
@@ -33,7 +41,7 @@ async function main(): Promise<void> {
             },
         ],
 
-        maxRequestsPerCrawl: 40,
+        maxRequestsPerCrawl: 100,
     });
 
     await crawler.run(
@@ -44,6 +52,8 @@ async function main(): Promise<void> {
             },
         })),
     );
+
+    logCrawlFinished();
 }
 
 /**
@@ -52,6 +62,6 @@ async function main(): Promise<void> {
  * @returns {Promise<void>} A promise that resolves when the main function has completed or an error has been handled.
  */
 main().catch((error) => {
-    console.error('Crawler failed:', error);
+    logError('Crawler failed:', error);
     process.exitCode = 1;
 });

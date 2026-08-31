@@ -6,7 +6,7 @@ import {
     
     type ValidViralAgendaEvent,
     type ViralAgendaJsonLd,
-} from '../types/viralAgenda';
+} from '../../sources/viralAgenda/types';
 
 import {
     type NormalizedEvent

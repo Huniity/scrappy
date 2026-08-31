@@ -5,6 +5,8 @@ import { toApiLocalityName } from './locality';
 import { env } from '../shared/env';
 import { redisConnection } from '../shared/redis';
 import { rawEventSchema, RawEvent } from '../shared/rawEvent';
+import { logDuplicatedEvent, logError } from '../shared/eventLog';
+
 
 const apiUrl = env.API_URL;
 
@@ -41,6 +43,8 @@ const ingestionWorker = new Worker(
 			maximumAttendeeCapacity: rawData.maximumAttendeeCapacity,
 			location: {
 				name: rawData.locationName ?? rawData.sourceLocality ?? rawData.municipality,
+				streetAddress: rawData.streetAddress,
+				postalCode: rawData.postalCode,
 				locality: apiLocality,
 				district: rawData.district,
 				region: rawData.region,
@@ -104,10 +108,7 @@ const ingestionWorker = new Worker(
 				);
 
 			if (isDuplicate) {
-				console.warn(
-					`Event from ${rawData.sourceUrl} already exists in the API; ` +
-					'treating it as successfully ingested.',
-				);
+				logDuplicatedEvent(rawData.sourceUrl, 'API');
 				return;
 			}
 
@@ -124,7 +125,7 @@ const ingestionWorker = new Worker(
 			);
 		}
 		catch (error) {
-			console.error('Error sending data to API:', error);
+			logError('Error sending data to API:', error);
 			throw error;
 		}
 	},
@@ -143,11 +144,11 @@ ingestionWorker.on('completed', (job) => {
 });
 
 ingestionWorker.on('failed', (job, err) => {
-	console.error(`Job ${job?.id} failed with error:`, err);
+	logError(`Job ${job?.id} failed with error:`, err);
 });
 
 ingestionWorker.on('error', err => {
-	console.error('Worker encountered an error:', err);
+	logError('Worker encountered an error:', err);
 })
 
 let isShuttingDown = false;
@@ -168,10 +169,7 @@ async function shutdown(signal: string): Promise<void> {
 		console.log('Ingestion worker closed.');
 		process.exitCode = 0;
 	} catch (error) {
-		console.error(
-			'Failed to close ingestion worker:',
-			error,
-		);
+		logError('Failed to close ingestion worker:', error);
 		process.exitCode = 1;
 	}
 }

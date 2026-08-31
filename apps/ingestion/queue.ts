@@ -4,6 +4,7 @@ import { Queue } from 'bullmq';
 import { redisConnection } from '../shared/redis';
 import { RawEvent } from '../shared/rawEvent';
 import { ingestionJobId } from '../shared/jobId';
+import { logDuplicatedEvent, logError } from '../shared/eventLog';
 
 
 
@@ -17,21 +18,17 @@ export async function pushToIngestionQueue(eventData: RawEvent): Promise<void> {
 
       if (existingJob) {
         const state = await existingJob.getState();
-
+        logDuplicatedEvent(eventData.sourceUrl, state);
         if (state === 'failed') {
           // Failed jobs may contain an older, incomplete scrape. Remove that
           // record so a new crawl can enqueue the corrected payload.
           await existingJob.remove();
         } else {
-          console.log(
-            `Ingestion job ${jobId} already exists with state ${state}; ` +
-            `skipping ${eventData.sourceUrl}.`,
-          );
           return;
         }
       }
 
-      const job = await ingestionQueue.add('process-event', eventData, {
+      await ingestionQueue.add('process-event', eventData, {
         jobId,
         attempts: 3,
         backoff: {
@@ -45,11 +42,8 @@ export async function pushToIngestionQueue(eventData: RawEvent): Promise<void> {
         },
       });
 
-      console.log(
-        `Ingestion job ${job.id} queued for ${eventData.sourceUrl}.`,
-      );
   } catch (error) {
-      console.error('Error adding job to the ingestion queue:', error);
+      logError('Error adding job to the ingestion queue:', error);
       throw error;
   }
 }
