@@ -11,6 +11,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 dist/
+.pnpm-store/
 
 
 apps/scraper/data/geo/raw/
