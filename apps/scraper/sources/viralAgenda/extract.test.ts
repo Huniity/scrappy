@@ -99,11 +99,17 @@ test('extracts an event from JSON-LD graph', () => {
 
 test('falls back to HTML tags when JSON-LD keywords are empty', () => {
     const $ = load(`
-      <div class="event-node-tags">
-        <a href="/pt/tags/tradi%C3%A7ao">#tradição</a>
-        <a href="/pt/tags/musica">#musica</a>
-        <a href="/pt/tags/cultura">#cultura</a>
-      </div>
+      <ul class="viral-informations-items viral-tags">
+        <li>
+          <a href="/pt/tags/tradi%C3%A7ao"><span>#tradição</span></a>
+        </li>
+        <li>
+          <a href="/pt/tags/musica"><span>#musica</span></a>
+        </li>
+        <li>
+          <a href="/pt/tags/cultura"><span>#cultura</span></a>
+        </li>
+      </ul>
       <script type="application/ld+json">
         {
           "@type": "Event",

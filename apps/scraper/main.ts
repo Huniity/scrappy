@@ -3,7 +3,7 @@
 import { CheerioCrawler } from 'crawlee';
 import sources from './config/sources.json';
 import { crawlJobsSchema } from './source';
-import { router } from './src/crawlers/dynamic/router';
+import { router } from './router';
 
 
 const crawlJobs =

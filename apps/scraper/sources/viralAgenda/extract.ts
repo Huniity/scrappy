@@ -388,6 +388,7 @@ function readKeywordsFromPage(
     };
 
     for (const selector of [
+        '.viral-tags',
         '.event-node-tags',
         '.event-tags',
         '.event-node',
