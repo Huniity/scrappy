@@ -117,6 +117,8 @@ export const rawEventSchema = z
         type: eventTypeSchema.default('Outro'),
 
         locationName: z.string().trim().min(1),
+        streetAddress: z.string().trim().max(500).optional(),
+        postalCode: z.string().trim().max(20).optional(),
         locationUrl: z.string().url().optional(),
         locationSameAs: z.string().url().optional(),
 

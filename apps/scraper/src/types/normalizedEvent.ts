@@ -29,6 +29,7 @@ export type NormalizedEvent = {
     locality?: string;
     municipality?: string;
     streetAddress?: string;
+    postalCode?: string;
     country?: string;
     latitude?: string;
     longitude?: string;

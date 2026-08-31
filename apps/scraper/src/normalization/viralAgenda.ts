@@ -31,7 +31,7 @@ import {
 
 import {
     type ValidViralAgendaEvent,
-} from '../types/viralAgenda';
+} from '../../sources/viralAgenda/types';
 
 import {
     eventStatusMap,
