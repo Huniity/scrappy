@@ -7,7 +7,7 @@
     },
     {
         "sourceId": "bol-faro",
-        "sourceUrl": "https://www.bol.pt/Comprar/Pesquisa?q=&dist=8&e=0",
+        "sourceUrl": "https://www.bol.pt/Comprar/Bilhetes/Lista",
         "engine": "cheerio",
         "timezone": "Europe/Lisbon"
     }

@@ -13,6 +13,7 @@
     "scraper": "tsx apps/scraper/main.ts",
     "worker": "tsx apps/ingestion/worker.ts",
     "test1": "node --import tsx --test apps/scraper/sources/viralAgenda/extract.test.ts",
+    "test2": "node --import tsx --test apps/scraper/sources/bol/extractBol.test.ts",
     "clear":"node --import tsx apps/ingestion/clearQueue.ts",
     "typecheck": "tsc --noEmit",
     "build:ts": "tsc"

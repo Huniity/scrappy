@@ -11,6 +11,18 @@ import { normalizedUrl } from '../shared/jobId';
 import { pushToIngestionQueue } from '../ingestion/queue';
 import { extractEventMetadata } from './src/enrichment/eventMetadata';
 import { resolveLocation } from './src/enrichment/location';
+import { extractBolJsonLd, extractBolDescription } from './sources/bol/extract';
+import { normalizeBolEvent } from './src/normalization/bol';
+import { logEventFound as printEventFound } from '../shared/eventLog';
+
+
+let eventsFound = 0;
+
+function logEventFound(url: string): void {
+    eventsFound += 1;
+    printEventFound(url, eventsFound);
+}
+
 
 export const router = createCheerioRouter();
 
@@ -22,9 +34,32 @@ export const router = createCheerioRouter();
  * @param {Object} context.log - Logger object for logging messages.
  * @param {Object} context.request - The current request being processed.
  */
-router.addDefaultHandler(async ({ enqueueLinks, log, request }) => {
+router.addDefaultHandler(async ({ enqueueLinks, log, request, $ }) => {
     log.info(`Processing URL: ${request.url}`);
+    const urls = new Set<string>();
 
+    $('a[href]').each((_index, element) => {
+        const href = $(element).attr('href');
+
+        if (!href) {
+            return;
+        }
+
+        const url = new URL(href, request.url);
+
+        const isBolEventUrl =
+            /^\/Comprar\/Bilhetes\/\d+-[^/?#]+\/?$/i
+                .test(url.pathname);
+
+        if (isBolEventUrl) {
+            urls.add(url.href);
+        }
+    });
+
+    await enqueueLinks({
+        urls: [...urls],
+        label: 'BOL_EVENT_DETAIL',
+    });
     await enqueueLinks({
         selector: 'a[href*="/pt/events/"]',
         label: 'EVENT_DETAIL',
@@ -104,10 +139,9 @@ router.addHandler(
             type: classifyEventType(normalizedWithLocation),
         };
 
-        log.info(
-            `Event found: ${JSON.stringify(normalizedEvent)}`,
-        );
-
+        // log.info(
+        //     `Event found: ${JSON.stringify(normalizedEvent)}`,
+        // );
         const apiMunicipality =
             normalizedEvent.municipality ??
             normalizedEvent.locality;
@@ -169,7 +203,173 @@ router.addHandler(
         //     `Valid raw event data: ${JSON.stringify(validation.data)}`,
         // );
 
+        logEventFound(request.url);
         await pushToIngestionQueue(validation.data);
 
+    },
+);
+
+router.addHandler(
+    'BOL_EVENT_DETAIL',
+    async ({ request, $, log }) => {
+        const extracted = extractBolJsonLd(
+            $,
+            request.url,
+        );
+
+        if (!extracted) {
+            log.warning(
+                `No BOL event found: ${request.url}`,
+            );
+            return;
+        }
+
+        const pathname = new URL(request.url).pathname;
+
+        if (
+            !/^\/Comprar\/Bilhetes\/\d+-[^/?#]+\/?$/i
+                .test(pathname)
+        ) {
+            return;
+        }
+
+
+        const description =
+            extracted.description ??
+            extractBolDescription($);
+        // log.info(
+        //     `BOL extracted: ${JSON.stringify(extracted)}`,
+        // );
+        const normalized =
+            normalizeBolEvent({
+                ...extracted,
+                description,
+            });
+
+        if (!normalized) {
+            // log.warning(
+            //     `Invalid BOL event: ${request.url}`,
+            // );
+            log.warning(
+                `Invalid BOL event: ` +
+                `title=${extracted.name} ` +
+                `startDate=${extracted.startDate}`,
+            );
+            return;
+        }
+
+        const resolvedLocation =
+            resolveLocation(normalized);
+
+        const normalizedWithLocation =
+            resolvedLocation
+                ? {
+                    ...normalized,
+                    municipality:
+                        resolvedLocation.municipality,
+                    latitude:
+                        resolvedLocation.latitude ??
+                        normalized.latitude,
+                    longitude:
+                        resolvedLocation.longitude ??
+                        normalized.longitude,
+                }
+                : normalized;
+
+        const metadata = extractEventMetadata(
+            normalizedWithLocation.description,
+            normalizedWithLocation.offers,
+        );
+
+        const normalizedEvent = {
+            ...normalizedWithLocation,
+            ...metadata,
+            price:
+                normalizedWithLocation.price ??
+                metadata.price,
+            isAccessibleForFree:
+                normalizedWithLocation.isAccessibleForFree ??
+                metadata.isAccessibleForFree,
+            type: classifyEventType(
+                normalizedWithLocation,
+            ),
+        };
+
+        // log.info(
+        //     `BOL event found:
+        //       ${JSON.stringify(normalizedEvent)}`,
+        // );
+        const apiMunicipality =
+            normalizedEvent.municipality ??
+            normalizedEvent.locality;
+
+        if (!apiMunicipality) {
+            log.warning(
+                `Missing BOL municipality: ${request.url}`,
+            );
+            return;
+        }
+
+        const rawEventCandidate = {
+            title: normalizedEvent.title,
+            description: normalizedEvent.description,
+            sourceUrl: normalizedUrl(
+                normalizedEvent.sourceUrl,
+            ),
+            startDate: normalizedEvent.startDate,
+            endDate: normalizedEvent.endDate,
+            type: normalizedEvent.type,
+            locationName: normalizedEvent.venueName,
+            locationUrl: normalizedEvent.locationUrl,
+            sourceLocality: normalizedEvent.locality,
+            municipality: apiMunicipality,
+            streetAddress: normalizedEvent.streetAddress,
+            postalCode: normalizedEvent.postalCode,
+            imageUrl: normalizedEvent.imageUrl,
+            latitude: normalizedEvent.latitude,
+            longitude: normalizedEvent.longitude,
+            price: normalizedEvent.price,
+            ageRating: normalizedEvent.ageRating,
+            maximumAttendeeCapacity:
+                normalizedEvent.maximumAttendeeCapacity,
+            isAccessibleForFree:
+                normalizedEvent.isAccessibleForFree,
+            eventAttendanceMode:
+                normalizedEvent.eventAttendanceMode,
+            doorTime: normalizedEvent.doorTime,
+            duration: normalizedEvent.duration,
+            eventStatus: normalizedEvent.eventStatus,
+            keywords: normalizedEvent.keywords,
+            offers: normalizedEvent.offers,
+            schedule: normalizedEvent.schedule,
+            organizer: normalizedEvent.organizer,
+            promoter: normalizedEvent.promoter,
+            maintainer: normalizedEvent.maintainer,
+            performers: normalizedEvent.performers,
+            funder: normalizedEvent.funder,
+            actor: normalizedEvent.actor,
+            director: normalizedEvent.director,
+            composer: normalizedEvent.composer,
+        };
+
+        const validation =
+            rawEventSchema.safeParse(
+                rawEventCandidate,
+            );
+
+        if (!validation.success) {
+            log.warning(
+                `Invalid BOL raw event data: ${JSON.stringify(
+                    validation.error.issues,
+                )
+                }`,
+            );
+            return;
+        }
+
+        logEventFound(request.url);
+        await pushToIngestionQueue(
+            validation.data,
+        );
     },
 );
