@@ -28,9 +28,12 @@ public class EventLocationRequestDto
     [Required]
     public string Name { get; set; } = string.Empty;
 
-
-
     // Address Properties
+    /// <summary> Gets or sets the postal code of the event location. </summary>
+    public string? PostalCode { get; set; }
+
+    /// <summary> Gets or sets the street address of the event location. </summary>
+    public string? StreetAddress { get; set; }
     /// <summary> Gets or sets the locality of the event location. </summary>
     [Required]
     public LocalityName? Locality { get; set; }

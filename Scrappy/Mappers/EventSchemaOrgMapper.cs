@@ -88,6 +88,8 @@ public static class EventSchemaOrgMapper
         SameAs = location.SameAs,
         Address = new SchemaOrgAddressDto
         {
+            StreetAddress = location.StreetAddress,
+            PostalCode = location.PostalCode,
             Locality = location.Locality.GetDisplayName(),
             Region = location.Region.GetDisplayName(),
             Country = location.Country,

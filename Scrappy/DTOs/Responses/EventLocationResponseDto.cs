@@ -24,6 +24,12 @@ public class EventLocationResponseDto
     /// <summary> Gets or sets the name of the event location. </summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary> Gets or sets the street address of the event location. </summary>
+    public string? StreetAddress { get; set; }
+
+    /// <summary> Gets or sets the postal code of the event location. </summary>
+    public string? PostalCode { get; set; }
+
     /// <summary> Gets or sets the locality of the event location. </summary>
     public string Locality { get; set; } = string.Empty;
 

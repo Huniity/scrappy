@@ -432,6 +432,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
     private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
     {
         Name = dto.Name.Trim(),
+        StreetAddress = dto.StreetAddress?.Trim(),
+        PostalCode = dto.PostalCode?.Trim(),
         Locality = dto.Locality!.Value,
         District = dto.District!.Value,
         Region = dto.Region!.Value,
@@ -448,6 +450,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         (DistrictName? District, Nuts2Region Region, string DicoCode) geoData) => new()
     {
         Name = dto.Name.Trim(),
+        StreetAddress = dto.StreetAddress?.Trim(),
+        PostalCode = dto.PostalCode?.Trim(),
         Locality = dto.Locality!.Value,
         District = geoData.District,
         Region = geoData.Region,

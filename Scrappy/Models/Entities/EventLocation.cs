@@ -16,6 +16,14 @@ public class EventLocation
     [BsonElement("Name")]
     public string Name { get; set; } = string.Empty;
 
+    /// <summary> Gets or sets the street address of the event location. </summary>
+    [BsonElement("StreetAddress")]
+    public string? StreetAddress { get; set; }
+
+    /// <summary> Gets or sets the postal code of the event location. </summary>
+    [BsonElement("PostalCode")]
+    public string? PostalCode { get; set; }
+
     /// <summary> Gets or sets the locality of the event location. </summary>
     [BsonElement("Locality")]
     [BsonRepresentation(BsonType.String)]

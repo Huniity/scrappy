@@ -89,6 +89,8 @@ public static class EventResponseMapper
     private static EventLocationResponseDto ToResponseDto(this EventLocation location) => new()
     {
         Name = location.Name,
+        StreetAddress = location.StreetAddress,
+        PostalCode = location.PostalCode,
         Locality = location.Locality.GetDisplayName(),
         District = location.District.HasValue
             ? location.District.Value.GetDisplayName()

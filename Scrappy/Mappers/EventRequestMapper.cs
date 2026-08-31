@@ -107,6 +107,8 @@ public static class EventRequestMapper
     public static EventLocation ToEventLocation(this EventLocationRequestDto dto) => new()
     {
         Name = dto.Name,
+        StreetAddress = dto.StreetAddress?.Trim(),
+        PostalCode = dto.PostalCode?.Trim(),
         Locality = dto.Locality
             ?? throw new ArgumentException("Location locality is required.", nameof(dto)),
         District = dto.District
