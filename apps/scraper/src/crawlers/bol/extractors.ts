@@ -52,7 +52,7 @@ export async function extractBolTitle(
     return title || undefined;
 }
 
-export async function extractBolCategory(
+export async function extractBoladditionalType(
     page: Page
 ): Promise<string | undefined> {
     const titleLocator =
@@ -66,20 +66,20 @@ export async function extractBolCategory(
         return undefined;
     }
 
-    const categoryLocator =
+    const additionalTypeLocator =
         titleLocator.locator(
             'xpath=following::*[contains(text(), "|")][1]'
         );
 
     if (
-        await categoryLocator.count() === 0
+        await additionalTypeLocator.count() === 0
     ) {
         return undefined;
     }
 
     return (
         (
-            await categoryLocator
+            await additionalTypeLocator
                 .textContent()
         )?.trim() || undefined
     );

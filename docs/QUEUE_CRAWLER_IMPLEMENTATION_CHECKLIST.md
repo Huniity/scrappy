@@ -759,7 +759,7 @@ At minimum, log structured fields:
 - attempt number;
 - duration;
 - number of pages/events;
-- final status and error category.
+- final status and error additionalType.
 
 Useful later additions:
 

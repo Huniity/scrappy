@@ -23,7 +23,7 @@ namespace Scrappy.DTOs.SchemaOrg;
 ///   "endDate": "2026-06-01T17:00:00Z",
 ///   "doorTime": "2026-06-01T08:30:00Z",
 ///   "duration": "PT8H",
-///   "category": "Musica",
+///   "additionalType": "Musica",
 ///   "isAccessibleForFree": false,
 ///   "typicalAgeRange": "18+",
 ///   "maximumAttendeeCapacity": 100,
@@ -156,6 +156,10 @@ public class SchemaOrgEventDto
     [JsonPropertyName("@type")]
     public string Type { get; set; } = "Event";
 
+    /// <summary> Gets or sets the additionalType of the event. </summary>
+    [JsonPropertyName("additionalType")]
+    public string additionalType { get; set; } = string.Empty;
+    
     /// <summary> Gets or sets the unique identifier (URL) of the event. </summary>
     [JsonPropertyName("@id")]
     public string Id { get; set; } = string.Empty;
@@ -171,10 +175,6 @@ public class SchemaOrgEventDto
     /// <summary> Gets or sets the alternate name of the event. </summary>
     [JsonPropertyName("alternateName")]
     public string? AlternateName { get; set; }
-
-    /// <summary> Gets or sets the additional type of the event. </summary>
-    [JsonPropertyName("additionalType")]
-    public string? AdditionalType { get; set; }
 
     /// <summary> Gets or sets the URL of the event. </summary>
     [JsonPropertyName("url")]
@@ -199,10 +199,6 @@ public class SchemaOrgEventDto
     /// <summary> Gets or sets the duration of the event in ISO 8601 format. </summary>
     [JsonPropertyName("duration")]
     public string? Duration { get; set; }
-
-    /// <summary> Gets or sets the category of the event. </summary>
-    [JsonPropertyName("category")]
-    public string Category { get; set; } = string.Empty;
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
     [JsonPropertyName("isAccessibleForFree")]

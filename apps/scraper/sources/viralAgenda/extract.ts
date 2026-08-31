@@ -7,21 +7,11 @@ import type { SchemaAudience } from '../../src/types/audience';
 import type { SchemaOffer } from '../../src/types/offer';
 import type { SchemaSchedule } from '../../src/types/schedule';
 import type { ValidViralAgendaEvent } from '../../src/types/viralAgenda';
-
-type ViralAgendaMapResponse = {
-    events_pages?: Array<{
-        latitude?: unknown;
-        longitude?: unknown;
-    }>;
-}
-
-type MapCoordinates = {
-    latitude: string;
-    longitude: string;
-};
+import type {
+    MapCoordinates, ViralAgendaMapResponse, JsonObject  
+} from './types';
 
 
-type JsonObject = Record<string, unknown>;
 
 function isRecord(value: unknown): value is JsonObject {
     return typeof value === 'object' && value !== null;

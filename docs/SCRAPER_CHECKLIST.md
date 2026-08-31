@@ -56,7 +56,7 @@ Current scope: normalize Viral Agenda nationally first. Add other sources only a
 - [ ] Inspect an Almancil event page where the locality and municipality differ.
 - [ ] Add a small extraction helper for the explicit municipality link.
 - [ ] Add fixtures/tests for both cases.
-- [ ] Avoid broad selectors that could accidentally select the venue, category, or organizer.
+- [ ] Avoid broad selectors that could accidentally select the venue, additionalType, or organizer.
 
 ### 3. Connect the location pipeline
 

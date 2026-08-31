@@ -4,5 +4,11 @@
         "sourceUrl": "https://www.viralagenda.com/pt/",
         "engine": "cheerio",
         "timezone": "Europe/Lisbon"
+    },
+    {
+        "sourceId": "bol-faro",
+        "sourceUrl": "https://www.bol.pt/Comprar/Pesquisa?q=&dist=8&e=0",
+        "engine": "cheerio",
+        "timezone": "Europe/Lisbon"
     }
 ]

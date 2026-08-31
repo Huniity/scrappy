@@ -4,7 +4,7 @@ import {
 
 import {
     type NormalizedEvent,
-} from '../../types/events';
+} from '../../types/normalizedEvent';
 
 import {
     isBolContinuousAttraction,
@@ -17,7 +17,7 @@ import {
 import {
     extractBolAddress,
     extractBolAgeRatingText,
-    extractBolCategory,
+    extractBoladditionalType,
     extractBolCoordinates,
     extractBolDateRange,
     extractBolDescription,
@@ -80,14 +80,14 @@ export async function scrapeBolEvent(
         page
     );
 
-    const categoryText =
-        await extractBolCategory(
+    const additionalTypeText =
+        await extractBoladditionalType(
             page
         );
 
     const continuousAttraction =
         isBolContinuousAttraction(
-            categoryText
+            additionalTypeText
         );
 
     if (
@@ -238,7 +238,7 @@ export async function scrapeBolEvent(
         ageRatingText,
         ageRating,
 
-        categoryText,
+        additionalTypeText,
         continuousAttraction,
 
         sessionText,

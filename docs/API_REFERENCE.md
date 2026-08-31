@@ -365,7 +365,7 @@ The complete JSON-LD representation supported by the current DTO model is shown 
   "endDate": "2026-07-15T23:30:00.0000000Z",
   "doorTime": "2026-07-15T20:30:00.0000000Z",
   "duration": "PT2H30M",
-  "category": "Festival",
+  "additionalType": "Festival",
   "isAccessibleForFree": false,
   "offers": [
     {
@@ -484,7 +484,7 @@ The complete JSON-LD representation supported by the current DTO model is shown 
       "endDate": "2026-07-15T22:00:00Z",
       "doorTime": null,
       "duration": "PT1H",
-      "category": "Concerto",
+      "additionalType": "Concerto",
       "isAccessibleForFree": false,
       "offers": null,
       "typicalAgeRange": "12+",
@@ -543,7 +543,7 @@ The complete JSON-LD representation supported by the current DTO model is shown 
 }
 ```
 
-The current mapper populates the core identity, dates, category, accessibility, capacity, keywords, status, location, organizer, promoter, performers, schedule, and three `additionalProperty` values. `additionalType`, `offers`, `owner`, `funder`, `actor`, `director`, `composer`, `audience`, `subEvent`, and `superEvent` exist in the DTO but are not currently populated from the stored event model. Offer mapping is also behind the `OFFER_MODEL_AVAILABLE` compilation symbol.
+The current mapper populates the core identity, dates, additionalType, accessibility, capacity, keywords, status, location, organizer, promoter, performers, schedule, and three `additionalProperty` values. `additionalType`, `offers`, `owner`, `funder`, `actor`, `director`, `composer`, `audience`, `subEvent`, and `superEvent` exist in the DTO but are not currently populated from the stored event model. Offer mapping is also behind the `OFFER_MODEL_AVAILABLE` compilation symbol.
 
 ## Quality score
 

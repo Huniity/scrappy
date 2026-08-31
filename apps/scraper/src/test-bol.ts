@@ -15,7 +15,7 @@ import {
 
 import {
     type NormalizedEvent,
-} from './types/events';
+} from './types/normalizedEvent';
 
 
 async function main() {

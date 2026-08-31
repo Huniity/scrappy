@@ -36,7 +36,7 @@ public static class EventSchemaOrgMapper
             EndDate = eventModel.EndDate?.ToString("O", CultureInfo.InvariantCulture),
             DoorTime = eventModel.DoorTime?.ToString("O", CultureInfo.InvariantCulture),
             Duration = eventModel.Duration,
-            Category = eventModel.Type?.ToString() ?? string.Empty,
+            additionalType = eventModel.Type?.ToString() ?? string.Empty,
             IsAccessibleForFree = eventModel.IsAccessibleForFree,
             TypicalAgeRange = eventModel.AgeRating is int age ? $"{age}+" : null,
             MaximumAttendeeCapacity = eventModel.MaximumAttendeeCapacity,

@@ -1,14 +1,14 @@
 import { getLisbonOffset } from './dates';
 
 export function isBolContinuousAttraction(
-    categoryText: string | undefined
+    additionalTypeText: string | undefined
 ): boolean {
-    if (!categoryText) {
+    if (!additionalTypeText) {
         return false;
     }
 
-    const normalizedCategory =
-        categoryText
+    const normalizedadditionalType =
+        additionalTypeText
             .toLowerCase()
             .trim();
 
@@ -20,9 +20,9 @@ export function isBolContinuousAttraction(
 ];
 
     return continuousCategories.some(
-        (category) =>
-            normalizedCategory.includes(
-                category
+        (additionalType) =>
+            normalizedadditionalType.includes(
+                additionalType
             )
     );
 }

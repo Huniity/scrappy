@@ -1,7 +1,10 @@
 packages:
   - 'apps/*'
+  - 'apps/web/*'
   - 'packages/*'
 allowBuilds:
-  msgpackr-extract: set this to true or false
+  esbuild: true
+  msgpackr-extract: false
+  unrs-resolver: false
 minimumReleaseAgeExclude:
   - bullmq@6.1.1
