@@ -8,6 +8,7 @@ export function EventsWorkspace() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
+    const [searchQuery, setSearchQuery] = useState('');
 
     return (
         <section
@@ -138,7 +139,7 @@ export function EventsWorkspace() {
                 </div>
             </div>
 
-            <div className="w-full min-h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[4fr_3fr] gap-4 items-center px-4 py-3">
+            <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[4fr_3fr] gap-4 items-center px-4 py-6">
                 <div className="w full grid grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1">
                         <label
@@ -213,20 +214,29 @@ export function EventsWorkspace() {
                         </div>
                     </div>
                 </div>
-                <div>
-                    <label
-                            htmlFor="start-date"
+                <div className="grid grid-cols-[5fr_2fr] gap-4 items-end">
+                    <div >
+                        <label
+                            htmlFor="search-query"
                             className="text-sm font-bold text-[var(--text-secondary)]"
                         >
-                            Data Inicial
+                            Pequisar
                         </label>
                         <input
-                            id="start-date"
-                            type="date"
-                            value={startDate}
-                            onChange={(event) => setStartDate(event.target.value)}
+                            id="search-query"
+                            type="text"
+                            value={searchQuery}
+                            onChange={(event) => setSearchQuery(event.target.value)}
                             className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
                         />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="rounded-md bg-[var(--info-soft)] px-4 py-4 text-sm font-semibold text-[var(--bl)] hover:bg-[var(--primary-hover)]"
+                    >
+                        Apagar Filtros
+                    </button>
                 </div>
             </div>
 
