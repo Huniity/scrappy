@@ -62,8 +62,14 @@ public class EventQueryParameters
     /// <summary> Gets or sets the status for filtering events. </summary>
     public EventStatus? Status { get; set; }
 
-
+    /// <summary> Gets or sets the attendance mode for filtering events. </summary>
     public EventAttendanceMode? AttendanceMode { get; set; }
+
+    /// <summary> Gets or sets a value indicating whether to filter events that have geographical coordinates. </summary>
+    public bool? HasCoords { get; set; }
+
+    /// <summary> Gets or sets a value indicating whether to filter events that are accessible for free. </summary>
+    public bool? IsAccessibleForFree { get; set; }
 
     /// <summary> Gets or sets the search term for filtering events by title or description. </summary>
     public string? SearchTerm { get; set; }

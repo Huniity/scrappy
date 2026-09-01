@@ -65,11 +65,19 @@ public class EventQueryService(
 
         var filter = filterService.BuildFilter(
             query.District,
+            query.Locality,
+            query.Region,
+            query.HasCoords,
+            query.Status,
+            query.AttendanceMode,
+            query.IsAccessibleForFree,
             query.Type,
             query.StartDate,
             query.EndDate,
             query.MinQualityScore,
-            query.SearchTerm);
+            query.SearchTerm
+        );
+
         var sort = sortingService.GetSortParams(sortBy);
 
         var totalCount = await _events.CountDocumentsAsync(filter);
