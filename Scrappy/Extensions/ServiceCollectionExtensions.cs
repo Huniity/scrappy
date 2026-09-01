@@ -58,7 +58,8 @@ public static class ServiceCollectionExtensions
                         "http://localhost:5275",
                         "http://127.0.0.1:5275",
                         "https://localhost:7120",
-                        "https://127.0.0.1:7120")
+                        "https://127.0.0.1:7120",
+                        "http://localhost:3000")
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
