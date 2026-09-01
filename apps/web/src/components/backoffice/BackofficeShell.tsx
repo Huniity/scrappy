@@ -1,13 +1,21 @@
 'use client';
 
 import {
+    createContext,
     type ReactNode,
+    useContext,
     useEffect,
     useRef,
     useState,
 } from 'react';
 
 import styles from './BackofficeShell.module.css';
+
+const MunicipalityContext = createContext('Alcobaça');
+
+export function useMunicipality() {
+    return useContext(MunicipalityContext);
+}
 
 
 type IconName =
@@ -299,9 +307,9 @@ const reserved = [
 ];
 
 
-const municipalities = [
+export const municipalities = [
     'Alcobaça',
-    'Olhão',
+    'Faro',
     'Lourinhã',
 ];
 
@@ -312,19 +320,18 @@ function NavItem({
     icon = 'page',
 }: {
     children:
-        ReactNode;
+    ReactNode;
     bold?:
-        boolean;
+    boolean;
     icon?:
-        IconName;
+    IconName;
 }) {
     return (
         <div
             className={
-                `${styles.navItem} ${
-                    bold
-                        ? styles.navItemBold
-                        : ''
+                `${styles.navItem} ${bold
+                    ? styles.navItemBold
+                    : ''
                 }`
             }
         >
@@ -341,12 +348,19 @@ function NavItem({
 }
 
 
-function SiteMunicipalityMenu() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [selectedMunicipality, setSelectedMunicipality] = useState(
-        municipalities[0]
-    );
-    const menuRef = useRef<HTMLDivElement>(null);
+
+function SiteMunicipalityMenu({
+    selectedMunicipality,
+    setSelectedMunicipality,
+}: {
+    selectedMunicipality: string;
+    setSelectedMunicipality:
+    (municipality: string) => void;
+}) {
+    const [isOpen, setIsOpen] =
+        useState(false);
+    const menuRef =
+        useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -397,10 +411,9 @@ function SiteMunicipalityMenu() {
                 menuRef
             }
             className={
-                `${styles.siteMenu} ${
-                    isOpen
-                        ? styles.siteMenuOpen
-                        : ''
+                `${styles.siteMenu} ${isOpen
+                    ? styles.siteMenuOpen
+                    : ''
                 }`
             }
         >
@@ -480,14 +493,18 @@ export function BackofficeShell({
     children,
 }: {
     children:
-        ReactNode;
+    ReactNode;
 }) {
+    const [selectedMunicipality, setSelectedMunicipality] =
+        useState('Alcobaça');
+
     return (
-        <div
-            className={
-                styles.shell
-            }
-        >
+        <MunicipalityContext.Provider value={selectedMunicipality}>
+            <div
+                className={
+                    styles.shell
+                }
+            >
             <aside
                 className={
                     styles.iconRail
@@ -519,11 +536,10 @@ export function BackofficeShell({
                                 }
                                 type="button"
                                 className={
-                                    `${styles.railButton} ${
-                                        index ===
+                                    `${styles.railButton} ${index ===
                                         0
-                                            ? styles.railButtonActive
-                                            : ''
+                                        ? styles.railButtonActive
+                                        : ''
                                     }`
                                 }
                                 aria-label={
@@ -572,7 +588,10 @@ export function BackofficeShell({
                         styles.topbarRight
                     }
                 >
-                    <SiteMunicipalityMenu />
+                    <SiteMunicipalityMenu
+                        selectedMunicipality={selectedMunicipality}
+                        setSelectedMunicipality={setSelectedMunicipality}
+                    />
 
                     <div
                         className={
@@ -608,7 +627,7 @@ export function BackofficeShell({
                                 styles.userChevron
                             }
                         >
-                           ⌄
+                            ⌄
                         </span>
                     </div>
                 </div>
@@ -772,7 +791,7 @@ export function BackofficeShell({
                                     }
                                     icon={
                                         index ===
-                                        3
+                                            3
                                             ? 'group'
                                             : 'page'
                                     }
@@ -833,6 +852,7 @@ export function BackofficeShell({
             >
                 {children}
             </main>
-        </div>
+            </div>
+        </MunicipalityContext.Provider>
     );
 }
