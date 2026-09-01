@@ -10,6 +10,9 @@ import type { ValidViralAgendaEvent } from './types';
 import type {
     MapCoordinates, ViralAgendaMapResponse, JsonObject  
 } from './types';
+import type { NormalizedEvent } from '../../src/types/normalizedEvent';
+import { normalizeViralAgendaDates } from '../../src/normalization/dates';
+import { normalizeViralAgendaEvent } from '../../src/normalization/viralAgenda';
 
 
 
@@ -119,17 +122,14 @@ function readMunicipalityFromPage(
 }
 
 
-export async function extractViralAgendaCoordinates(
+export function getViralAgendaMapRequest(
     eventUrl: string,
-    sendRequest: CheerioCrawlingContext['sendRequest'],
-): Promise<MapCoordinates | undefined> {
+) {
     const pageUrl = new URL(eventUrl);
 
-    const mapUrl = `${pageUrl.origin}${pageUrl.pathname}/map`;
-
-    const response = await sendRequest<string>({
-        url: mapUrl,
-        method: 'POST',
+    return {
+        url: `${pageUrl.origin}${pageUrl.pathname}/map`,
+        method: 'POST' as const,
         form: {
             ajax: '1',
         },
@@ -139,17 +139,21 @@ export async function extractViralAgendaCoordinates(
             referer: `${pageUrl.origin}/`,
             accept: 'application/json, text/javascript, */*; q=0.01',
         },
-        throwHttpErrors: false,
-    });
+    };
+}
 
-    if (response.statusCode !== 200) {
+export function parseViralAgendaCoordinatesResponse(
+    statusCode: number,
+    body: string,
+): MapCoordinates | undefined {
+    if (statusCode !== 200) {
         return undefined;
     }
 
     let data: ViralAgendaMapResponse;
 
     try {
-        data = JSON.parse(response.body);
+        data = JSON.parse(body);
     } catch {
         return undefined;
     }
@@ -169,6 +173,22 @@ export async function extractViralAgendaCoordinates(
         latitude,
         longitude,
     };
+}
+
+export async function extractViralAgendaCoordinates(
+    eventUrl: string,
+    sendRequest: CheerioCrawlingContext['sendRequest'],
+): Promise<MapCoordinates | undefined> {
+    const request = getViralAgendaMapRequest(eventUrl);
+    const response = await sendRequest<string>({
+        ...request,
+        throwHttpErrors: false,
+    });
+
+    return parseViralAgendaCoordinatesResponse(
+        response.statusCode,
+        response.body,
+    );
 }
 
 function readCoordinatesFromMap(
@@ -693,4 +713,42 @@ export function extractViralAgendaJsonLd(
     }
 
     return null;
+}
+
+/**
+ * Extracts and normalizes a Viral Agenda event from HTML.
+ *
+ * Cheerio and Playwright deliberately use this same function. Playwright
+ * only supplies the rendered `page.content()` and, when available, the same
+ * map endpoint coordinates used by the Cheerio crawler.
+ */
+export function extractViralAgendaNormalizedEvent(
+    $: CheerioAPI,
+    fallbackUrl: string,
+    coordinates?: MapCoordinates,
+    timezone = 'Europe/Lisbon',
+): NormalizedEvent | null {
+    const extracted = extractViralAgendaJsonLd(
+        $,
+        fallbackUrl,
+    );
+
+    if (!extracted) {
+        return null;
+    }
+
+    const normalized = normalizeViralAgendaEvent({
+        ...extracted,
+        ...(coordinates
+            ? {
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+            }
+            : {}),
+    });
+
+    return normalizeViralAgendaDates(
+        normalized,
+        timezone,
+    );
 }

@@ -3,10 +3,24 @@
 import { CheerioCrawler, log, LogLevel } from 'crawlee';
 import sources from './config/sources.json';
 import { crawlJobsSchema } from './source';
-import { router } from './router';
+import {
+    closePlaywrightFallback,
+    fallbackBolEventWithPlaywright,
+    fallbackViralAgendaEventWithPlaywright,
+    isBolEventDetailUrl,
+    isViralAgendaEventDetailUrl,
+    router,
+} from './router';
 import { logCrawlFinished, logError } from '../shared/eventLog';
+import {
+    closeIngestionQueue,
+    flushIngestionBatch,
+} from '../ingestion/queue';
 
-log.setLevel(LogLevel.WARNING);
+// Crawlee logs the final request error before calling failedRequestHandler.
+// Keep its internal output silent so we can hand off to Playwright first and
+// only print one error after both engines have exhausted their attempts.
+log.setLevel(LogLevel.OFF);
 const crawlJobs =
     crawlJobsSchema.parse(sources);
 
@@ -25,10 +39,43 @@ async function main(): Promise<void> {
     const crawler = new CheerioCrawler({
         requestHandler: router,
         failedRequestHandler: async ({ request, log }) => {
-            log.error(
+            if (
+                isBolEventDetailUrl(request.url) ||
+                isViralAgendaEventDetailUrl(request.url)
+            ) {
+                try {
+                    const recovered = isBolEventDetailUrl(request.url)
+                        ? await fallbackBolEventWithPlaywright(
+                            request.url,
+                            log,
+                        )
+                        : await fallbackViralAgendaEventWithPlaywright(
+                            request.url,
+                            log,
+                        );
+
+                    if (recovered) {
+                        return;
+                    }
+                } catch (error) {
+                    logError(
+                        `Request failed after 3 Cheerio + 3 Playwright attempts: ${request.url}`,
+                        error,
+                    );
+                    return;
+                }
+
+                logError(
+                    `Request failed after 3 Cheerio + 3 Playwright attempts: ${request.url} ` +
+                    `error=${request.errorMessages?.at(-1) ?? 'unknown'}`,
+                );
+                return;
+            }
+
+            logError(
                 `Request failed: ${request.url} ` +
                 `retries=${request.retryCount} ` +
-                `errors=${request.errorMessages?.join(' | ')}`,
+                `error=${request.errorMessages?.at(-1) ?? 'unknown'}`,
             );
         },
 
@@ -41,19 +88,29 @@ async function main(): Promise<void> {
             },
         ],
 
-        maxRequestsPerCrawl: 100,
+        // Crawlee counts this as retries after the first request, so 2 means
+        // 3 total Cheerio attempts before failedRequestHandler is called.
+        maxRequestRetries: 2,
+        maxRequestsPerCrawl: 5000,
     });
 
-    await crawler.run(
-        crawlJobs.map((job) => ({
-            url: job.sourceUrl,
-            userData: {
-                crawlJob: job,
-            },
-        })),
-    );
+    try {
+        await crawler.run(
+            crawlJobs.map((job) => ({
+                url: job.sourceUrl,
+                userData: {
+                    crawlJob: job,
+                },
+            })),
+        );
 
-    logCrawlFinished();
+        await flushIngestionBatch();
+
+        logCrawlFinished();
+    } finally {
+        await closePlaywrightFallback();
+        await closeIngestionQueue();
+    }
 }
 
 /**

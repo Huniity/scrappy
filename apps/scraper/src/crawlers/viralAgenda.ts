@@ -1,21 +1,39 @@
 
 
 import { type Page } from 'playwright';
+import { load } from 'cheerio';
 
 import {
-    
-    type ValidViralAgendaEvent,
-    type ViralAgendaJsonLd,
-} from '../../sources/viralAgenda/types';
+    extractViralAgendaNormalizedEvent,
+    getViralAgendaMapRequest,
+    parseViralAgendaCoordinatesResponse,
+} from '../../sources/viralAgenda/extract';
+import { type NormalizedEvent } from '../types/normalizedEvent';
 
-import {
-    type NormalizedEvent
-} from '../types/normalizedEvent';
+async function extractViralAgendaCoordinatesWithPlaywright(
+    page: Page,
+    eventUrl: string,
+) {
+    const request = getViralAgendaMapRequest(eventUrl);
 
+    try {
+        const response = await page.request.post(
+            request.url,
+            {
+                form: request.form,
+                headers: request.headers,
+                failOnStatusCode: false,
+            },
+        );
 
-import {
-    normalizeViralAgendaEvent,
-} from '../normalization/viralAgenda';
+        return parseViralAgendaCoordinatesResponse(
+            response.status(),
+            await response.text(),
+        );
+    } catch {
+        return undefined;
+    }
+}
 
 export async function scrapeViralAgendaEvent(
     page: Page,
@@ -23,149 +41,33 @@ export async function scrapeViralAgendaEvent(
 ): Promise<NormalizedEvent | null> {
     await page.goto(eventUrl, {
         waitUntil: 'domcontentloaded',
+        timeout: 30_000,
     });
 
-    const municipalityName = (
-        await page
-            .locator('a.event-node-link')
-            .first()
-            .textContent()
-    )?.trim();
-
-    let latitude: string | undefined;
-    let longitude: string | undefined;
-
-    const mapButton = page.getByText(
-        'Ver mapa',
-        {
-            exact: true,
-        }
-    );
-
-    const mapButtonCount =
-        await mapButton.count();
-
-    if (mapButtonCount > 0) {
-        try {
-            await mapButton
-                .first()
-                .click({
-                    force: true,
-                });
-
-            const mapLink = page.locator(
-                'a[href*="maps.google.com/maps?ll="]'
-            );
-
-            await mapLink
-                .first()
-                .waitFor({
-                    state: 'attached',
-                    timeout: 5000,
-                });
-
-            const href =
-                await mapLink
-                    .first()
-                    .getAttribute(
-                        'href'
-                    );
-
-            if (href) {
-                const url =
-                    new URL(href);
-
-                const coordinates =
-                    url.searchParams.get(
-                        'll'
-                    );
-
-                if (coordinates) {
-                    [
-                        latitude,
-                        longitude,
-                    ] =
-                        coordinates.split(
-                            ','
-                        );
-                }
-            }
-        } catch {
-            console.log(
-                'Mapa abriu, mas não encontrei coordenadas.'
-            );
-        }
-    } else {
-        console.log(
-            'Este evento não tem botão "Ver mapa".'
-        );
-    }
-
-    const jsonLdScripts = await page
-        .locator(
-            'script[type="application/ld+json"]'
+    await page
+        .waitForSelector(
+            'script[type="application/ld+json"]',
+            { timeout: 15_000 },
         )
-        .allTextContents();
+        .catch(() => undefined);
 
-    if (
-        jsonLdScripts.length === 0
-    ) {
-        return null;
-    }
+    await page
+        .waitForLoadState('networkidle', { timeout: 5_000 })
+        .catch(() => undefined);
 
-    for (
-        const jsonText
-        of jsonLdScripts
-    ) {
-        try {
-            const data:
-                ViralAgendaJsonLd =
-                JSON.parse(
-                    jsonText
-                );
+    const coordinates =
+        await extractViralAgendaCoordinatesWithPlaywright(
+            page,
+            eventUrl,
+        );
 
-            if (
-                !data.name ||
-                !data.url ||
-                !data.startDate
-            ) {
-                continue;
-            }
+    const $ = load(await page.content());
 
-            const validData:
-                ValidViralAgendaEvent = {
-                    ...data,
-                    name: data.name,
-                    url: data.url,
-                    startDate:
-                        data.startDate,
-                };
-
-            const normalizedEvent =
-                normalizeViralAgendaEvent(
-                    validData
-                );
-
-            if (municipalityName) {
-                normalizedEvent.locality =
-                    municipalityName;
-            }
-
-            normalizedEvent.latitude =
-                latitude;
-
-            normalizedEvent.longitude =
-                longitude;
-
-            return normalizedEvent;
-        } catch {
-            console.log(
-                'Este JSON-LD não conseguiu ser convertido.'
-            );
-        }
-    }
-
-    return null;
+    return extractViralAgendaNormalizedEvent(
+        $,
+        eventUrl,
+        coordinates,
+    );
 }
 
 export async function getViralAgendaEventUrls(

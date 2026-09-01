@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { load } from 'cheerio';
 
-import { extractBolJsonLd } from './extract';
+import {
+    extractBolJsonLd,
+    extractBolNormalizedEvent,
+} from './extract';
 
 test('extracts an event from BOL JSON-LD script and iframe coordinates', () => {
     const $ = load(`
@@ -91,4 +94,51 @@ test('uses fallbackUrl when JSON-LD lacks url property', () => {
     assert.ok(result);
     assert.equal(result.name, 'Concerto Sem URL');
     assert.equal(result.url, fallbackUrl);
+});
+
+test('uses the same normalized event pipeline for rendered HTML', () => {
+    const html = `
+      <script type="application/ld+json">
+        {
+          "@type": "Event",
+          "name": "Evento de teste",
+          "url": "https://www.bol.pt/Comprar/Bilhetes/12345-evento",
+          "startDate": "2026-10-01T20:00:00+01:00",
+          "endDate": "2026-10-01T21:00:00+01:00",
+          "description": "Descrição suficientemente longa para validar o evento.",
+          "duration": "PT1H",
+          "location": {
+            "name": "Teatro de Teste",
+            "address": {
+              "addressLocality": "Lisboa",
+              "addressCountry": "PT"
+            }
+          },
+          "offers": {
+            "price": "10",
+            "priceCurrency": "EUR"
+          }
+        }
+      </script>
+    `;
+
+    const fallbackUrl =
+        'https://www.bol.pt/Comprar/Bilhetes/12345-evento';
+
+    const cheerioEvent = extractBolNormalizedEvent(
+        load(html),
+        fallbackUrl,
+    );
+
+    // Playwright's fallback reads page.content() and sends that rendered HTML
+    // through this same function.
+    const playwrightRenderedEvent = extractBolNormalizedEvent(
+        load(html),
+        fallbackUrl,
+    );
+
+    assert.deepEqual(
+        playwrightRenderedEvent,
+        cheerioEvent,
+    );
 });

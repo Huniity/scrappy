@@ -8,6 +8,8 @@ import type {
     JsonObject,
     BolCoordinates,
 } from './types';
+import type { NormalizedEvent } from '../../src/types/normalizedEvent';
+import { normalizeBolEvent } from '../../src/normalization/bol';
 
 
 function isRecord(value: unknown): value is
@@ -456,4 +458,28 @@ export function extractBolDescription(
     }
 
     return undefined;
+}
+
+/**
+ * Extracts and normalizes a BOL event from HTML.
+ *
+ * This is intentionally shared by Cheerio and the Playwright fallback so
+ * both paths produce the same normalized event shape and values.
+ */
+export function extractBolNormalizedEvent(
+    $: CheerioAPI,
+    fallbackUrl: string,
+): NormalizedEvent | null {
+    const extracted = extractBolJsonLd($, fallbackUrl);
+
+    if (!extracted) {
+        return null;
+    }
+
+    return normalizeBolEvent({
+        ...extracted,
+        description:
+            extracted.description ??
+            extractBolDescription($),
+    });
 }

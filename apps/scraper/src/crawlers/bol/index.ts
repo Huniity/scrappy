@@ -1,35 +1,12 @@
-import {
-    type Page,
-} from 'playwright';
+import { type Page } from 'playwright';
+import { load } from 'cheerio';
 
 import {
-    type NormalizedEvent,
-} from '../../types/normalizedEvent';
-
+    extractBolNormalizedEvent,
+} from '../../../sources/bol/extract';
 import {
-    isBolContinuousAttraction,
-    parseBolAgeRating,
-    parseBolDateOnly,
-    parseBolPrice,
-    parseBolSessionDate,
-} from '../../normalization/bol';
-
-import {
-    extractBolAddress,
-    extractBolAgeRatingText,
-    extractBoladditionalType,
-    extractBolCoordinates,
-    extractBolDateRange,
-    extractBolDescription,
-    extractBolImageUrl,
-    extractBolPriceText,
-    extractBolSessionText,
-    extractBolTitle,
-    extractBolVenueName,
-    findBolDateCandidates,
     rejectBolCookies,
 } from './extractors';
-
 import {
     type BolIgnoreReason,
 } from './types';
@@ -45,233 +22,43 @@ export type {
     BolIgnoreReason,
 } from './types';
 
+/**
+ * Renders a BOL page with Playwright and sends the resulting HTML through
+ * the exact same extractor used by the Cheerio crawler.
+ */
 export async function scrapeBolEvent(
     page: Page,
     eventUrl: string,
     onIgnore?: (
         reason: BolIgnoreReason
-    ) => void
-): Promise<NormalizedEvent | null> {
+    ) => void,
+): Promise<ReturnType<typeof extractBolNormalizedEvent>> {
     await page.goto(eventUrl, {
         waitUntil: 'domcontentloaded',
+        timeout: 30_000,
     });
 
-    await rejectBolCookies(
-        page
+    await page
+        .waitForSelector(
+            '#infoNomeEsp, script[type="application/ld+json"]',
+            { timeout: 15_000 },
+        )
+        .catch(() => undefined);
+
+    await page
+        .waitForLoadState('networkidle', { timeout: 5_000 })
+        .catch(() => undefined);
+
+    await rejectBolCookies(page);
+
+    const event = extractBolNormalizedEvent(
+        load(await page.content()),
+        eventUrl,
     );
 
-    const title =
-        await extractBolTitle(
-            page
-        );
-
-    if (!title) {
-        onIgnore?.(
-            'missing_title'
-        );
-
-        return null;
+    if (!event) {
+        onIgnore?.('missing_title');
     }
 
-    const {
-        latitude,
-        longitude,
-    } = await extractBolCoordinates(
-        page
-    );
-
-    const additionalTypeText =
-        await extractBoladditionalType(
-            page
-        );
-
-    const continuousAttraction =
-        isBolContinuousAttraction(
-            additionalTypeText
-        );
-
-    if (
-        continuousAttraction
-    ) {
-        console.log(
-            `IGNORADO: atração contínua - ${title}`
-        );
-
-        onIgnore?.(
-            'continuous_attraction'
-        );
-
-        return null;
-    }
-
-    const venueName =
-        await extractBolVenueName(
-            page
-        );
-
-    const ageRatingText =
-        await extractBolAgeRatingText(
-            page
-        );
-
-    const ageRating =
-        parseBolAgeRating(
-            ageRatingText
-        );
-
-    const sessionText =
-        await extractBolSessionText(
-            page
-        );
-
-    const dateCandidates =
-        await findBolDateCandidates(
-            page
-        );
-
-    const {
-        startDateText,
-        endDateText,
-    } = await extractBolDateRange(
-        page
-    );
-
-    const rangeStartDate =
-        parseBolDateOnly(
-            startDateText
-        );
-
-    const rangeEndDate =
-        parseBolDateOnly(
-            endDateText
-        );
-
-    if (
-        rangeStartDate &&
-        rangeEndDate &&
-        rangeStartDate !== rangeEndDate
-    ) {
-        console.log(
-            `IGNORADO: várias datas/sessões - ${title}`
-        );
-
-        onIgnore?.(
-            'multiple_dates_or_sessions'
-        );
-
-        return null;
-    }
-
-    if (
-        dateCandidates.length > 1
-    ) {
-        console.log(
-            `IGNORADO: múltiplas sessões - ${title}`
-        );
-
-        onIgnore?.(
-            'multiple_session_candidates'
-        );
-
-        return null;
-    }
-
-    let effectiveSessionText =
-        sessionText;
-
-    if (
-        !effectiveSessionText &&
-        dateCandidates.length === 1
-    ) {
-        effectiveSessionText =
-            dateCandidates[0];
-    }
-
-    const startDate =
-        parseBolSessionDate(
-            effectiveSessionText
-        );
-
-    if (!startDate) {
-        console.log(
-            `IGNORADO: sem data estável - ${title}`
-        );
-
-        onIgnore?.(
-            'unstable_date'
-        );
-
-        return null;
-    }
-
-    const description =
-        await extractBolDescription(
-            page
-        );
-
-    const priceText =
-        await extractBolPriceText(
-            page
-        );
-
-    const price =
-        parseBolPrice(
-            priceText
-        );
-
-    const {
-        streetAddress,
-        postalLocality,
-        locality,
-    } = await extractBolAddress(
-        page
-    );
-
-    const imageUrl =
-        await extractBolImageUrl(
-            page
-        );
-
-    console.log({
-        title,
-        venueName,
-        ageRatingText,
-        ageRating,
-
-        additionalTypeText,
-        continuousAttraction,
-
-        sessionText,
-        effectiveSessionText,
-        startDate,
-
-        description,
-
-        priceText,
-        price,
-
-        streetAddress,
-        postalLocality,
-        locality,
-
-        imageUrl,
-    });
-
-    return {
-        title,
-        sourceUrl:
-            eventUrl,
-        startDate,
-        description,
-        imageUrl,
-        venueName,
-        locality,
-        streetAddress,
-        country:
-            'PT',
-        latitude,
-        longitude,
-        price,
-        ageRating,
-    };
+    return event;
 }

@@ -4,6 +4,7 @@ import { load } from 'cheerio';
 
 import {
     extractViralAgendaJsonLd,
+    extractViralAgendaNormalizedEvent,
 } from './extract';
 import { normalizeViralAgendaEvent } from '../../src/normalization/viralAgenda';
 
@@ -131,4 +132,54 @@ test('falls back to HTML tags when JSON-LD keywords are empty', () => {
         'musica',
         'cultura',
     ]);
+});
+
+test('uses the same normalized event pipeline for rendered HTML', () => {
+    const html = `
+      <a class="event-node-link" href="/pt/loule">Loulé</a>
+      <script type="application/ld+json">
+        {
+          "@type": "MusicEvent",
+          "name": "Concerto de teste",
+          "url": "https://www.viralagenda.com/pt/events/12345",
+          "startDate": "2026-10-01T20:00:00+01:00",
+          "endDate": "2026-10-01T22:00:00+01:00",
+          "description": "Um concerto de teste.",
+          "location": {
+            "name": "Teatro de Teste",
+            "address": {
+              "addressLocality": "Loulé",
+              "streetAddress": "Rua de Teste",
+              "addressCountry": "PT"
+            }
+          }
+        }
+      </script>
+    `;
+
+    const fallbackUrl =
+        'https://www.viralagenda.com/pt/events/fallback';
+    const coordinates = {
+        latitude: '37.1378',
+        longitude: '-8.0201',
+    };
+
+    const cheerioEvent = extractViralAgendaNormalizedEvent(
+        load(html),
+        fallbackUrl,
+        coordinates,
+    );
+
+    // Playwright's fallback reads page.content() and sends that rendered HTML
+    // through this same function.
+    const playwrightRenderedEvent = extractViralAgendaNormalizedEvent(
+        load(html),
+        fallbackUrl,
+        coordinates,
+    );
+
+    assert.deepEqual(
+        playwrightRenderedEvent,
+        cheerioEvent,
+    );
 });

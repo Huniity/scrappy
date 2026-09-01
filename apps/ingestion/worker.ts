@@ -1,6 +1,6 @@
 
 
-import { Job, Worker } from 'bullmq';
+import { Job, UnrecoverableError, Worker } from 'bullmq';
 import { toApiLocalityName } from './locality';
 import { env } from '../shared/env';
 import { redisConnection } from '../shared/redis';
@@ -113,10 +113,15 @@ const ingestionWorker = new Worker(
 			}
 
 			if (!response.ok) {
-				throw new Error(
+				const message =
 					`Failed to send ${rawData.sourceUrl} to API. ` +
-					`Status: ${response.status} | Response: ${responseBody}`,
-				);
+					`Status: ${response.status} | Response: ${responseBody}`;
+
+				if (response.status >= 400 && response.status < 500) {
+					throw new UnrecoverableError(message);
+				}
+
+				throw new Error(message);
 			}
 
 			console.log(
