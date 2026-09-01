@@ -1,5 +1,10 @@
+'use client';
+
 import {
     type ReactNode,
+    useEffect,
+    useRef,
+    useState,
 } from 'react';
 
 import styles from './BackofficeShell.module.css';
@@ -294,6 +299,13 @@ const reserved = [
 ];
 
 
+const municipalities = [
+    'Alcobaça',
+    'Olhão',
+    'Lourinhã',
+];
+
+
 function NavItem({
     children,
     bold = false,
@@ -324,6 +336,141 @@ function NavItem({
             <span>
                 {children}
             </span>
+        </div>
+    );
+}
+
+
+function SiteMunicipalityMenu() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedMunicipality, setSelectedMunicipality] = useState(
+        municipalities[0]
+    );
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        function closeOnOutsideClick(event: PointerEvent) {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(
+                    event.target as Node
+                )
+            ) {
+                setIsOpen(false);
+            }
+        }
+
+        function closeOnEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
+                setIsOpen(false);
+            }
+        }
+
+        document.addEventListener(
+            'pointerdown',
+            closeOnOutsideClick
+        );
+        document.addEventListener(
+            'keydown',
+            closeOnEscape
+        );
+
+        return () => {
+            document.removeEventListener(
+                'pointerdown',
+                closeOnOutsideClick
+            );
+            document.removeEventListener(
+                'keydown',
+                closeOnEscape
+            );
+        };
+    }, [isOpen]);
+
+    return (
+        <div
+            ref={
+                menuRef
+            }
+            className={
+                `${styles.siteMenu} ${
+                    isOpen
+                        ? styles.siteMenuOpen
+                        : ''
+                }`
+            }
+        >
+            <button
+                type="button"
+                className={
+                    styles.siteButton
+                }
+                aria-haspopup="menu"
+                aria-expanded={
+                    isOpen
+                }
+                aria-controls="site-municipalities"
+                onClick={() => {
+                    setIsOpen(
+                        (open) => !open
+                    );
+                }}
+            >
+                <Icon
+                    name="building"
+                    size={16}
+                />
+
+                <span>
+                    {selectedMunicipality}
+                </span>
+
+                <span
+                    className={
+                        styles.siteButtonChevron
+                    }
+                    aria-hidden="true"
+                />
+            </button>
+
+            {isOpen && (
+                <div
+                    id="site-municipalities"
+                    className={
+                        styles.siteDropdown
+                    }
+                    role="menu"
+                >
+                    {municipalities.map(
+                        (municipality) => (
+                            <button
+                                key={
+                                    municipality
+                                }
+                                type="button"
+                                className={
+                                    styles.siteOption
+                                }
+                                role="menuitem"
+                                onClick={() => {
+                                    setSelectedMunicipality(
+                                        municipality
+                                    );
+                                    setIsOpen(
+                                        false
+                                    );
+                                }}
+                            >
+                                {municipality}
+                            </button>
+                        )
+                    )}
+                </div>
+            )}
         </div>
     );
 }
@@ -425,21 +572,7 @@ export function BackofficeShell({
                         styles.topbarRight
                     }
                 >
-                    <button
-                        type="button"
-                        className={
-                            styles.siteButton
-                        }
-                    >
-                        <Icon
-                            name="building"
-                            size={16}
-                        />
-
-                        <span>
-                            Site Autárquico
-                        </span>
-                    </button>
+                    <SiteMunicipalityMenu />
 
                     <div
                         className={

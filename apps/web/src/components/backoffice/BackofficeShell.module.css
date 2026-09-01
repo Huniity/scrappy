@@ -276,12 +276,133 @@
 
     font-weight:
         600;
+
+    cursor:
+        pointer;
 }
 
 
 .siteButton svg {
     color:
         #4d75b7;
+}
+
+
+.siteMenu {
+    position:
+        relative;
+}
+
+
+.siteButtonChevron {
+    width:
+        7px;
+
+    height:
+        7px;
+
+    margin-left:
+        1px;
+
+    border-right:
+        1px solid
+        currentColor;
+
+    border-bottom:
+        1px solid
+        currentColor;
+
+    transform:
+        rotate(45deg)
+        translateY(-2px);
+
+    transition:
+        transform
+        120ms
+        ease;
+}
+
+
+.siteMenuOpen .siteButtonChevron {
+    transform:
+        rotate(225deg)
+        translate(-1px, -1px);
+}
+
+
+.siteDropdown {
+    position:
+        absolute;
+
+    top:
+        calc(
+            100% + 6px
+        );
+
+    right:
+        0;
+
+    z-index:
+        40;
+
+    min-width:
+        167px;
+
+    padding:
+        5px;
+
+    border:
+        1px solid
+        #d7dde5;
+
+    border-radius:
+        7px;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        var(--bo-shadow-control);
+}
+
+
+.siteOption {
+    width:
+        100%;
+
+    padding:
+        8px 10px;
+
+    border:
+        0;
+
+    border-radius:
+        5px;
+
+    color:
+        #34445b;
+
+    background:
+        transparent;
+
+    font-size:
+        12px;
+
+    text-align:
+        left;
+
+    cursor:
+        pointer;
+}
+
+
+.siteOption:hover,
+.siteOption:focus-visible {
+    outline:
+        none;
+
+    background:
+        var(--bo-primary-soft);
 }
 
 

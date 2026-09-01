@@ -1,3 +1,6 @@
+@import "tailwindcss";
+
+
 :root {
     --bo-font:
         var(--font-poppins),
@@ -73,6 +76,197 @@
 
     --bo-breadcrumb-height:
         36px;
+
+
+    /* Global design tokens: surfaces */
+    --background:
+        #f8fafd;
+
+    --surface:
+        #ffffff;
+
+    --surface-subtle:
+        #f5f7fa;
+
+    --surface-muted:
+        #eef2f7;
+
+
+    /* Global design tokens: borders */
+    --border:
+        #e3e7ee;
+
+    --border-strong:
+        #d4dae4;
+
+
+    /* Global design tokens: text */
+    --text-primary:
+        #23324a;
+
+    --text-secondary:
+        #68758a;
+
+    --text-tertiary:
+        #8a95a6;
+
+    --text-inverse:
+        #ffffff;
+
+
+    /* Global design tokens: primary */
+    --primary:
+        #1f63e9;
+
+    --primary-hover:
+        #174fc1;
+
+    --primary-active:
+        #123f9e;
+
+    --primary-soft:
+        #eef4ff;
+
+    --primary-border:
+        #bcd0fb;
+
+
+    /* Global design tokens: secondary blue */
+    --blue-secondary:
+        #5d8ef5;
+
+    --blue-secondary-soft:
+        #edf3ff;
+
+
+    /* Global design tokens: success */
+    --success:
+        #2d8a5f;
+
+    --success-hover:
+        #246f4d;
+
+    --success-soft:
+        #edf7f2;
+
+    --success-border:
+        #b9dccb;
+
+
+    /* Global design tokens: warning */
+    --warning:
+        #c98232;
+
+    --warning-hover:
+        #a96829;
+
+    --warning-soft:
+        #fbf3e9;
+
+    --warning-border:
+        #e5c89f;
+
+
+    /* Global design tokens: purple */
+    --purple:
+        #8755b5;
+
+    --purple-hover:
+        #704595;
+
+    --purple-soft:
+        #f4eef9;
+
+    --purple-border:
+        #d8c4e8;
+
+
+    /* Global design tokens: danger */
+    --danger:
+        #c84d4d;
+
+    --danger-hover:
+        #a83f3f;
+
+    --danger-soft:
+        #fbeeee;
+
+    --danger-border:
+        #e7b9b9;
+
+
+    /* Global design tokens: info */
+    --info:
+        #3f78b5;
+
+    --info-soft:
+        #edf4fa;
+
+    --info-border:
+        #bfd2e5;
+
+
+    /* Global design tokens: map states */
+    --map-background:
+        #eef3f0;
+
+    --map-boundary:
+        #5d8ef5;
+
+    --map-boundary-fill:
+        rgba(93, 142, 245, 0.10);
+
+    --map-marker:
+        #1f63e9;
+
+    --map-marker-hover:
+        #174fc1;
+
+    --map-marker-ring:
+        rgba(31, 99, 233, 0.18);
+
+
+    /* Global design tokens: selected states */
+    --selected-background:
+        #f7faff;
+
+    --selected-border:
+        #2f6ff3;
+
+
+    /* Global design tokens: shadows */
+    --shadow-xs:
+        0 1px 2px
+        rgba(24, 39, 65, 0.05);
+
+    --shadow-sm:
+        0 2px 8px
+        rgba(24, 39, 65, 0.07);
+
+    --shadow-md:
+        0 4px 14px
+        rgba(24, 39, 65, 0.08);
+
+    --shadow-lg:
+        0 8px 24px
+        rgba(24, 39, 65, 0.10);
+
+
+    /* Global design tokens: radii */
+    --radius-sm:
+        6px;
+
+    --radius-md:
+        8px;
+
+    --radius-lg:
+        12px;
+
+    --radius-xl:
+        14px;
+
+    --radius-pill:
+        999px;
 }
 
 
