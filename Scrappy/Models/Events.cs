@@ -41,6 +41,10 @@ public class Event
     /// <summary> Gets or sets the source URL of the event. </summary>
     [BsonElement("SourceUrl")]
     public string SourceUrl { get; set; } = string.Empty;
+
+    /// <summary>Gets all source URLs contributing data to a merged event.</summary>
+    [BsonElement("SourceUrls")]
+    public List<string> SourceUrls { get; set; } = new();
     
     /// <summary> Gets or sets the type of the event. </summary>
     [BsonElement("Type")]

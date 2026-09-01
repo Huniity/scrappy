@@ -15,8 +15,14 @@ namespace Scrappy.Services;
 
 public class EventService(IMongoDatabase database, IGeoDataService geoDataService)
 {
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<LocalityName, SemaphoreSlim>
+        IngestionLocks = new();
+
     private readonly IMongoCollection<DistrictEvent> _eventsCollection =
         database.GetCollection<DistrictEvent>("DistrictEvents");
+
+    public string LastIngestionAction { get; private set; } = "created";
+    public IReadOnlyList<string> LastUpdatedFields { get; private set; } = [];
 
     public async Task<Result<DistrictEvent>> AddEvent(CreateEventDto dto)
     {
@@ -130,15 +136,6 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             return Result<DistrictEvent>.Failure("Invalid audience.");
 
 
-        if (await Validator.IsDuplicateOnCreate(
-                dto,
-                resolvedGeoData.District,
-                this))
-        {
-            return Result<DistrictEvent>.Failure(
-                "An event with the same district, title, and start date already exists.");
-        }
-
         var cleanLocation = dto.Location.Name.Trim();
         var qualityScore = EventQualityService.ComputeQualityScore(
             cleanDescription,
@@ -159,6 +156,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
                 EndDate = endDate,
                 Location = MapLocation(dto.Location, resolvedGeoData),
                 SourceUrl = dto.SourceUrl.Trim(),
+                SourceUrls = [dto.SourceUrl.Trim()],
                 AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
                 ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
                 DoorTime = dto.DoorTime,
@@ -186,8 +184,51 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             }
         };
 
-        await _eventsCollection.InsertOneAsync(districtEvent);
-        return Result<DistrictEvent>.Success(districtEvent);
+        // Prevent two concurrent ingestion jobs for the same locality from both
+        // observing "no match" and inserting duplicate documents.
+        var ingestionLock = IngestionLocks.GetOrAdd(
+            dto.Location.Locality.Value,
+            _ => new SemaphoreSlim(1, 1));
+        await ingestionLock.WaitAsync();
+        try
+        {
+            var candidateStart = startDate.AddDays(-1);
+            var candidateEnd = startDate.AddDays(1);
+            var candidates = await _eventsCollection.Find(existing =>
+                    existing.Event.Location != null &&
+                    existing.Event.Location.Locality == dto.Location.Locality.Value &&
+                    existing.Event.StartDate >= candidateStart &&
+                    existing.Event.StartDate <= candidateEnd)
+                .ToListAsync();
+
+            var duplicate = EventDeduplicationService.FindMatch(candidates, districtEvent);
+            if (duplicate is not null)
+            {
+                var updatedFields = EventDeduplicationService.Merge(duplicate, districtEvent);
+                LastUpdatedFields = updatedFields;
+
+                if (updatedFields.Count == 0)
+                {
+                    LastIngestionAction = "skipped";
+                    return Result<DistrictEvent>.Success(duplicate);
+                }
+
+                LastIngestionAction = "merged";
+                await _eventsCollection.ReplaceOneAsync(
+                    existing => existing.Id == duplicate.Id,
+                    duplicate);
+                return Result<DistrictEvent>.Success(duplicate);
+            }
+
+            await _eventsCollection.InsertOneAsync(districtEvent);
+            LastIngestionAction = "created";
+            LastUpdatedFields = [];
+            return Result<DistrictEvent>.Success(districtEvent);
+        }
+        finally
+        {
+            ingestionLock.Release();
+        }
     }
 
     public async Task<Result<DistrictEvent>> UpdateEvent(

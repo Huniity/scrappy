@@ -101,6 +101,7 @@ const ingestionWorker = new Worker(
 				body: JSON.stringify(apiData),
 			});
 			const responseBody = await response.text();
+			const ingestionAction = response.headers.get('x-ingestion-action');
 			const isDuplicate =
 				response.status === 400 &&
 				responseBody.includes(
@@ -128,6 +129,18 @@ const ingestionWorker = new Worker(
 				`API accepted job ${job.id} for ${rawData.sourceUrl} ` +
 				`with status ${response.status}.`,
 			);
+
+			if (ingestionAction === 'merged') {
+				console.log(
+					`Merged job ${job.id}; updated fields: ` +
+					`${response.headers.get('x-ingestion-updated-fields') ?? 'unknown'}.`,
+				);
+				return { action: 'merged' as const };
+			}
+
+			if (ingestionAction === 'skipped') {
+				return { action: 'skipped' as const };
+			}
 
 			return { action: 'created' as const };
 		}

@@ -91,7 +91,15 @@ public class EventsController(
             {
                 return BadRequest(new { error = result.Error });
             }
-            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
+
+            Response.Headers["X-Ingestion-Action"] = eventService.LastIngestionAction;
+            if (eventService.LastUpdatedFields.Count > 0)
+                Response.Headers["X-Ingestion-Updated-Fields"] =
+                    string.Join(',', eventService.LastUpdatedFields);
+
+            return eventService.LastIngestionAction == "created"
+                ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)
+                : Ok(result.Value);
         }
         catch (ValidationException ex)
         {
