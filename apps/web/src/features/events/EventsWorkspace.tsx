@@ -34,7 +34,7 @@ export function EventsWorkspace() {
                             onClick={() => setView('map')}
                             className={
                                 `rounded-md px-8 py-2 ${view === 'map'
-                                    ? 'bg-[var(--primary)] !text-[var(--text-inverse)]'
+                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                 }`
                             }
@@ -48,7 +48,7 @@ export function EventsWorkspace() {
                             onClick={() => setView('list')}
                             className={
                                 `rounded-md px-8 py-2 ${view === 'list'
-                                    ? 'bg-[var(--primary)] !text-[var(--text-inverse)]'
+                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                 }`
                             }
@@ -192,7 +192,7 @@ export function EventsWorkspace() {
                                 aria-pressed={priceFilter === 'all'}
                                 onClick={() => setPriceFilter('all')}
                                 className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'all'
-                                    ? 'bg-[var(--primary)] !text-[var(--text-inverse)]'
+                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
                             >
@@ -204,7 +204,7 @@ export function EventsWorkspace() {
                                 aria-pressed={priceFilter === 'free'}
                                 onClick={() => setPriceFilter('free')}
                                 className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'free'
-                                    ? 'bg-[var(--primary)] !text-[var(--text-inverse)]'
+                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
                             >
@@ -216,7 +216,7 @@ export function EventsWorkspace() {
                                 aria-pressed={priceFilter === 'paid'}
                                 onClick={() => setPriceFilter('paid')}
                                 className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'paid'
-                                    ? 'bg-[var(--primary)] !text-[var(--text-inverse)]'
+                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
                             >
@@ -231,7 +231,7 @@ export function EventsWorkspace() {
                             htmlFor="search-query"
                             className="text-sm font-bold text-[var(--text-secondary)]"
                         >
-                            Pequisar
+                            Pesquisar
                         </label>
                         <input
                             id="search-query"
@@ -244,7 +244,7 @@ export function EventsWorkspace() {
                     <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="rounded-md bg-[var(--info-soft)] px-4 py-4 text-sm font-semibold text-[var(--bl)] hover:bg-[var(--primary-hover)]"
+                        className="cursor-pointer rounded-md bg-[var(--text-primary)] px-4 py-4 text-sm font-semibold text-white hover:border hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--info-muted)] hover:shadow-md transition-all duration-200"
                     >
                         Apagar Filtros
                     </button>
@@ -253,12 +253,22 @@ export function EventsWorkspace() {
 
             <div className="w-full flex flex-col gap-2 lg:grid lg:grid-cols-[2fr_1fr] lg:gap-4 justify-center">
                 <div className="w-full h-[400px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)]">
+                    {view === 'map' ? (
+                        <div className="">
 
+                        </div>
+                    ) : (
+                        <div className="">
+
+                        </div>
+                    )}
                 </div>
                 <div className="w-full h-[400px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)]">
 
                 </div>
             </div>
+
+
 
 
 
