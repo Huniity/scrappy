@@ -109,7 +109,7 @@ const ingestionWorker = new Worker(
 
 			if (isDuplicate) {
 				logDuplicatedEvent(rawData.sourceUrl, 'API');
-				return;
+				return { action: 'skipped' as const };
 			}
 
 			if (!response.ok) {
@@ -128,6 +128,8 @@ const ingestionWorker = new Worker(
 				`API accepted job ${job.id} for ${rawData.sourceUrl} ` +
 				`with status ${response.status}.`,
 			);
+
+			return { action: 'created' as const };
 		}
 		catch (error) {
 			logError('Error sending data to API:', error);

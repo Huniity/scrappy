@@ -91,7 +91,7 @@ async function main(): Promise<void> {
         // Crawlee counts this as retries after the first request, so 2 means
         // 3 total Cheerio attempts before failedRequestHandler is called.
         maxRequestRetries: 2,
-        maxRequestsPerCrawl: 5000,
+        maxRequestsPerCrawl: 750,
     });
 
     try {
