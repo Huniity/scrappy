@@ -13,7 +13,7 @@ const ingestionQueueEvents = new QueueEvents('events-ingestion-queue', {
   connection: redisConnection,
 });
 
-const INGESTION_BATCH_SIZE = 250;
+const INGESTION_BATCH_SIZE = 100;
 let pendingBatch: Job<RawEvent>[] = [];
 let enqueueChain: Promise<void> = Promise.resolve();
 

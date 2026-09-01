@@ -1,3 +1,5 @@
+
+
 import { chromium } from 'playwright';
 
 import {
@@ -33,6 +35,34 @@ import {
     mapEventToCreatePayload,
 } from './mappers/backendEvent';
 
+import sources from '../config/sources.json';
+import { crawlJobsSchema } from '../source';
+
+
+const crawlJobs =
+    crawlJobsSchema.parse(
+        sources,
+    );
+
+const viralAgendaJob =
+    crawlJobs.find(
+        (job) =>
+            job.sourceId ===
+            'viral-agenda' ||
+            job.sourceId.startsWith(
+                'viral-agenda-',
+            ),
+    );
+
+if (!viralAgendaJob) {
+    throw new Error(
+        'No Viral Agenda source configured.',
+    );
+}
+
+const viralAgendaSourceUrl =
+      viralAgendaJob.sourceUrl;
+
 async function main() {
     const browser = await chromium.launch({
         headless: true,
@@ -42,7 +72,10 @@ async function main() {
         const page = await browser.newPage();
 
         const uniqueEventUrls =
-            await getViralAgendaEventUrls(page);
+            await getViralAgendaEventUrls(
+                page,
+                viralAgendaSourceUrl
+            );
 
         console.log(
             'Eventos encontrados:',

@@ -18,7 +18,7 @@ import { resolveLocation } from './src/enrichment/location';
 import { extractBolNormalizedEvent } from './sources/bol/extract';
 import type { NormalizedEvent } from './src/types/normalizedEvent';
 import { rejectBolCookies } from './src/crawlers/bol/extractors';
-import { scrapeViralAgendaEvent } from './src/crawlers/viralAgenda';
+import { scrapeViralAgendaEvent, getViralAgendaEventUrls } from './src/crawlers/viralAgenda';
 import { logEventFound as printEventFound } from '../shared/eventLog';
 
 
@@ -75,6 +75,46 @@ async function getPlaywrightBrowser(): Promise<Browser> {
         return playwrightBrowser;
     } finally {
         playwrightBrowserPromise = undefined;
+    }
+}
+
+export async function discoverViralAgendaEventUrls(
+    sourceUrl: string,
+): Promise<string[]> {
+    const browser =
+        await getPlaywrightBrowser();
+
+    const page =
+        await browser.newPage({
+            userAgent:
+                playwrightUserAgent,
+
+            locale:
+                'pt-PT',
+        });
+
+    try {
+        console.log(
+            `Discovering Viral Agenda URLs: ` +
+            `${sourceUrl}`,
+        );
+
+        const eventUrls =
+            await getViralAgendaEventUrls(
+                page,
+                sourceUrl,
+            );
+
+        console.log(
+            `Viral Agenda discovery finished: ` +
+            `${eventUrls.length} URL(s).`,
+        );
+
+        return eventUrls;
+    } finally {
+        await page
+            .close()
+            .catch(() => undefined);
     }
 }
 

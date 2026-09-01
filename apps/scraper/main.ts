@@ -1,10 +1,11 @@
 
 
-import { CheerioCrawler, log, LogLevel } from 'crawlee';
+import { CheerioCrawler, log, LogLevel, type RequestOptions } from 'crawlee';
 import sources from './config/sources.json';
 import { crawlJobsSchema } from './source';
 import {
     closePlaywrightFallback,
+    discoverViralAgendaEventUrls,
     fallbackBolEventWithPlaywright,
     fallbackViralAgendaEventWithPlaywright,
     isBolEventDetailUrl,
@@ -91,17 +92,74 @@ async function main(): Promise<void> {
         // Crawlee counts this as retries after the first request, so 2 means
         // 3 total Cheerio attempts before failedRequestHandler is called.
         maxRequestRetries: 2,
-        maxRequestsPerCrawl: 750,
+        maxRequestsPerCrawl: 5000,
     });
 
     try {
+        const viralAgendaJobs =
+            crawlJobs.filter(
+                (job) =>
+                    job.sourceId ===
+                    'viral-agenda' ||
+                    job.sourceId.startsWith(
+                        'viral-agenda-',
+                    ),
+            );
+
+        const regularJobs =
+            crawlJobs.filter(
+                (job) =>
+                    !viralAgendaJobs.includes(
+                        job,
+                    ),
+            );
+
+        const viralAgendaRequests:
+            RequestOptions[] = [];
+
+        for (const job of viralAgendaJobs) {
+            const eventUrls =
+                await discoverViralAgendaEventUrls(
+                    job.sourceUrl,
+                );
+
+            for (const eventUrl of eventUrls) {
+                viralAgendaRequests.push({
+                    url: eventUrl,
+                    label: 'EVENT_DETAIL',
+                    userData: {
+                        crawlJob: job,
+                    },
+                });
+            }
+        }
+
+        const regularRequests:
+            RequestOptions[] =
+            regularJobs.map(
+                (job) => ({
+                    url: job.sourceUrl,
+                    userData: {
+                        crawlJob: job,
+                    },
+                }),
+            );
+
+        const initialRequests:
+            RequestOptions[] = [
+                ...regularRequests,
+                ...viralAgendaRequests,
+            ];
+
+        console.log(
+            `Starting crawler with ` +
+            `${regularRequests.length} source request(s) ` +
+            `and ${viralAgendaRequests.length} ` +
+            `Viral Agenda event request(s).`,
+        );
+
         await crawler.run(
-            crawlJobs.map((job) => ({
-                url: job.sourceUrl,
-                userData: {
-                    crawlJob: job,
-                },
-            })),
+            initialRequests,
         );
 
         await flushIngestionBatch();

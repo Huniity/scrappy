@@ -1,13 +1,25 @@
 [
     {
         "sourceId": "viral-agenda",
-        "sourceUrl": "https://www.viralagenda.com/pt/",
+        "sourceUrl": "https://www.viralagenda.com/pt/faro/faro",
+        "engine": "cheerio",
+        "timezone": "Europe/Lisbon"
+    },
+    {
+        "sourceId": "viral-agenda",
+        "sourceUrl": "https://www.viralagenda.com/pt/leiria/alcobaca",
         "engine": "cheerio",
         "timezone": "Europe/Lisbon"
     },
     {
         "sourceId": "bol-faro",
-        "sourceUrl": "https://www.bol.pt/Comprar/Bilhetes/Lista",
+        "sourceUrl": "https://www.bol.pt/Comprar/pesquisa/0-0-8-0-0-0/faro",
+        "engine": "cheerio",
+        "timezone": "Europe/Lisbon"
+    },
+    {
+        "sourceId": "bol-faro",
+        "sourceUrl": "https://alcobaca.bol.pt/",
         "engine": "cheerio",
         "timezone": "Europe/Lisbon"
     }

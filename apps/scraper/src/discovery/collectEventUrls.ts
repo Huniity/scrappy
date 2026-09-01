@@ -13,8 +13,8 @@ import {
 
 export type CollectedEventUrl = {
     source:
-        | 'bol'
-        | 'viralAgenda';
+    | 'bol'
+    | 'viralAgenda';
 
     url: string;
 };
@@ -39,7 +39,8 @@ function normalizeEventUrl(
 
 
 export async function collectEventUrls(
-    page: Page
+    page: Page,
+    viralAgendaSourceUrl: string,
 ): Promise<CollectedEventUrl[]> {
     const bolUrls =
         await getBolEventUrlsForDistrict(
@@ -49,8 +50,10 @@ export async function collectEventUrls(
 
     const viralAgendaUrls =
         await getViralAgendaEventUrls(
-            page
+            page,
+            viralAgendaSourceUrl,
         );
+
 
     const collectedUrls:
         CollectedEventUrl[] = [

@@ -2,7 +2,6 @@
 
 import { type Page } from 'playwright';
 import { load } from 'cheerio';
-
 import {
     extractViralAgendaNormalizedEvent,
     getViralAgendaMapRequest,
@@ -71,18 +70,21 @@ export async function scrapeViralAgendaEvent(
 }
 
 export async function getViralAgendaEventUrls(
-    page: Page
+    page: Page,
+    sourceUrl: string
 ): Promise<string[]> {
     await page.goto(
-        'https://www.viralagenda.com/pt/faro/',
+        sourceUrl,
         {
             waitUntil:
                 'domcontentloaded',
+                timeout: 30_000,
         }
     );
 
     const eventUrls =
         new Set<string>();
+
 
     while (true) {
         const pastMarker =

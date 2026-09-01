@@ -1,14 +1,35 @@
-import {
-    chromium,
-} from 'playwright';
 
-import {
-    writeFile,
-} from 'node:fs/promises';
 
-import {
-    collectEventUrls,
-} from './discovery/collectEventUrls';
+import { chromium } from 'playwright';
+import { writeFile } from 'node:fs/promises';
+import { collectEventUrls } from './discovery/collectEventUrls';
+import sources from '../config/sources.json';
+import { crawlJobsSchema } from '../source';
+
+
+const crawlJobs =
+    crawlJobsSchema.parse(
+        sources,
+    );
+
+const viralAgendaJob =
+    crawlJobs.find(
+        (job) =>
+            job.sourceId ===
+            'viral-agenda' ||
+            job.sourceId.startsWith(
+                'viral-agenda-',
+            ),
+    );
+
+if (!viralAgendaJob) {
+    throw new Error(
+        'No Viral Agenda source configured.',
+    );
+}
+
+  const viralAgendaSourceUrl =
+      viralAgendaJob.sourceUrl;
 
 
 async function main() {
@@ -26,21 +47,22 @@ async function main() {
     try {
         const events =
             await collectEventUrls(
-                page
+                page,
+                viralAgendaSourceUrl
             );
 
         const bolCount =
             events.filter(
                 (event) =>
                     event.source ===
-                        'bol'
+                    'bol'
             ).length;
 
         const viralAgendaCount =
             events.filter(
                 (event) =>
                     event.source ===
-                        'viralAgenda'
+                    'viralAgenda'
             ).length;
 
         console.log(
