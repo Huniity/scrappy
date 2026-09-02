@@ -37,6 +37,7 @@ export function EventsWorkspace() {
     const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
     const [publishedFilter, setPublishedFilter] = useState<'all' | 'published' | 'unpublished'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [events, setEvents] = useState(eventsMock);
     const [sortOption, setSortOption] = useState<SortOption>(
         'date-asc',
     );
@@ -47,7 +48,7 @@ export function EventsWorkspace() {
 
     useEffect(() => {
         fetchEvents()
-            .then((data) => console.log(data))
+            .then((data) => setEvents(data))
             .catch((error) => console.error('Error loading events:', error));
 
     }, []);
@@ -488,17 +489,131 @@ export function EventsWorkspace() {
 
                         </div>
                     ) : (
-                        <div className="">
-                            <div>
+                        <div className="h-full overflow-y-auto rounded-md bg-[var(--surface)]">
+                            {events.map(({ id, event }, index) => {
+                                const eventDate = new Date(event.startDate);
+                                const eventDateLabel = eventDate.toLocaleDateString('pt-PT', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                });
+                                const eventWeekday = eventDate.toLocaleDateString('pt-PT', {
+                                    weekday: 'short',
+                                });
+                                const eventTime = eventDate.toLocaleTimeString('pt-PT', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                });
+                                const offer = event.offers[0];
+                                const source = event.sourceUrl.includes('bol.pt')
+                                    ? 'BOL'
+                                    : 'Viral Agenda';
 
-                            </div>
-                            <div>
+                                return (
+                                    <div
+                                        key={id}
+                                        className={`flex min-h-[128px] items-center gap-3 border-b border-[var(--border-strong)] px-3 py-3 transition-colors hover:bg-[var(--surface-muted)] ${index === 0
+                                            ? 'border-l-2 border-l-[var(--primary)]'
+                                            : ''
+                                            }`}
+                                    >
+                                        <div className="flex w-7 shrink-0 justify-center">
+                                            {index === 0 ? (
+                                                <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--primary)]">
+                                                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="text-lg leading-none tracking-[-0.2em] text-[var(--border-strong)]"
+                                                >
+                                                    ⠿
+                                                </span>
+                                            )}
+                                        </div>
 
-                            </div>
-                            <div>
+                                        <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)]">
+                                            {event.imageUrl ? (
+                                                <img
+                                                    src={event.imageUrl}
+                                                    alt=""
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
+                                        </div>
 
-                            </div>
+                                        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                                            <h3 className="truncate text-sm font-bold text-[var(--text-primary)]">
+                                                {event.title}
+                                            </h3>
+                                            <p className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
+                                                <Image
+                                                    src="/calendar.svg"
+                                                    alt=""
+                                                    width={13}
+                                                    height={13}
+                                                />
+                                                <span>
+                                                    {eventDateLabel} · {eventWeekday} {eventTime}
+                                                </span>
+                                            </p>
+                                            <p className="flex min-w-0 items-start gap-1 text-xs text-[var(--text-secondary)]">
+                                                <Image
+                                                    src="/location.svg"
+                                                    alt=""
+                                                    width={13}
+                                                    height={13}
+                                                />
+                                                <span className="truncate">
+                                                    {event.location.name}
+                                                    <span className="block text-[var(--text-tertiary)]">
+                                                        {event.location.locality}
+                                                    </span>
+                                                </span>
+                                            </p>
+                                        </div>
 
+                                        <div className="hidden w-24 shrink-0 flex-col items-start gap-1.5 sm:flex">
+                                            <span
+                                                className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${event.isAccessibleForFree === true
+                                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                                    : offer
+                                                        ? 'border-orange-200 bg-orange-50 text-orange-700'
+                                                        : 'border-[var(--border-strong)] bg-[var(--surface-muted)] text-[var(--text-secondary)]'
+                                                    }`}
+                                            >
+                                                {event.isAccessibleForFree === true
+                                                    ? 'Gratuito'
+                                                    : offer
+                                                        ? 'Pago'
+                                                        : 'Sem preço'}
+                                            </span>
+                                            {offer && (
+                                                <span className="text-xs font-semibold text-[var(--text-secondary)]">
+                                                    {offer.price.toFixed(2).replace('.', ',')} €
+                                                </span>
+                                            )}
+                                            <span className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700">
+                                                {event.type}
+                                            </span>
+                                        </div>
+
+                                        <div className="hidden w-28 shrink-0 justify-center md:flex">
+                                            <span className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-2 py-2 text-center text-[11px] text-[var(--text-secondary)]">
+                                                {source}
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            className="hidden shrink-0 items-center gap-2 rounded-md border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white lg:flex"
+                                        >
+                                            <span>Ver detalhes</span>
+                                            <span aria-hidden="true" className="text-base leading-none">›</span>
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -506,12 +621,6 @@ export function EventsWorkspace() {
 
                 </div>
             </div>
-
-
-
-
-
-
         </section>
     );
 }
