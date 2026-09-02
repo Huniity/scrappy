@@ -103,7 +103,6 @@ export function EventsWorkspace() {
                         <div className="flex flex-col justify-center gap-1 px-2">
                             <p className="text-md font-bold text-[var(--text-secondary)]">Eventos com coordenadas</p>
                             <HasCoordsCounter />
-                            <p className="text-sm font-bold text-[var(--text-tertiary)]">85,3% do total</p>
                         </div>
                     </div>
                 </div>
@@ -125,7 +124,6 @@ export function EventsWorkspace() {
                         <div className="flex flex-col justify-center gap-1 px-2">
                             <p className="text-md font-bold text-[var(--text-secondary)]">Eventos adicionados</p>
                             <PublishedEventCounter />
-                            <p className="text-sm font-bold text-[var(--text-tertiary)]">45,1% do total</p>
                         </div>
                     </div>
                 </div>
@@ -147,7 +145,6 @@ export function EventsWorkspace() {
                         <div className="flex flex-col justify-center gap-1 px-2">
                             <p className="text-md font-bold text-[var(--text-secondary)]">Eventos gratuitos</p>
                             <FreeEventCounter />
-                            <p className="text-sm font-bold text-[var(--text-tertiary)]">65,8% do total</p>
                         </div>
                     </div>
                 </div>
