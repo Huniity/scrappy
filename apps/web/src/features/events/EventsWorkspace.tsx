@@ -3,6 +3,7 @@ import styles from './events.module.css';
 import { useState } from 'react';
 
 import { EventCounter } from '@/components/statCards/countEvent';
+import { HasCoordsCounter } from '@/components/statCards/hasCoords';
 
 export function EventsWorkspace() {
     const [view, setView] = useState<'map' | 'list'>('map');
@@ -93,7 +94,7 @@ export function EventsWorkspace() {
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
                             <p className="text-md font-bold text-[var(--text-secondary)]">Eventos com coordenadas</p>
-                            <h2 className="text-2xl font-semibold">93</h2>
+                            <HasCoordsCounter />
                             <p className="text-sm font-bold text-[var(--text-tertiary)]">85,3% do total</p>
                         </div>
                     </div>
