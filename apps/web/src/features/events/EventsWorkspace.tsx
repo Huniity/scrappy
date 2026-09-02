@@ -1,8 +1,6 @@
 'use client';
 import styles from './events.module.css';
-import { useState } from 'react';
-import Image from 'next/image';
-
+import { useEffect, useRef, useState } from 'react';
 
 import { EventCounter } from '@/components/statCards/countEvent';
 import { HasCoordsCounter } from '@/components/statCards/hasCoords';
@@ -14,7 +12,54 @@ export function EventsWorkspace() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
+    const [publishedFilter, setPublishedFilter] = useState<'all' | 'published' | 'unpublished'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const filtersRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const response = await fetch('/events.mock.json');
+                const data = await response.json();
+                console.log(data);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            }
+        };
+
+        fetchEvents();
+
+    }, []);
+
+    useEffect(() => {
+        if (!isFiltersOpen) {
+            return;
+        }
+
+        function closeOnOutsideClick(event: PointerEvent) {
+            if (
+                filtersRef.current &&
+                !filtersRef.current.contains(event.target as Node)
+            ) {
+                setIsFiltersOpen(false);
+            }
+        }
+
+        function closeOnEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
+                setIsFiltersOpen(false);
+            }
+        }
+
+        document.addEventListener('pointerdown', closeOnOutsideClick);
+        document.addEventListener('keydown', closeOnEscape);
+
+        return () => {
+            document.removeEventListener('pointerdown', closeOnOutsideClick);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [isFiltersOpen]);
 
     return (
         <section
@@ -150,43 +195,11 @@ export function EventsWorkspace() {
                 </div>
             </div>
 
-            <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[4fr_3fr] gap-4 items-center px-4 py-6">
-                <div className="w full grid grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label
-                            htmlFor="start-date"
-                            className="text-sm font-bold text-[var(--text-secondary)]"
-                        >
-                            Data Inicial
-                        </label>
-                        <input
-                            id="start-date"
-                            type="date"
-                            value={startDate}
-                            onChange={(event) => setStartDate(event.target.value)}
-                            className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label
-                            htmlFor="end-date"
-                            className="text-sm font-bold text-[var(--text-secondary)]"
-                        >
-                            Data Final
-                        </label>
-                        <input
-                            id="end-date"
-                            type="date"
-                            value={endDate}
-                            onChange={(event) => setEndDate(event.target.value)}
-                            className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
+            <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] flex flex-col gap-4 px-4 py-6">
+                <div className="grid grid-cols-4 gap-4 items-end">
+                    <div className="flex flex-col gap-1 ">
                         <span className="text-sm font-bold text-[var(--text-secondary)]">Preço</span>
-                        <div className="flex w-full border border-[var(--border-strong)] rounded-md">
+                        <div className="flex w-full rounded-md border border-[var(--border-strong)]">
                             <button
                                 type="button"
                                 aria-pressed={priceFilter === 'all'}
@@ -224,9 +237,7 @@ export function EventsWorkspace() {
                             </button>
                         </div>
                     </div>
-                </div>
-                <div className="grid grid-cols-[5fr_2fr] gap-4 items-end">
-                    <div >
+                    <div className="w-full lg:max-w-xl">
                         <label
                             htmlFor="search-query"
                             className="text-sm font-bold text-[var(--text-secondary)]"
@@ -241,13 +252,108 @@ export function EventsWorkspace() {
                             className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
                         />
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className="cursor-pointer rounded-md bg-[var(--text-primary)] px-4 py-4 text-sm font-semibold text-white hover:border hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--info-muted)] hover:shadow-md transition-all duration-200"
-                    >
-                        Apagar Filtros
-                    </button>
+
+                    <div ref={filtersRef} className="relative">
+                        <button
+                            type="button"
+                            aria-haspopup="dialog"
+                            aria-expanded={isFiltersOpen}
+                            aria-controls="event-filters"
+                            onClick={() => setIsFiltersOpen((open) => !open)}
+                            className="flex w-full items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)] lg:w-auto"
+                        >
+                            <span>Filtros</span>
+                            <span
+                                aria-hidden="true"
+                                className={`h-2 w-2 rotate-45 border-b border-r transition-transform ${isFiltersOpen ? '-translate-y-0.5 rotate-[225deg]' : '-translate-y-0.5'
+                                    }`}
+                            />
+                        </button>
+
+                        {isFiltersOpen && (
+                            <div
+                                id="event-filters"
+                                role="dialog"
+                                aria-label="Filtros de eventos"
+                                className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(90vw,420px)] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-4 shadow-lg"
+                            >
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div className="flex flex-col gap-1">
+                                        <label
+                                            htmlFor="start-date"
+                                            className="text-sm font-bold text-[var(--text-secondary)]"
+                                        >
+                                            Data Inicial
+                                        </label>
+                                        <input
+                                            id="start-date"
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(event) => setStartDate(event.target.value)}
+                                            className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                        <label
+                                            htmlFor="end-date"
+                                            className="text-sm font-bold text-[var(--text-secondary)]"
+                                        >
+                                            Data Final
+                                        </label>
+                                        <input
+                                            id="end-date"
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(event) => setEndDate(event.target.value)}
+                                            className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 sm:col-span-2">
+                                        <span className="text-sm font-bold text-[var(--text-secondary)]">Preço</span>
+                                        <div className="flex w-full rounded-md border border-[var(--border-strong)]">
+                                            <button
+                                                type="button"
+                                                aria-pressed={priceFilter === 'all'}
+                                                onClick={() => setPriceFilter('all')}
+                                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'all'
+                                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
+                                                    : '!text-[var(--text-primary)]'
+                                                    }`}
+                                            >
+                                                Todos
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                aria-pressed={priceFilter === 'free'}
+                                                onClick={() => setPriceFilter('free')}
+                                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'free'
+                                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
+                                                    : '!text-[var(--text-primary)]'
+                                                    }`}
+                                            >
+                                                Gratuitos
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                aria-pressed={priceFilter === 'paid'}
+                                                onClick={() => setPriceFilter('paid')}
+                                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'paid'
+                                                    ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
+                                                    : '!text-[var(--text-primary)]'
+                                                    }`}
+                                            >
+                                                Pagos
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -259,6 +365,15 @@ export function EventsWorkspace() {
                         </div>
                     ) : (
                         <div className="">
+                            <div>
+
+                            </div>
+                            <div>
+
+                            </div>
+                            <div>
+
+                            </div>
 
                         </div>
                     )}
