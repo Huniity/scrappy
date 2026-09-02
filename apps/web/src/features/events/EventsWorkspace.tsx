@@ -113,12 +113,12 @@ export function EventsWorkspace() {
 
     return (
         <section
-            className={`${styles.workspace} px-8 py-6 mr-32 flex flex-col gap-6`}
+            className={`${styles.workspace} min-w-[936px] px-8 py-6 mr-32 flex flex-col gap-6 max-[1200px]:mr-8 max-[1200px]:gap-5 max-[1200px]:px-5 max-[1200px]:py-5`}
         >
 
-            <div className="w-full flex flex-col gap-2 lg:grid lg:grid-cols-3 lg:gap-4 justify-center">
+            <div className="w-full grid grid-cols-3 gap-4 justify-center max-[1200px]:gap-3">
                 <div>
-                    <h1 className="text-3xl font-semibold">Eventos do Município</h1>
+                    <h1 className="text-3xl font-semibold max-[1200px]:text-2xl">Eventos do Município</h1>
                 </div>
 
                 <div className="items-center flex flex-col gap-2 justify-center">
@@ -128,7 +128,7 @@ export function EventsWorkspace() {
                             aria-pressed={view === 'map'}
                             onClick={() => setView('map')}
                             className={
-                                `rounded-md px-8 py-2 ${view === 'map'
+                                `rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'map'
                                     ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                 }`
@@ -142,7 +142,7 @@ export function EventsWorkspace() {
                             aria-pressed={view === 'list'}
                             onClick={() => setView('list')}
                             className={
-                                `rounded-md px-8 py-2 ${view === 'list'
+                                `rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'list'
                                     ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                 }`
@@ -157,20 +157,20 @@ export function EventsWorkspace() {
                 </div>
             </div>
 
-            <div className="w-full flex flex-col gap-2 lg:grid lg:grid-cols-4 lg:gap-4 justify-center">
+            <div className="w-full grid grid-cols-4 gap-4 justify-center max-[1200px]:gap-3">
                 <div>
-                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr]">
+                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr] max-[1200px]:h-[92px]">
                         <div className="relative flex h-full w-full items-center justify-center">
                             <div
                                 aria-hidden="true"
-                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
+                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-16 min-[1201px]:max-[1400px]:h-16 min-[1201px]:max-[1400px]:w-16"
                             />
                             <Image
                                 src="/calendar.svg"
                                 alt="Evento"
                                 width = "40"
                                 height = "40"
-                                className="relative z-10 w-10 h-auto"
+                                className="relative z-10 w-10 h-auto min-[1201px]:max-[1400px]:w-9"
                             />
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
@@ -181,18 +181,18 @@ export function EventsWorkspace() {
                     </div>
                 </div>
                 <div>
-                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr]">
+                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr] max-[1200px]:h-[92px]">
                         <div className="relative flex h-full w-full items-center justify-center">
                             <div
                                 aria-hidden="true"
-                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
+                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-16 min-[1201px]:max-[1400px]:h-16 min-[1201px]:max-[1400px]:w-16"
                             />
                             <Image
                                 src="/location.svg"
                                 alt="Evento"
                                 width = "44"
                                 height = "44"
-                                className="relative z-10 w-11 h-auto"
+                                className="relative z-10 w-11 h-auto min-[1201px]:max-[1400px]:w-10"
                             />
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
@@ -202,18 +202,18 @@ export function EventsWorkspace() {
                     </div>
                 </div>
                 <div>
-                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr]">
+                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr] max-[1200px]:h-[92px]">
                         <div className="relative flex h-full w-full items-center justify-center">
                             <div
                                 aria-hidden="true"
-                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
+                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-16 min-[1201px]:max-[1400px]:h-16 min-[1201px]:max-[1400px]:w-16"
                             />
                             <Image
                                 src="/calendar-success.svg"
                                 alt="Evento"
                                 width = "40"
                                 height = "40"
-                                className="relative z-10 w-10 h-auto"
+                                className="relative z-10 w-10 h-auto min-[1201px]:max-[1400px]:w-9"
                             />
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
@@ -223,18 +223,18 @@ export function EventsWorkspace() {
                     </div>
                 </div>
                 <div>
-                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr]">
+                    <div className="w-full h-[100px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] grid grid-cols-[2fr_5fr] max-[1200px]:h-[92px]">
                         <div className="relative flex h-full w-full items-center justify-center">
                             <div
                                 aria-hidden="true"
-                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
+                                className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-16 min-[1201px]:max-[1400px]:h-16 min-[1201px]:max-[1400px]:w-16"
                             />
                             <Image
                                 src="/ticket.svg"
                                 alt="Evento"
                                 width = "40"
                                 height = "40"
-                                className="relative z-10 w-10 h-auto"
+                                className="relative z-10 w-10 h-auto min-[1201px]:max-[1400px]:w-9"
                             />
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
@@ -245,8 +245,8 @@ export function EventsWorkspace() {
                 </div>
             </div>
 
-            <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] flex flex-col gap-4 px-4 py-6">
-                <div className="grid grid-cols-[4fr_2fr_3fr_1fr] gap-6 items-end">
+            <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] flex flex-col gap-4 px-4 py-6 max-[1200px]:gap-3 max-[1200px]:px-3 max-[1200px]:py-4">
+                <div className="grid grid-cols-[4fr_2fr_3fr_1fr] gap-6 items-end max-[1200px]:gap-3">
                     <div className="flex flex-col gap-1 ">
                         <span className="text-sm font-bold text-[var(--text-secondary)]">Estado</span>
                         <div className="flex w-full rounded-md border border-[var(--border-strong)]">
@@ -320,7 +320,7 @@ export function EventsWorkspace() {
                                 id="sort-options"
                                 role="listbox"
                                 aria-label="Ordenação dos eventos"
-                                className="absolute left-0 top-[calc(100%+8px)] z-50 w-[220px] max-w-[calc(100vw-2rem)] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-1 shadow-lg"
+                                className="absolute left-0 top-[calc(100%+8px)] z-50 w-[220px] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-1 shadow-lg"
                             >
                                 {sortOptions.map((option) => (
                                     <button
@@ -343,7 +343,7 @@ export function EventsWorkspace() {
                             </div>
                         )}
                     </div>
-                    <div className="w-full lg:max-w-xl">
+                    <div className="w-full max-w-xl">
                         <label
                             htmlFor="search-query"
                             className="text-sm font-bold text-[var(--text-secondary)]"
@@ -369,7 +369,7 @@ export function EventsWorkspace() {
                                 setIsSortOpen(false);
                                 setIsFiltersOpen((open) => !open);
                             }}
-                            className="flex w-full items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)] lg:w-auto"
+                            className="flex w-auto items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
                         >
                             <span>Filtros</span>
                             <span
@@ -384,9 +384,9 @@ export function EventsWorkspace() {
                                 id="event-filters"
                                 role="dialog"
                                 aria-label="Filtros de eventos"
-                                className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(90vw,420px)] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-4 shadow-lg"
+                                className="absolute right-0 top-[calc(100%+8px)] z-50 w-[420px] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-4 shadow-lg"
                             >
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-1">
                                         <label
                                             htmlFor="start-date"
@@ -419,7 +419,7 @@ export function EventsWorkspace() {
                                         />
                                     </div>
 
-                                    <div className="flex flex-col gap-1 sm:col-span-2">
+                                    <div className="col-span-2 flex flex-col gap-1">
                                         <span className="text-sm font-bold text-[var(--text-secondary)]">Preço</span>
                                         <div className="flex w-full rounded-md border border-[var(--border-strong)]">
                                             <button
@@ -482,7 +482,7 @@ export function EventsWorkspace() {
                 </div>
             </div>
 
-            <div className="w-full flex flex-col gap-2 lg:grid lg:grid-cols-[2fr_1fr] lg:gap-4 justify-center">
+            <div className="w-full grid grid-cols-[2fr_1fr] gap-4 justify-center max-[1200px]:gap-3">
                 <div className="w-full h-[400px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)]">
                     {view === 'map' ? (
                         <div className="">
@@ -512,27 +512,20 @@ export function EventsWorkspace() {
                                 return (
                                     <div
                                         key={id}
-                                        className={`flex min-h-[128px] items-center gap-3 border-b border-[var(--border-strong)] px-3 py-3 transition-colors hover:bg-[var(--surface-muted)] ${index === 0
+                        className={`flex min-h-[128px] items-center gap-3 border-b border-[var(--border-strong)] px-3 py-3 transition-colors hover:bg-[var(--surface-muted)] max-[1200px]:min-h-[112px] max-[1200px]:gap-2 max-[1200px]:px-2 max-[1200px]:py-2 ${index === 0
                                             ? 'border-l-2 border-l-[var(--primary)]'
                                             : ''
                                             }`}
                                     >
                                         <div className="flex w-7 shrink-0 justify-center">
-                                            {index === 0 ? (
+            
                                                 <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--primary)]">
                                                     <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
                                                 </span>
-                                            ) : (
-                                                <span
-                                                    aria-hidden="true"
-                                                    className="text-lg leading-none tracking-[-0.2em] text-[var(--border-strong)]"
-                                                >
-                                                    ⠿
-                                                </span>
-                                            )}
+      
                                         </div>
 
-                                        <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)]">
+                                        <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-28">
                                             {event.imageUrl ? (
                                                 <img
                                                     src={event.imageUrl}
@@ -573,7 +566,7 @@ export function EventsWorkspace() {
                                             </p>
                                         </div>
 
-                                        <div className="hidden w-24 shrink-0 flex-col items-start gap-1.5 sm:flex">
+                                        <div className="flex w-24 shrink-0 flex-col items-start gap-1.5">
                                             <span
                                                 className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${event.isAccessibleForFree === true
                                                     ? 'border-green-200 bg-green-50 text-green-700'
@@ -598,7 +591,7 @@ export function EventsWorkspace() {
                                             </span>
                                         </div>
 
-                                        <div className="hidden w-28 shrink-0 justify-center md:flex">
+                                        <div className="flex w-28 shrink-0 justify-center">
                                             <span className="rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-2 py-2 text-center text-[11px] text-[var(--text-secondary)]">
                                                 {source}
                                             </span>
@@ -606,7 +599,7 @@ export function EventsWorkspace() {
 
                                         <button
                                             type="button"
-                                            className="hidden shrink-0 items-center gap-2 rounded-md border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white lg:flex"
+                                            className="flex shrink-0 items-center gap-2 rounded-md border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white"
                                         >
                                             <span>Ver detalhes</span>
                                             <span aria-hidden="true" className="text-base leading-none">›</span>
