@@ -1,11 +1,34 @@
 'use client';
 import styles from './events.module.css';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 import { EventCounter } from '@/components/statCards/countEvent';
 import { HasCoordsCounter } from '@/components/statCards/hasCoords';
 import { FreeEventCounter } from '@/components/statCards/freeEvent';
 import { PublishedEventCounter } from '@/components/statCards/addedEvent';
+import eventsMock from './events.mock.json';
+
+type SortOption =
+    | 'date-asc'
+    | 'date-desc'
+    | 'price-asc'
+    | 'price-desc'
+    | 'title-asc'
+    | 'title-desc';
+
+const sortOptions: { value: SortOption; label: string }[] = [
+    { value: 'date-asc', label: 'Data ↑' },
+    { value: 'date-desc', label: 'Data ↓' },
+    { value: 'price-asc', label: 'Valor ↑' },
+    { value: 'price-desc', label: 'Valor ↓' },
+    { value: 'title-asc', label: 'Z - A' },
+    { value: 'title-desc', label: 'A - Z' },
+];
+
+async function fetchEvents() {
+    return eventsMock;
+}
 
 export function EventsWorkspace() {
     const [view, setView] = useState<'map' | 'list'>('map');
@@ -14,21 +37,18 @@ export function EventsWorkspace() {
     const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
     const [publishedFilter, setPublishedFilter] = useState<'all' | 'published' | 'unpublished'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortOption, setSortOption] = useState<SortOption>(
+        'date-asc',
+    );
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const filtersRef = useRef<HTMLDivElement>(null);
+    const sortRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const response = await fetch('/events.mock.json');
-                const data = await response.json();
-                console.log(data);
-            } catch (error) {
-                console.error('Error fetching events:', error);
-            }
-        };
-
-        fetchEvents();
+        fetchEvents()
+            .then((data) => console.log(data))
+            .catch((error) => console.error('Error loading events:', error));
 
     }, []);
 
@@ -60,6 +80,35 @@ export function EventsWorkspace() {
             document.removeEventListener('keydown', closeOnEscape);
         };
     }, [isFiltersOpen]);
+
+    useEffect(() => {
+        if (!isSortOpen) {
+            return;
+        }
+
+        function closeOnOutsideClick(event: PointerEvent) {
+            if (
+                sortRef.current &&
+                !sortRef.current.contains(event.target as Node)
+            ) {
+                setIsSortOpen(false);
+            }
+        }
+
+        function closeOnEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
+                setIsSortOpen(false);
+            }
+        }
+
+        document.addEventListener('pointerdown', closeOnOutsideClick);
+        document.addEventListener('keydown', closeOnEscape);
+
+        return () => {
+            document.removeEventListener('pointerdown', closeOnOutsideClick);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [isSortOpen]);
 
     return (
         <section
@@ -196,15 +245,15 @@ export function EventsWorkspace() {
             </div>
 
             <div className="w-full min-h-[80px] bg-[var(--bg-secondary)] rounded-md border border-[var(--border-strong)] flex flex-col gap-4 px-4 py-6">
-                <div className="grid grid-cols-4 gap-4 items-end">
+                <div className="grid grid-cols-[4fr_2fr_3fr_1fr] gap-6 items-end">
                     <div className="flex flex-col gap-1 ">
-                        <span className="text-sm font-bold text-[var(--text-secondary)]">Preço</span>
+                        <span className="text-sm font-bold text-[var(--text-secondary)]">Estado</span>
                         <div className="flex w-full rounded-md border border-[var(--border-strong)]">
                             <button
                                 type="button"
-                                aria-pressed={priceFilter === 'all'}
-                                onClick={() => setPriceFilter('all')}
-                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'all'
+                                aria-pressed={publishedFilter === 'all'}
+                                onClick={() => setPublishedFilter('all')}
+                                className={`flex-1 rounded-md px-3 py-2 text-sm ${publishedFilter === 'all'
                                     ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
@@ -214,28 +263,84 @@ export function EventsWorkspace() {
 
                             <button
                                 type="button"
-                                aria-pressed={priceFilter === 'free'}
-                                onClick={() => setPriceFilter('free')}
-                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'free'
+                                aria-pressed={publishedFilter === 'published'}
+                                onClick={() => setPublishedFilter('published')}
+                                className={`flex-1 rounded-md px-3 py-2 text-sm ${publishedFilter === 'published'
                                     ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
                             >
-                                Gratuitos
+                                Publicados
                             </button>
 
                             <button
                                 type="button"
-                                aria-pressed={priceFilter === 'paid'}
-                                onClick={() => setPriceFilter('paid')}
-                                className={`flex-1 rounded-md px-3 py-2 text-sm ${priceFilter === 'paid'
+                                aria-pressed={publishedFilter === 'unpublished'}
+                                onClick={() => setPublishedFilter('unpublished')}
+                                className={`flex-1 rounded-md px-3 py-2 text-sm ${publishedFilter === 'unpublished'
                                     ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                     : '!text-[var(--text-primary)]'
                                     }`}
                             >
-                                Pagos
+                                A publicar
                             </button>
                         </div>
+                    </div>
+                    <div ref={sortRef} className="relative flex flex-col gap-1">
+                        <span className="text-sm font-bold text-[var(--text-secondary)]">
+                            Ordenar por
+                        </span>
+                        <button
+                            id="sort-events"
+                            type="button"
+                            aria-haspopup="listbox"
+                            aria-expanded={isSortOpen}
+                            aria-controls="sort-options"
+                            onClick={() => {
+                                setIsFiltersOpen(false);
+                                setIsSortOpen((open) => !open);
+                            }}
+                            className="flex w-full items-center justify-between gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] shadow-sm outline-none transition-colors hover:bg-[var(--surface-muted)] focus:border-[var(--primary)]"
+                        >
+                            <span>
+                                {sortOptions.find((option) => option.value === sortOption)?.label}
+                            </span>
+                            <span
+                                aria-hidden="true"
+                                className={`h-2 w-2 rotate-45 border-b border-r transition-transform ${isSortOpen
+                                    ? '-translate-y-0.5 rotate-[225deg]'
+                                    : '-translate-y-0.5'
+                                    }`}
+                            />
+                        </button>
+
+                        {isSortOpen && (
+                            <div
+                                id="sort-options"
+                                role="listbox"
+                                aria-label="Ordenação dos eventos"
+                                className="absolute left-0 top-[calc(100%+8px)] z-50 w-[220px] max-w-[calc(100vw-2rem)] rounded-md border border-[var(--border-strong)] bg-[var(--surface)] p-1 shadow-lg"
+                            >
+                                {sortOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={sortOption === option.value}
+                                        onClick={() => {
+                                            setSortOption(option.value);
+                                            setIsSortOpen(false);
+                                        }}
+                                        className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${sortOption === option.value
+                                            ? 'bg-[var(--surface-muted)] font-semibold text-[var(--text-primary)]'
+                                            : 'text-[var(--text-primary)] hover:bg-[var(--surface-muted)]'
+                                            }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="w-full lg:max-w-xl">
                         <label
@@ -253,14 +358,17 @@ export function EventsWorkspace() {
                         />
                     </div>
 
-                    <div ref={filtersRef} className="relative">
+                    <div ref={filtersRef} className="relative items-end flex flex-col gap-1 justify-center">
                         <button
                             type="button"
                             aria-haspopup="dialog"
                             aria-expanded={isFiltersOpen}
                             aria-controls="event-filters"
-                            onClick={() => setIsFiltersOpen((open) => !open)}
-                            className="flex w-full items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)] lg:w-auto"
+                            onClick={() => {
+                                setIsSortOpen(false);
+                                setIsFiltersOpen((open) => !open);
+                            }}
+                            className="flex w-full items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)] lg:w-auto"
                         >
                             <span>Filtros</span>
                             <span
@@ -351,6 +459,22 @@ export function EventsWorkspace() {
                                         </div>
                                     </div>
                                 </div>
+                                <div className="w-full mt-6 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setStartDate('');
+                                                setEndDate('');
+                                                setPriceFilter('all');
+                                                setPublishedFilter('all');
+                                                setSearchQuery('');
+                                                setSortOption('date-asc');
+                                            }}
+                                            className="cursor-pointer max-w-lg rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                                        >
+                                            Limpar filtros
+                                        </button>
+                                    </div>
                             </div>
                         )}
                     </div>
