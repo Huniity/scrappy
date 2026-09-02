@@ -78,6 +78,7 @@ export function EventsWorkspace() {
         selectedEventIds.includes(event.id),
     );
 
+
     return (
         <section
             className={`${styles.workspace} flex min-w-[936px] flex-col gap-6 px-8 py-6 mr-32 max-[1200px]:mr-8 max-[1200px]:gap-5 max-[1200px]:px-5 max-[1200px]:py-5`}
