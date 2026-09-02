@@ -1,6 +1,8 @@
 'use client';
 import styles from './events.module.css';
 import { useState } from 'react';
+import Image from 'next/image';
+
 
 import { EventCounter } from '@/components/statCards/countEvent';
 import { HasCoordsCounter } from '@/components/statCards/hasCoords';
@@ -68,9 +70,11 @@ export function EventsWorkspace() {
                                 aria-hidden="true"
                                 className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
                             />
-                            <img
+                            <Image
                                 src="/calendar.svg"
                                 alt="Evento"
+                                width = "40"
+                                height = "40"
                                 className="relative z-10 w-10 h-auto"
                             />
                         </div>
@@ -88,9 +92,11 @@ export function EventsWorkspace() {
                                 aria-hidden="true"
                                 className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
                             />
-                            <img
+                            <Image
                                 src="/location.svg"
                                 alt="Evento"
+                                width = "44"
+                                height = "44"
                                 className="relative z-10 w-11 h-auto"
                             />
                         </div>
@@ -108,9 +114,11 @@ export function EventsWorkspace() {
                                 aria-hidden="true"
                                 className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
                             />
-                            <img
+                            <Image
                                 src="/calendar-success.svg"
                                 alt="Evento"
+                                width = "40"
+                                height = "40"
                                 className="relative z-10 w-10 h-auto"
                             />
                         </div>
@@ -128,9 +136,11 @@ export function EventsWorkspace() {
                                 aria-hidden="true"
                                 className="absolute h-20 w-20 rounded-full bg-[var(--surface-muted)]"
                             />
-                            <img
+                            <Image
                                 src="/ticket.svg"
                                 alt="Evento"
+                                width = "40"
+                                height = "40"
                                 className="relative z-10 w-10 h-auto"
                             />
                         </div>
