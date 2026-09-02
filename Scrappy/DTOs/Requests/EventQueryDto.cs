@@ -82,4 +82,7 @@ public class EventQueryParameters
 
     /// <summary> Gets or sets the sorting option for events. </summary>
     public string? SortBy { get; set; } = "date_desc";
+
+    /// <summary> Gets or sets a value indicating whether to filter events that are published. </summary>
+    public bool? IsPublished { get; set; }
 }

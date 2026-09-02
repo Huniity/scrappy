@@ -183,5 +183,7 @@ public class Event
     [BsonElement("Offers")]
     public List<OfferModel> Offers { get; set; } = new();
 
-
+    /// <summary> Gets or sets whether the event is published. </summary>
+    [BsonElement("IsPublished")]
+    public bool IsPublished { get; set; } = false;
 }

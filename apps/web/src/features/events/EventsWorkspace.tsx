@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { EventCounter } from '@/components/statCards/countEvent';
 import { HasCoordsCounter } from '@/components/statCards/hasCoords';
 import { FreeEventCounter } from '@/components/statCards/freeEvent';
+import { PublishedEventCounter } from '@/components/statCards/addedEvent';
 
 export function EventsWorkspace() {
     const [view, setView] = useState<'map' | 'list'>('map');
@@ -115,7 +116,7 @@ export function EventsWorkspace() {
                         </div>
                         <div className="flex flex-col justify-center gap-1 px-2">
                             <p className="text-md font-bold text-[var(--text-secondary)]">Eventos adicionados</p>
-                            <h2 className="text-2xl font-semibold">74</h2>
+                            <PublishedEventCounter />
                             <p className="text-sm font-bold text-[var(--text-tertiary)]">45,1% do total</p>
                         </div>
                     </div>

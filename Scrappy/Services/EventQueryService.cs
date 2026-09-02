@@ -75,7 +75,8 @@ public class EventQueryService(
             query.StartDate,
             query.EndDate,
             query.MinQualityScore,
-            query.SearchTerm
+            query.SearchTerm,
+            query.IsPublished
         );
 
         var sort = sortingService.GetSortParams(sortBy);

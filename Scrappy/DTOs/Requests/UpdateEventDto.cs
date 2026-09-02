@@ -155,4 +155,7 @@ public class UpdateEventDto
 
     /// <summary> Gets or sets the attendance mode of the event. </summary>
     public List<EventOfferRequestDto>? Offers { get; set; }
+
+    /// <summary> Gets or sets whether the event is published. </summary>
+    public bool? IsPublished { get; set; }
 }

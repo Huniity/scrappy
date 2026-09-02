@@ -24,7 +24,8 @@ public class EventFilterService
         DateTime? startDate,
         DateTime? endDate,
         decimal? minQualityScore,
-        string? searchTerm
+        string? searchTerm,
+        bool? isPublished
         )
     {
         var builder = Builders<DistrictEvent>.Filter;
@@ -72,6 +73,9 @@ public class EventFilterService
                 filters.Add(builder.Or(builder.Not(longitudeExists), builder.Not(latitudeExists)));
             }
         }
+
+        if (isPublished.HasValue)
+            filters.Add(builder.Eq(e => e.Event.IsPublished, isPublished.Value));
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

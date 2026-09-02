@@ -430,6 +430,9 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (dto.Offers is not null)
             existingEvent.Event.Offers = offers;
 
+        if (dto.IsPublished.HasValue)
+            existingEvent.Event.IsPublished = dto.IsPublished.Value;
+
         existingEvent.District = district;
         existingEvent.Event.Title = title;
         existingEvent.Event.Description = description;
