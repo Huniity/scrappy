@@ -7,6 +7,31 @@
 }
 
 
+.eventsLayout,
+.eventsPanel {
+    height:
+        400px;
+}
+
+
+@media (
+    min-width:
+        1451px
+) and (
+    min-height:
+        850px
+) {
+    .eventsLayout,
+    .eventsPanel {
+        height:
+            calc(
+                100vh -
+                420px
+            );
+    }
+}
+
+
 /*
     Mantém este ficheiro apenas para o teu módulo
     de eventos.

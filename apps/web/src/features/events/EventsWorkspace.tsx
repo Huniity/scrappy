@@ -30,6 +30,7 @@ export function EventsWorkspace() {
     const [searchQuery, setSearchQuery] = useState('');
     const [events, setEvents] = useState<EventRecord[]>(eventsMock);
     const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
+    const [detailsEventId, setDetailsEventId] = useState<string | null>(null);
     const [activePanel, setActivePanel] = useState<ActivePanel>('details');
     const [isActionsPanelOpen, setIsActionsPanelOpen] = useState(false);
     const [sortOption, setSortOption] = useState<SortOption>('date-asc');
@@ -44,6 +45,7 @@ export function EventsWorkspace() {
         );
 
         if (!isSelected) {
+            setDetailsEventId(eventId);
             setActivePanel('actions');
             setIsActionsPanelOpen(true);
         } else if (selectedEventIds.length === 1) {
@@ -51,7 +53,8 @@ export function EventsWorkspace() {
         }
     }
 
-    function openEventDetails() {
+    function openEventDetails(eventId: string) {
+        setDetailsEventId(eventId);
         setActivePanel('details');
         setIsActionsPanelOpen(true);
     }
@@ -136,7 +139,7 @@ export function EventsWorkspace() {
             />
 
             <div
-                className={`grid w-full min-w-0 justify-center transition-[grid-template-columns,gap] duration-300 ease-in-out ${isActionsPanelOpen
+                className={`${styles.eventsLayout} grid w-full min-w-0 justify-center transition-[grid-template-columns,gap] duration-300 ease-in-out ${isActionsPanelOpen
                     ? 'grid-cols-[2fr_1fr] gap-4 max-[1200px]:gap-3'
                     : 'grid-cols-[1fr_0fr] gap-0'
                     }`}
@@ -161,6 +164,7 @@ export function EventsWorkspace() {
                     <EventsActionsPanel
                         activePanel={activePanel}
                         selectedEvents={selectedEvents}
+                        detailsEventId={detailsEventId}
                         onPanelChange={setActivePanel}
                         onRemoveEvent={toggleEventSelection}
                         onClose={() => setIsActionsPanelOpen(false)}
