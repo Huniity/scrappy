@@ -105,7 +105,7 @@
         var(--bo-sidebar-icon);
 
     cursor:
-        default;
+        pointer;
 }
 
 

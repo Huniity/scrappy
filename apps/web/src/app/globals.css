@@ -307,6 +307,23 @@ textarea {
 }
 
 
+button:not(:disabled),
+a,
+label,
+select:not(:disabled),
+input[type='date']:not(:disabled),
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+[role='button'],
+[role='option'],
+[role='menuitem'],
+[role='tab'],
+summary {
+    cursor:
+        pointer;
+}
+
+
 a {
     color:
         inherit;

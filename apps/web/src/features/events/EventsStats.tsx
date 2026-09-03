@@ -46,7 +46,10 @@ function StatCard({
                     />
                 </div>
                 <div className="flex flex-col justify-center gap-1 px-2">
-                    <p className="text-md font-bold text-[var(--text-secondary)]">{label}</p>
+                    <p className="text-md font-bold text-[var(--text-secondary)]">
+                        <span className="max-[1540px]:block">Eventos</span>{' '}
+                        {label.replace(/^Eventos\s*/, '')}
+                    </p>
                     {counter}
                     {footer}
                 </div>

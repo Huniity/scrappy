@@ -1,6 +1,7 @@
 'use client';
 
 import { getEventListTitle } from './events.config';
+import eventsMock from './events.mock.json';
 import type { ActivePanel, EventRecord } from './events.types';
 
 type EventsActionsPanelProps = {
@@ -16,22 +17,13 @@ export function EventsActionsPanel({
     onPanelChange,
     onRemoveEvent,
 }: EventsActionsPanelProps) {
+    const event = eventsMock[0].event;
+
     return (
         <div className="h-[400px] w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]">
             <div className="flex h-full flex-col overflow-hidden p-3">
                 <div className="flex shrink-0 justify-center">
                     <div className="flex rounded-md border border-[var(--border-strong)]">
-                        <button
-                            type="button"
-                            aria-pressed={activePanel === 'actions'}
-                            onClick={() => onPanelChange('actions')}
-                            className={`rounded-md px-6 py-2 text-sm ${activePanel === 'actions'
-                                ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
-                                : '!text-[var(--text-primary)]'
-                                }`}
-                        >
-                            Ações
-                        </button>
 
                         <button
                             type="button"
@@ -43,6 +35,17 @@ export function EventsActionsPanel({
                                 }`}
                         >
                             Detalhes
+                        </button>
+                        <button
+                            type="button"
+                            aria-pressed={activePanel === 'actions'}
+                            onClick={() => onPanelChange('actions')}
+                            className={`rounded-md px-6 py-2 text-sm ${activePanel === 'actions'
+                                ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
+                                : '!text-[var(--text-primary)]'
+                                }`}
+                        >
+                            Ações
                         </button>
                     </div>
                 </div>
@@ -106,7 +109,12 @@ export function EventsActionsPanel({
                         </div>
                     </div>
                 ) : (
-                    <div className="min-h-0 flex-1" />
+                
+
+                    <div className="flex min-h-0 flex-1 flex-col gap-4 p-3">
+                        
+                    </div>
+                    
                 )}
             </div>
         </div>
