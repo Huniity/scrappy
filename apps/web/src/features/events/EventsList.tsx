@@ -10,6 +10,8 @@ type EventsListProps = {
     events: EventRecord[];
     selectedEventIds: string[];
     onToggleEventSelection: (eventId: string) => void;
+    onOpenEventDetails: (eventId: string) => void;
+    isActionsPanelOpen: boolean;
 };
 
 export function EventsList({
@@ -17,6 +19,8 @@ export function EventsList({
     events,
     selectedEventIds,
     onToggleEventSelection,
+    onOpenEventDetails,
+    isActionsPanelOpen,
 }: EventsListProps) {
     return (
         <div className="h-[400px] w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]">
@@ -81,8 +85,10 @@ export function EventsList({
                                 </div>
 
                                 <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-                                    <h3 className="truncate text-sm font-bold text-[var(--text-primary)]">
-                                        {getEventListTitle(event.title)}
+                                    <h3 className={`${isActionsPanelOpen ? 'truncate' : 'break-words'} text-sm font-bold text-[var(--text-primary)]`}>
+                                        {isActionsPanelOpen
+                                            ? getEventListTitle(event.title)
+                                            : event.title}
                                     </h3>
                                     <p className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                                         <Image
@@ -111,6 +117,14 @@ export function EventsList({
                                     </p>
                                 </div>
 
+                                {!isActionsPanelOpen && (
+                                    <div className="flex w-28 shrink-0 justify-center">
+                                        <span className="rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-2 text-center text-[11px] font-semibold text-[var(--text-secondary)]">
+                                            {event.type}
+                                        </span>
+                                    </div>
+                                )}
+
                                 <div className="flex w-28 shrink-0 justify-center">
                                     <span
                                         className={`rounded-md border border-[var(--border-strong)] px-2 py-2 text-center text-[11px] font-semibold ${event.isPublished === true
@@ -124,6 +138,7 @@ export function EventsList({
 
                                 <button
                                     type="button"
+                                    onClick={() => onOpenEventDetails(event.id)}
                                     className="flex shrink-0 items-center gap-2 rounded-md border border-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)] hover:text-white"
                                 >
                                     <span>Ver detalhes</span>

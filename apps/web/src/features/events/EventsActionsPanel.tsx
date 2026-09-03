@@ -9,6 +9,7 @@ type EventsActionsPanelProps = {
     selectedEvents: EventRecord[];
     onPanelChange: (panel: ActivePanel) => void;
     onRemoveEvent: (eventId: string) => void;
+    onClose: () => void;
 };
 
 export function EventsActionsPanel({
@@ -16,13 +17,23 @@ export function EventsActionsPanel({
     selectedEvents,
     onPanelChange,
     onRemoveEvent,
+    onClose,
 }: EventsActionsPanelProps) {
     const event = eventsMock[0].event;
 
     return (
-        <div className="h-[400px] w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]">
+        <div className="relative h-[400px] w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]">
             <div className="flex h-full flex-col overflow-hidden p-3">
-                <div className="flex shrink-0 justify-center">
+                <div className="relative flex shrink-0 justify-center">
+                    <button
+                        type="button"
+                        aria-label="Fechar painel"
+                        onClick={onClose}
+                        className="absolute right-0 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-lg leading-none text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]"
+                    >
+                        ✕
+                    </button>
+
                     <div className="flex rounded-md border border-[var(--border-strong)]">
 
                         <button

@@ -31,6 +31,7 @@ export function EventsWorkspace() {
     const [events, setEvents] = useState<EventRecord[]>(eventsMock);
     const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
     const [activePanel, setActivePanel] = useState<ActivePanel>('details');
+    const [isActionsPanelOpen, setIsActionsPanelOpen] = useState(false);
     const [sortOption, setSortOption] = useState<SortOption>('date-asc');
 
     function toggleEventSelection(eventId: string) {
@@ -44,7 +45,15 @@ export function EventsWorkspace() {
 
         if (!isSelected) {
             setActivePanel('actions');
+            setIsActionsPanelOpen(true);
+        } else if (selectedEventIds.length === 1) {
+            setIsActionsPanelOpen(false);
         }
+    }
+
+    function openEventDetails() {
+        setActivePanel('details');
+        setIsActionsPanelOpen(true);
     }
 
     function resetFilters() {
@@ -126,19 +135,37 @@ export function EventsWorkspace() {
                 onReset={resetFilters}
             />
 
-            <div className="grid w-full grid-cols-[2fr_1fr] justify-center gap-4 max-[1200px]:gap-3">
-                <EventsList
-                    view={view}
-                    events={events}
-                    selectedEventIds={selectedEventIds}
-                    onToggleEventSelection={toggleEventSelection}
-                />
-                <EventsActionsPanel
-                    activePanel={activePanel}
-                    selectedEvents={selectedEvents}
-                    onPanelChange={setActivePanel}
-                    onRemoveEvent={toggleEventSelection}
-                />
+            <div
+                className={`grid w-full min-w-0 justify-center transition-[grid-template-columns,gap] duration-300 ease-in-out ${isActionsPanelOpen
+                    ? 'grid-cols-[2fr_1fr] gap-4 max-[1200px]:gap-3'
+                    : 'grid-cols-[1fr_0fr] gap-0'
+                    }`}
+            >
+                <div className="min-w-0">
+                    <EventsList
+                        view={view}
+                        events={events}
+                        selectedEventIds={selectedEventIds}
+                        onToggleEventSelection={toggleEventSelection}
+                        onOpenEventDetails={openEventDetails}
+                        isActionsPanelOpen={isActionsPanelOpen}
+                    />
+                </div>
+                <div
+                    aria-hidden={!isActionsPanelOpen}
+                    className={`min-w-0 overflow-hidden transition-opacity duration-200 ${isActionsPanelOpen
+                        ? 'pointer-events-auto opacity-100'
+                        : 'pointer-events-none opacity-0'
+                        }`}
+                >
+                    <EventsActionsPanel
+                        activePanel={activePanel}
+                        selectedEvents={selectedEvents}
+                        onPanelChange={setActivePanel}
+                        onRemoveEvent={toggleEventSelection}
+                        onClose={() => setIsActionsPanelOpen(false)}
+                    />
+                </div>
             </div>
         </section>
     );
