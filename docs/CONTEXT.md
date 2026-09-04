@@ -59,16 +59,13 @@ scrappy/
 │   │   └── src/                # scraper crawlers, normalization and enrichment
 │   ├── ingestion/
 │   │   ├── queue.ts            # ingestion producer
-│   │   ├── worker.ts           # ingestion consumer → POST /events
-│   │   ├── retryPolicy.ts      # EMPTY
-│   │   └── reviewQueue.ts      # EMPTY
+│   │   └── worker.ts           # ingestion consumer → POST /events
 │   └── shared/
 │       ├── rawEvent.ts         # rawEventSchema  ← THE contract  ✅ done
 │       ├── eventTypes.ts       # mirrors C# EventType  ✅
 │       ├── territory.ts        # mirrors C# DistrictName + Nuts2Region  ✅
 │       ├── env.ts, redis.ts    # ✅
-│       ├── jobId.ts            # EMPTY
-│       └── logger.ts           # EMPTY
+│       └── jobId.ts            # queue job ID utilities
 ├── docker/docker-compose.yml   # api + mongodb + redis
 └── docs/
 ```
@@ -230,9 +227,6 @@ extract → normalize → enrich (territory) → rawEventSchema.parse → ingest
   silently looks like success.
 - `ingestion/worker.ts` does not re-validate `job.data`, has no HTTP timeout, and does not
   classify status codes (400/422 should go to review, not retry forever).
-- Empty files awaiting implementation: `shared/jobId.ts`, `shared/logger.ts`,
-  `ingestion/retryPolicy.ts`, `ingestion/reviewQueue.ts`, `scraper/src/config.ts`,
-  `scraper/src/index-dynamic.ts`, `scraper/src/normalization/dates.ts`.
 - `docker/docker-compose.yml` Redis healthcheck runs `curl` against port 6379 — it can
   never pass. Should be `redis-cli ping`.
 - `pnpm-workspace.yaml` contains an unresolved placeholder
