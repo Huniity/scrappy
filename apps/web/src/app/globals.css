@@ -265,6 +265,16 @@
         999px;
 }
 
+@media (
+    max-width:
+        1000px
+) {
+    :root {
+        --bo-nav-width:
+            180px;
+    }
+}
+
 
 * {
     box-sizing:

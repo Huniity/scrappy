@@ -871,11 +871,6 @@
     max-width:
         1000px
 ) {
-    :global(:root) {
-        --bo-nav-width:
-            180px;
-    }
-
     .topbar {
         padding-right:
             12px;
