@@ -77,6 +77,13 @@ public class EventFilterService
         if (isPublished.HasValue)
             filters.Add(builder.Eq(e => e.Event.IsPublished, isPublished.Value));
 
+        // Finished events remain available for management while published so
+        // they can be unpublished. Finished and unpublished events are hidden
+        // from the event search, but remain in Mongo until their retention date.
+        filters.Add(builder.Or(
+            builder.Eq(e => e.Event.IsFinished, false),
+            builder.Eq(e => e.Event.IsPublished, true)));
+
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var pattern = Regex.Escape(searchTerm.Trim());

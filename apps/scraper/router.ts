@@ -17,6 +17,7 @@ import { extractEventMetadata } from './src/enrichment/eventMetadata';
 import { resolveLocation } from './src/enrichment/location';
 import { extractBolNormalizedEvent } from './sources/bol/extract';
 import type { NormalizedEvent } from './src/types/normalizedEvent';
+import { isEventStartingTodayOrLater } from './src/normalization/dates';
 import { rejectBolCookies } from './src/crawlers/bol/extractors';
 import { scrapeViralAgendaEvent, getViralAgendaEventUrls } from './src/crawlers/viralAgenda';
 import { logEventFound as printEventFound } from '../shared/eventLog';
@@ -155,6 +156,13 @@ async function enqueueBolNormalizedEvent(
     requestUrl: string,
     log: ScraperLog,
 ): Promise<boolean> {
+    if (!isEventStartingTodayOrLater(normalized)) {
+        log.warning(
+            `Ignoring past BOL event: ${normalized.title} (${requestUrl})`,
+        );
+        return true;
+    }
+
     const resolvedLocation = resolveLocation(normalized);
 
     if (!resolvedLocation) {
@@ -302,6 +310,13 @@ async function enqueueViralAgendaNormalizedEvent(
     requestUrl: string,
     log: ScraperLog,
 ): Promise<boolean> {
+    if (!isEventStartingTodayOrLater(normalized)) {
+        log.warning(
+            `Ignoring past Viral Agenda event: ${normalized.title} (${requestUrl})`,
+        );
+        return true;
+    }
+
     const resolvedLocation = resolveLocation(normalized);
 
     if (!resolvedLocation) {

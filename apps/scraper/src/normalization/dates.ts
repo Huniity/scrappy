@@ -198,6 +198,37 @@ export function normalizeViralAgendaDates(
     };
 }
 
+/**
+ * Returns whether an event starts today or in the future in Portugal.
+ * Past events must not be sent to ingestion.
+ */
+export function isEventStartingTodayOrLater(
+    event: NormalizedEvent,
+    now = new Date(),
+): boolean {
+    const startDate = new Date(event.startDate);
+
+    if (Number.isNaN(startDate.getTime())) {
+        return false;
+    }
+
+    const timezone = 'Europe/Lisbon';
+    const today = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(now);
+    const eventDay = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(startDate);
+
+    return eventDay >= today;
+}
+
 export function getLisbonOffset(
     year: number,
     month: number,

@@ -181,6 +181,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<EventFilterService>();
         services.AddScoped<EventSortingService>();
         services.AddScoped<EventQueryService>();
+        services.AddScoped<EventLifecycleService>();
+        services.AddHostedService<EventLifecycleHostedService>();
         services.AddSingleton<IGeoDataService, GeoDataService>();
 
         return services;

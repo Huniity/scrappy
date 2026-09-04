@@ -33,6 +33,8 @@ public static class EventResponseMapper
             QualityScore = (double)eventModel.QualityScore,
             Type = eventModel.Type?.ToString() ?? string.Empty,
             Status = eventModel.Status.ToString(),
+            IsFinished = eventModel.IsFinished,
+            RetentionUntil = eventModel.RetentionUntil,
             IsAccessibleForFree = eventModel.IsAccessibleForFree,
             PhysicalAccessibility = eventModel.PhysicalAccessibility,
             AgeRating = eventModel.AgeRating,

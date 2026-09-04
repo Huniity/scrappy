@@ -9,7 +9,6 @@
     "build:check": "dotnet build Scrappy/Scrappy.csproj --configuration Release --no-restore",
     "precommit": "lint-staged",
     "prepush": "npm run build:check",
-    "scrape": "tsx apps/scraper/src/index-playwright.ts",
     "scraper": "tsx apps/scraper/main.ts",
     "worker": "tsx apps/ingestion/worker.ts",
     "test1": "node --import tsx --test apps/scraper/sources/viralAgenda/extract.test.ts",

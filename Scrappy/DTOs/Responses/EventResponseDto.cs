@@ -101,6 +101,12 @@ public class EventResponseDto
     /// <summary> Gets or sets the status of the event. </summary>
     public string Status { get; set; } = string.Empty;
 
+    /// <summary> Gets or sets whether the event date has passed. </summary>
+    public bool IsFinished { get; set; }
+
+    /// <summary> Gets or sets the date after which the event can be removed. </summary>
+    public DateTime? RetentionUntil { get; set; }
+
     /// <summary> Gets or sets the location information of the event. </summary>
     public EventLocationResponseDto? Location { get; set; }
 

@@ -71,6 +71,8 @@ export type EventItem = {
     doorTime?: string | null;
     qualityScore?: number;
     status?: string | null;
+    isFinished?: boolean;
+    retentionUntil?: string | null;
     location: EventLocation;
     sourceUrl: string;
     sourceUrls: string[];

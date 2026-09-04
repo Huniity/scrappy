@@ -101,12 +101,17 @@ export async function getViralAgendaEventUrls(
             await eventLinks
                 .evaluateAll(
                     (elements) =>
-                        elements.map(
-                            (element) =>
-                                (
-                                    element as HTMLAnchorElement
-                                ).href
-                        )
+                        elements
+                            .filter(
+                                (element) =>
+                                    !element.closest('li.viral-event-past'),
+                            )
+                            .map(
+                                (element) =>
+                                    (
+                                        element as HTMLAnchorElement
+                                    ).href
+                            )
                 );
 
         for (

@@ -52,11 +52,11 @@ scrappy/
 ├── Scrappy.Tests/
 ├── apps/
 │   ├── scraper/
-│   │   ├── main.ts             # EMPTY — npm run scraper currently does nothing
-│   │   ├── router.ts           # prototype Cheerio router (see Known Issues)
+│   │   ├── main.ts             # crawler entrypoint — npm run scraper
+│   │   ├── router.ts           # Crawlee router and ingestion handoff
 │   │   ├── source.ts           # crawlJobSchema  ✅ done
 │   │   ├── config/{sources,blacklist}.json
-│   │   └── src/                # ⚠️ Gonçalo's Playwright prototype — do not edit
+│   │   └── src/                # scraper crawlers, normalization and enrichment
 │   ├── ingestion/
 │   │   ├── queue.ts            # ingestion producer
 │   │   ├── worker.ts           # ingestion consumer → POST /events
@@ -87,8 +87,8 @@ referenced them; they have been corrected.
 | `apps/ingestion/**`, `apps/shared/**` | **Adrien** | Queues, workers, shared schemas. |
 | `Scrappy/**` (.NET API) | already built | DTOs, services, mappers, validators all exist. |
 
-The two halves are currently **disconnected**: Gonçalo's `index-playwright.ts` runs
-standalone and prints JSON; it never touches Redis, BullMQ, or the API.
+The scraper and ingestion worker are connected through Redis/BullMQ. The main
+scraper path is `main.ts` → `router.ts` → ingestion queue → `worker.ts` → API.
 
 ---
 
@@ -207,7 +207,6 @@ with him before anything moves. Temporary duplication is accepted.
 | `src/deduplication/events.ts` | Logic reusable; currently keyed to his type, not `RawEvent`. |
 | `src/enrichment/location.ts` | Stub — `resolveLocation()` always returns `null`. This is the territory-enrichment gap. |
 | `src/crawlers/viralAgenda.ts` | Playwright-only. Keep as his fallback path. |
-| `src/index-playwright.ts` | Throwaway harness; superseded by the crawl worker. |
 
 **His `NormalizedEvent` cannot pass `rawEventSchema`** — `locality`/`description` are
 optional, `district`/`region`/`dicoCode` are absent, and `type` holds the schema.org
@@ -221,7 +220,7 @@ extract → normalize → enrich (territory) → rawEventSchema.parse → ingest
 
 ## 8. Known issues (open, not yet fixed)
 
-- `apps/scraper/main.ts` is empty → `npm run scraper` does nothing.
+- `apps/scraper/main.ts` is the active scraper entrypoint.
 - `router.ts` hardcodes Faro / `0805` / `PT15` on **every** event, and falls back to
   `new Date()` for a missing `startDate` — fabricated data, explicitly forbidden by the
   checklist. It also enqueues every `<a>` on the domain as `EVENT_DETAIL`.
@@ -256,7 +255,7 @@ Inside Docker, use service names (`redis`, `api:5000`) — `localhost` in a cont
 that container.
 
 Scripts: `npm run scraper` (crawl side), `npm run worker` (ingestion side),
-`npm run typecheck`, `npm run scrape` (Gonçalo's standalone Playwright prototype).
+`npm run typecheck`.
 
 ---
 

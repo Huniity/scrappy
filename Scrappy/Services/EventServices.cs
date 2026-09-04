@@ -63,6 +63,14 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.AreDatesValid(startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid start or end date.");
 
+        var isFinished = EventLifecycleRules.IsFinished(
+            startDate,
+            endDate,
+            DateTime.UtcNow);
+        DateTime? retentionUntil = isFinished
+            ? EventLifecycleRules.GetRetentionUntil(startDate, endDate)
+            : null;
+
         if (!Validator.IsAlternateNameValid(dto.AlternateName))
             return Result<DistrictEvent>.Failure("Invalid alternate name.");
 
@@ -159,6 +167,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
                 SourceUrls = [dto.SourceUrl.Trim()],
                 AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
                 ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
+                IsFinished = isFinished,
+                RetentionUntil = retentionUntil,
                 DoorTime = dto.DoorTime,
                 IsAccessibleForFree = dto.IsAccessibleForFree,
                 PhysicalAccessibility = dto.PhysicalAccessibility,
@@ -299,6 +309,14 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         if (!Validator.AreDatesValid(startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid start or end date.");
+
+        var isFinished = EventLifecycleRules.IsFinished(
+            startDate,
+            endDate,
+            DateTime.UtcNow);
+        DateTime? retentionUntil = isFinished
+            ? EventLifecycleRules.GetRetentionUntil(startDate, endDate)
+            : null;
 
         if (dto.AlternateName is not null &&
             !Validator.IsAlternateNameValid(dto.AlternateName))
@@ -442,6 +460,8 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         existingEvent.Event.SourceUrl = dto.SourceUrl?.Trim() ?? existingEvent.Event.SourceUrl;
         existingEvent.Event.AlternateName = alternateName;
         existingEvent.Event.ImageUrl = imageUrl;
+        existingEvent.Event.IsFinished = isFinished;
+        existingEvent.Event.RetentionUntil = retentionUntil;
         existingEvent.Event.DoorTime = dto.DoorTime ?? existingEvent.Event.DoorTime;
         existingEvent.Event.IsAccessibleForFree =
             dto.IsAccessibleForFree ?? existingEvent.Event.IsAccessibleForFree;

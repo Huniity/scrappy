@@ -95,6 +95,8 @@ function mapEvent(item: ApiDistrictEvent): EventRecord {
             doorTime: apiEvent.doorTime ?? null,
             qualityScore: apiEvent.qualityScore ?? 0,
             status: apiEvent.status ?? '',
+            isFinished: apiEvent.isFinished ?? false,
+            retentionUntil: apiEvent.retentionUntil ?? null,
             location: {
                 name: location?.name ?? '',
                 streetAddress: location?.streetAddress ?? null,

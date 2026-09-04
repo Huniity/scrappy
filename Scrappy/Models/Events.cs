@@ -175,6 +175,20 @@ public class Event
     [BsonElement("Status")]
     public EventStatus Status { get; set; } = EventStatus.Scheduled;
 
+    /// <summary>
+    /// Gets or sets whether the event date has passed. This value is derived
+    /// from the event dates and is not controlled by the scraper.
+    /// </summary>
+    [BsonElement("IsFinished")]
+    public bool IsFinished { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date after which a finished event can be removed from
+    /// the database.
+    /// </summary>
+    [BsonElement("RetentionUntil")]
+    public DateTime? RetentionUntil { get; set; }
+
     /// <summary> Gets or sets the duration of the event in ISO 8601 format. </summary>
     [BsonElement("Duration")]
     public string? Duration { get; set; }
