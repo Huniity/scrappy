@@ -5,6 +5,20 @@ import Image from 'next/image';
 import styles from './events.module.css';
 import { getEventListTitle } from './events.config';
 import type { EventRecord, EventView } from './events.types';
+import dynamic from 'next/dynamic';
+
+const EventMap = dynamic(
+    () => import('../../components/map/eventMap'),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="flex h-full items-center
+              justify-center">
+                A carregar mapa...
+            </div>
+        ),
+    },
+);
 
 type EventsListProps = {
     view: EventView;
@@ -26,8 +40,11 @@ export function EventsList({
     return (
         <div className={`${styles.eventsPanel} w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]`}>
             {view === 'map' ? (
-                <div className="">
-
+                <div className="h-full w-full">
+                    <EventMap
+                        events={events}
+                        onOpenEventDetails={onOpenEventDetails}
+                    />
                 </div>
             ) : (
                 <div className="h-full overflow-y-auto rounded-md bg-[var(--surface)]">

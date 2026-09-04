@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import styles from './events.module.css';
 import eventsMock from './events.mock.json';
@@ -19,6 +19,74 @@ import type {
 
 async function fetchEvents(): Promise<EventRecord[]> {
     return eventsMock;
+}
+
+function normalizeSearchValue(value: string) {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLocaleLowerCase('pt-PT');
+}
+
+function getEventDateKey(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const parts = new Intl.DateTimeFormat('en', {
+        day: '2-digit',
+        month: '2-digit',
+        timeZone: 'Europe/Lisbon',
+        year: 'numeric',
+    }).formatToParts(date);
+    const year = parts.find((part) => part.type === 'year')?.value;
+    const month = parts.find((part) => part.type === 'month')?.value;
+    const day = parts.find((part) => part.type === 'day')?.value;
+
+    return year && month && day ? `${year}-${month}-${day}` : null;
+}
+
+function isFreeEvent(event: EventRecord['event']) {
+    if (event.isAccessibleForFree !== null && event.isAccessibleForFree !== undefined) {
+        return event.isAccessibleForFree;
+    }
+
+    return event.offers.length === 0 || event.offers.every(({ price }) => price <= 0);
+}
+
+function getEventPrice(event: EventRecord['event']) {
+    return event.offers.length > 0
+        ? Math.min(...event.offers.map(({ price }) => price))
+        : 0;
+}
+
+function compareEvents(
+    first: EventRecord,
+    second: EventRecord,
+    sortOption: SortOption,
+) {
+    if (sortOption === 'title-asc' || sortOption === 'title-desc') {
+        const result = first.event.title.localeCompare(
+            second.event.title,
+            'pt-PT',
+        );
+
+        return sortOption === 'title-asc' ? result : -result;
+    }
+
+    if (sortOption === 'price-asc' || sortOption === 'price-desc') {
+        const result = getEventPrice(first.event) - getEventPrice(second.event);
+
+        return sortOption === 'price-asc' ? result : -result;
+    }
+
+    const firstDate = new Date(first.event.startDate).getTime();
+    const secondDate = new Date(second.event.startDate).getTime();
+    const result = firstDate - secondDate;
+
+    return sortOption === 'date-asc' ? result : -result;
 }
 
 export function EventsWorkspace() {
@@ -77,6 +145,79 @@ export function EventsWorkspace() {
     const selectedEvents = events.filter(({ event }) =>
         selectedEventIds.includes(event.id),
     );
+
+    const visibleEvents = useMemo(() => {
+        const normalizedQuery = normalizeSearchValue(searchQuery.trim());
+
+        return events
+            .filter(({ district, event }) => {
+                const eventDate = getEventDateKey(event.startDate);
+
+                if (startDate && (!eventDate || eventDate < startDate)) {
+                    return false;
+                }
+
+                if (endDate && (!eventDate || eventDate > endDate)) {
+                    return false;
+                }
+
+                if (
+                    priceFilter === 'free' &&
+                    !isFreeEvent(event)
+                ) {
+                    return false;
+                }
+
+                if (
+                    priceFilter === 'paid' &&
+                    isFreeEvent(event)
+                ) {
+                    return false;
+                }
+
+                if (
+                    publishedFilter === 'published' &&
+                    event.isPublished !== true
+                ) {
+                    return false;
+                }
+
+                if (
+                    publishedFilter === 'unpublished' &&
+                    event.isPublished === true
+                ) {
+                    return false;
+                }
+
+                if (normalizedQuery) {
+                    const searchableValues = [
+                        event.title,
+                        event.type,
+                        district,
+                        event.location.name,
+                        event.location.locality ?? '',
+                    ];
+                    const matchesQuery = searchableValues.some((value) =>
+                        normalizeSearchValue(value).includes(normalizedQuery),
+                    );
+
+                    if (!matchesQuery) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            .sort((first, second) => compareEvents(first, second, sortOption));
+    }, [
+        endDate,
+        events,
+        priceFilter,
+        publishedFilter,
+        searchQuery,
+        sortOption,
+        startDate,
+    ]);
 
 
     return (
@@ -148,7 +289,7 @@ export function EventsWorkspace() {
                 <div className="min-w-0">
                     <EventsList
                         view={view}
-                        events={events}
+                        events={visibleEvents}
                         selectedEventIds={selectedEventIds}
                         onToggleEventSelection={toggleEventSelection}
                         onOpenEventDetails={openEventDetails}

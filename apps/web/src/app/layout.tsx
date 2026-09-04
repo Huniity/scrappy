@@ -6,6 +6,7 @@ import {
     Poppins,
 } from 'next/font/google';
 
+import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
 

@@ -22,14 +22,18 @@ export type EventItem = {
     id: string;
     title: string;
     startDate: string;
+    endDate: string;
     location: {
         name: string;
         locality: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
     };
     sourceUrl: string;
     type: string;
     imageUrl: string | null;
     isPublished?: boolean | null;
+    isAccessibleForFree?: boolean | null;
     offers: EventOffer[];
 };
 

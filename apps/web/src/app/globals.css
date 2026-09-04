@@ -236,20 +236,16 @@
 
     /* Global design tokens: shadows */
     --shadow-xs:
-        0 1px 2px
-        rgba(24, 39, 65, 0.05);
+        0 1px 2px rgba(24, 39, 65, 0.05);
 
     --shadow-sm:
-        0 2px 8px
-        rgba(24, 39, 65, 0.07);
+        0 2px 8px rgba(24, 39, 65, 0.07);
 
     --shadow-md:
-        0 4px 14px
-        rgba(24, 39, 65, 0.08);
+        0 4px 14px rgba(24, 39, 65, 0.08);
 
     --shadow-lg:
-        0 8px 24px
-        rgba(24, 39, 65, 0.10);
+        0 8px 24px rgba(24, 39, 65, 0.10);
 
 
     /* Global design tokens: radii */
@@ -330,4 +326,32 @@ a {
 
     text-decoration:
         none;
+}
+
+.event-map-pin-wrapper {
+    border: 0;
+    background: transparent;
+}
+
+.event-map-pin {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #ffffff;
+    border-radius: 50% 50% 50% 0;
+    background: var(--event-pin-color);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+
+    .event-map-pin::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ffffff;
+        content: '';
+        transform: translate(-50%, -50%);
+    }
 }
