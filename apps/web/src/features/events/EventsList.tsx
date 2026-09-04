@@ -115,14 +115,15 @@ export function EventsList({
                                     </label>
                                 </div>
 
-                                <div className="relative h-28 w-50 shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-28">
+                                <div className="relative h-28 w-[200px] shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)] max-[1200px]:h-16 max-[1200px]:w-28">
                                     {event.imageUrl ? (
                                         <Image
                                             src={event.imageUrl}
                                             alt=""
-                                            fill
+                                            width={200}
+                                            height={112}
                                             sizes="(max-width: 1200px) 112px, 200px"
-                                            className="object-cover"
+                                            className="h-full w-full object-cover"
                                         />
                                     ) : null}
                                 </div>

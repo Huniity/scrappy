@@ -359,14 +359,15 @@ export function EventsActionsPanel({
                 
 
                     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3">
-                        <div className="relative aspect-[2/1] w-full shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)]">
+                        <div className="relative aspect-[2/1] min-h-[180px] w-full shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)]">
                             {event.imageUrl && (
                                 <Image
                                     src={event.imageUrl}
                                     alt={event.title}
-                                    fill
+                                    width={800}
+                                    height={400}
                                     sizes="(max-width: 1200px) 100vw, 50vw"
-                                    className="object-cover"
+                                    className="h-full w-full object-cover"
                                 />
                             )}
                             <button
@@ -643,9 +644,10 @@ export function EventsActionsPanel({
                         <Image
                             src={event.imageUrl}
                             alt={event.title}
-                            fill
+                            width={1600}
+                            height={800}
                             sizes="90vw"
-                            className="object-contain"
+                            className="h-full w-full object-contain"
                             onLoad={(loadEvent) => {
                                 const { naturalWidth, naturalHeight } = loadEvent.currentTarget;
 
