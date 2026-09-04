@@ -34,6 +34,8 @@ coverage.*
 # Package-manager and frontend artifacts
 **/node_modules
 **/dist
+**/.next
+**/.turbo
 **/.npm
 **/.yarn
 **/.pnpm-store
