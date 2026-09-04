@@ -50,6 +50,23 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  # scraper:
+  #   build:
+  #     context: ../
+  #     dockerfile: ./ops/scraper/Dockerfile
+  #   environment:
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: "6379"
+  #     API_URL: http://api:5000/events
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     ingestion-worker:
+  #       condition: service_started
+  #   profiles:
+  #     - scheduled
+  #   restart: "no"
+
   mongodb:
     build:
       context: ../
