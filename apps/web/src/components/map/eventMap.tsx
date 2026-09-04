@@ -1,7 +1,7 @@
 'use client';
 
 import { divIcon, geoJSON } from 'leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
     GeoJSON,
     MapContainer,
@@ -18,13 +18,13 @@ import type {
 
 import type { EventRecord } from '../../features/events/events.types';
 import { useMunicipality } from '../backoffice/BackofficeShell';
+import { getEventTypeIconMarkup } from './eventTypeIcons';
+import localMunicipalities from './municipalityBoundaries.json';
 
 const portugalCenter: [number, number] = [39.5, -8];
-const municipalityApiUrl =
-    'https://ogcapi.dgterritorio.gov.pt/collections/municipios/items';
 
 type MunicipalityProperties = {
-    dtmn: string;
+    dtmn?: string;
     municipio: string;
 };
 
@@ -33,8 +33,12 @@ type MunicipalityResponse = FeatureCollection<
     MunicipalityProperties
 >;
 
+const localMunicipalitiesData =
+    localMunicipalities as unknown as MunicipalityResponse;
+
 type EventMapProps = {
     events: EventRecord[];
+    onToggleEventSelection: (eventId: string) => void;
     onOpenEventDetails: (eventId: string) => void;
 };
 
@@ -65,7 +69,7 @@ const districtColors: Record<string, string> = {
     Leiria: '#8755b5',
 };
 
-function getEventPinIcon(district: string) {
+function getEventPinIcon(district: string, eventType: string) {
     const color = districtColors[district] ?? '#2d8a5f';
 
     return divIcon({
@@ -74,11 +78,15 @@ function getEventPinIcon(district: string) {
               <span
                   class="event-map-pin"
                   style="--event-pin-color: ${color}"
-              ></span>
+              >
+                  <span class="event-map-pin-icon">
+                      ${getEventTypeIconMarkup(eventType)}
+                  </span>
+              </span>
           `,
-        iconSize: [24, 32],
-        iconAnchor: [12, 32],
-        popupAnchor: [0, -32],
+        iconSize: [34, 42],
+        iconAnchor: [17, 42],
+        popupAnchor: [0, -42],
     });
 }
 
@@ -115,32 +123,19 @@ function belongsToMunicipality(record: EventRecord, municipality: string) {
     );
 }
 
-async function fetchMunicipalityBoundary(
+function getLocalMunicipalityBoundary(
     municipality: string,
-    signal: AbortSignal,
-): Promise<MunicipalityResponse | null> {
-    const params = new URLSearchParams({
-        f: 'json',
-        limit: '1',
-        municipio: municipality,
-    });
-    const response = await fetch(`${municipalityApiUrl}?${params}`, { signal });
-
-    if (!response.ok) {
-        throw new Error(`CAOP request failed with status ${response.status}`);
-    }
-
-    const data = (await response.json()) as MunicipalityResponse;
-
-    const feature = data.features.find(
-        ({ properties }) => properties.municipio === municipality,
+): MunicipalityResponse | null {
+    const normalizedMunicipality = normalizeMunicipality(municipality);
+    const feature = localMunicipalitiesData.features.find(({ properties }) =>
+        normalizeMunicipality(properties.municipio) === normalizedMunicipality,
     );
 
     return feature
         ? {
-            type: 'FeatureCollection',
-            features: [feature],
-        }
+              type: 'FeatureCollection',
+              features: [feature],
+          }
         : null;
 }
 
@@ -170,55 +165,21 @@ function FitMapToMunicipality({
     return null;
 }
 
-function formatBoundaryError(error: unknown) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-        return null;
-    }
-
-    return 'Não foi possível carregar o limite do município.';
-}
-
 function MunicipalityMap({
     municipality,
     events,
+    onToggleEventSelection,
     onOpenEventDetails,
 }: {
     municipality: string;
     events: EventRecord[];
+    onToggleEventSelection: (eventId: string) => void;
     onOpenEventDetails: (eventId: string) => void;
 }) {
-    const [boundary, setBoundary] = useState<MunicipalityResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<unknown>(null);
+    const boundary = getLocalMunicipalityBoundary(municipality);
     const locatedEvents = events
         .filter(hasCoordinates)
         .filter((record) => belongsToMunicipality(record, municipality));
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        fetchMunicipalityBoundary(municipality, controller.signal)
-            .then((feature) => {
-                if (!controller.signal.aborted) {
-                    setBoundary(feature);
-                    setError(null);
-                }
-            })
-            .catch((requestError: unknown) => {
-                if (!controller.signal.aborted) {
-                    setError(requestError);
-                }
-            })
-            .finally(() => {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false);
-                }
-            });
-
-        return () => controller.abort();
-    }, [municipality]);
-
-    const boundaryError = formatBoundaryError(error);
 
     return (
         <div className="z-0 relative h-full min-h-[400px] w-full overflow-hidden rounded-md bg-[var(--map-background)]">
@@ -251,7 +212,7 @@ function MunicipalityMap({
                             event.location.latitude,
                             event.location.longitude,
                         ]}
-                        icon={getEventPinIcon(district)}
+                        icon={getEventPinIcon(district, event.type)}
                         eventHandlers={{
                             click: () => onOpenEventDetails(event.id),
                         }}
@@ -290,25 +251,33 @@ function MunicipalityMap({
                                         )}
                                 </span>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        onOpenEventDetails(event.id)}
-                                    className="rounded bg-[var(--primary)] px-2 py-1 text-xs font-semibold text-white"
-                                >
-                                    Ver detalhes
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            onOpenEventDetails(event.id)}
+                                        className="flex-1 rounded border border-[var(--primary)] bg-[var(--primary)] px-2 py-1 text-xs font-semibold text-white"
+                                    >
+                                        Ver detalhes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            onToggleEventSelection(event.id)}
+                                        className="flex-1 rounded border border-[var(--primary)] bg-[var(--surface)] px-2 py-1 text-xs font-semibold text-[var(--primary)]"
+                                    >
+                                        Selecionar
+                                    </button>
+                                </div>
                             </div>
                         </Popup>
                     </Marker>
                 ))}
             </MapContainer>
 
-            {(isLoading || !boundary) && (
+            {!boundary && (
                 <div className="pointer-events-none absolute left-3 top-3 z-[400] rounded-md bg-[var(--surface)]/95 px-3 py-2 text-xs text-[var(--text-secondary)] shadow-sm">
-                    {isLoading
-                        ? `A carregar ${municipality}...`
-                        : boundaryError ?? `Limite de ${municipality} não encontrado.`}
+                    Limite de {municipality} não encontrado.
                 </div>
             )}
         </div>
@@ -316,19 +285,20 @@ function MunicipalityMap({
 }
 
 const EventMap = ({
-      events,
-      onOpenEventDetails,
-  }: EventMapProps) => {
-      const selectedMunicipality = useMunicipality();
+    events,
+    onToggleEventSelection,
+    onOpenEventDetails,
+}: EventMapProps) => {
+    const selectedMunicipality = useMunicipality();
 
-      return (
-          <MunicipalityMap
-              key={selectedMunicipality}
-              municipality={selectedMunicipality}
-              events={events}
-              onOpenEventDetails={onOpenEventDetails}
-          />
-      );
-  };
+    return (
+        <MunicipalityMap
+            municipality={selectedMunicipality}
+            events={events}
+            onToggleEventSelection={onToggleEventSelection}
+            onOpenEventDetails={onOpenEventDetails}
+        />
+    );
+};
 
 export default EventMap;

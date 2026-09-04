@@ -43,6 +43,7 @@ export function EventsList({
                 <div className="h-full w-full">
                     <EventMap
                         events={events}
+                        onToggleEventSelection={onToggleEventSelection}
                         onOpenEventDetails={onOpenEventDetails}
                     />
                 </div>

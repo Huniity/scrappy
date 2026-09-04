@@ -7,6 +7,7 @@ import eventsMock from './events.mock.json';
 import { EventsActionsPanel } from './EventsActionsPanel';
 import { EventsFilters } from './EventsFilters';
 import { EventsList } from './EventsList';
+import { useMunicipality } from '@/components/backoffice/BackofficeShell';
 import { EventsStats } from './EventsStats';
 import type {
     ActivePanel,
@@ -90,6 +91,7 @@ function compareEvents(
 }
 
 export function EventsWorkspace() {
+    const selectedMunicipality = useMunicipality();
     const [view, setView] = useState<EventView>('map');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -101,6 +103,7 @@ export function EventsWorkspace() {
     const [detailsEventId, setDetailsEventId] = useState<string | null>(null);
     const [activePanel, setActivePanel] = useState<ActivePanel>('details');
     const [isActionsPanelOpen, setIsActionsPanelOpen] = useState(false);
+    const [isFinishedEventsAction, setIsFinishedEventsAction] = useState(false);
     const [sortOption, setSortOption] = useState<SortOption>('date-asc');
 
     function toggleEventSelection(eventId: string) {
@@ -113,6 +116,7 @@ export function EventsWorkspace() {
         );
 
         if (!isSelected) {
+            setIsFinishedEventsAction(false);
             setDetailsEventId(eventId);
             setActivePanel('actions');
             setIsActionsPanelOpen(true);
@@ -122,8 +126,24 @@ export function EventsWorkspace() {
     }
 
     function openEventDetails(eventId: string) {
+        setIsFinishedEventsAction(false);
         setDetailsEventId(eventId);
         setActivePanel('details');
+        setIsActionsPanelOpen(true);
+    }
+
+    function openFinishedEventsActions() {
+        const finishedPublishedEventIds = finishedPublishedEvents.map(
+            ({ event }) => event.id,
+        );
+
+        if (finishedPublishedEventIds.length === 0) {
+            return;
+        }
+
+        setSelectedEventIds(finishedPublishedEventIds);
+        setIsFinishedEventsAction(true);
+        setActivePanel('actions');
         setIsActionsPanelOpen(true);
     }
 
@@ -145,6 +165,15 @@ export function EventsWorkspace() {
     const selectedEvents = events.filter(({ event }) =>
         selectedEventIds.includes(event.id),
     );
+
+    const finishedPublishedEvents = events.filter(({ event }) =>
+        event.isFinished === true &&
+        event.isPublished === true &&
+        normalizeSearchValue(event.location.locality ?? '') ===
+            normalizeSearchValue(selectedMunicipality),
+    );
+
+    const hasFinishedPublishedEvents = finishedPublishedEvents.length > 0;
 
     const visibleEvents = useMemo(() => {
         const normalizedQuery = normalizeSearchValue(searchQuery.trim());
@@ -231,13 +260,13 @@ export function EventsWorkspace() {
                     </h1>
                 </div>
 
-                <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="flex rounded-md border border-[var(--border-strong)]">
+                <div className="flex items-center justify-center gap-2">
+                    <div className="flex h-9 rounded-md border border-[var(--border-strong)]">
                         <button
                             type="button"
                             aria-pressed={view === 'map'}
                             onClick={() => setView('map')}
-                            className={`rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'map'
+                            className={`h-full rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'map'
                                 ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                 : '!text-[var(--text-primary)]'
                                 }`}
@@ -249,7 +278,7 @@ export function EventsWorkspace() {
                             type="button"
                             aria-pressed={view === 'list'}
                             onClick={() => setView('list')}
-                            className={`rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'list'
+                            className={`h-full rounded-md px-8 py-2 max-[1200px]:px-6 ${view === 'list'
                                 ? 'bg-[var(--text-primary)] !text-[var(--text-inverse)]'
                                 : '!text-[var(--text-primary)]'
                                 }`}
@@ -257,6 +286,23 @@ export function EventsWorkspace() {
                             Lista
                         </button>
                     </div>
+
+                    {hasFinishedPublishedEvents && (
+                        <button
+                            type="button"
+                            aria-label="Ver eventos publicados que já terminaram"
+                            onClick={openFinishedEventsActions}
+                            className="group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--warning)] bg-[var(--warning-soft)] text-lg font-bold leading-none text-[var(--warning)] shadow-sm transition-colors hover:bg-[var(--warning-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--warning)] focus-visible:ring-offset-2"
+                        >
+                            <span aria-hidden="true">!</span>
+                            <span
+                                role="tooltip"
+                                className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-50 w-64 -translate-x-1/2 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-normal leading-4 text-[var(--text-primary)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                            >
+                                Existem eventos publicados que já terminaram.
+                            </span>
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex justify-end" />
@@ -307,6 +353,7 @@ export function EventsWorkspace() {
                         activePanel={activePanel}
                         selectedEvents={selectedEvents}
                         detailsEventId={detailsEventId}
+                        isFinishedEventsAction={isFinishedEventsAction}
                         onPanelChange={setActivePanel}
                         onRemoveEvent={toggleEventSelection}
                         onClose={() => setIsActionsPanelOpen(false)}

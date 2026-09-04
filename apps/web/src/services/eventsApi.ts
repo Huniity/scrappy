@@ -10,6 +10,7 @@ export interface EventItem {
         title: string;
         description: string;
         isPublished: boolean;
+        isFinished?: boolean | null;
         location: {
             latitude: number | null;
             longitude: number | null;

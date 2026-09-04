@@ -33,6 +33,7 @@ export type EventItem = {
     type: string;
     imageUrl: string | null;
     isPublished?: boolean | null;
+    isFinished?: boolean | null;
     isAccessibleForFree?: boolean | null;
     offers: EventOffer[];
 };

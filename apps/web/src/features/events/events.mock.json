@@ -29,6 +29,8 @@
       "alternateName": "",
       "doorTime": null,
       "imageUrl": "https://cdn.viralagenda.com/images/events/ext/1835375-6a439e1729400e4c0f06c1bb97800a80-r.jpeg",
+      "isPublished": true,
+      "isFinished": true,
       "isAccessibleForFree": null,
       "physicalAccessibility": false,
       "ageRating": 6,

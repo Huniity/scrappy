@@ -204,6 +204,7 @@ type EventsActionsPanelProps = {
     activePanel: ActivePanel;
     selectedEvents: EventRecord[];
     detailsEventId: string | null;
+    isFinishedEventsAction: boolean;
     onPanelChange: (panel: ActivePanel) => void;
     onRemoveEvent: (eventId: string) => void;
     onClose: () => void;
@@ -213,6 +214,7 @@ export function EventsActionsPanel({
     activePanel,
     selectedEvents,
     detailsEventId,
+    isFinishedEventsAction,
     onPanelChange,
     onRemoveEvent,
     onClose,
@@ -297,7 +299,9 @@ export function EventsActionsPanel({
                         {selectedEvents.length > 0 ? (
                             <>
                                 <h2 className="shrink-0 text-sm font-bold text-[var(--text-primary)]">
-                                    Eventos selecionados:
+                                    {isFinishedEventsAction
+                                        ? 'Estes eventos já terminaram. Remover?'
+                                        : 'Eventos selecionados:'}
                                 </h2>
                                 <div className="min-h-0 max-h-[180px] flex-1 overflow-y-auto max-[1450px]:max-h-[140px]">
                                     {selectedEvents.map(({ event }) => (
@@ -329,7 +333,7 @@ export function EventsActionsPanel({
                         <div className="mt-auto grid w-full shrink-0 grid-cols-1 gap-2 min-[1451px]:grid-cols-3 max-[1200px]:gap-1">
                             <button
                                 type="button"
-                                disabled={selectedEvents.length === 0}
+                                disabled={isFinishedEventsAction || selectedEvents.length === 0}
                                 className="min-w-0 w-full whitespace-normal break-words rounded-md border border-[var(--text-primary)] bg-[var(--text-primary)] px-2 py-2 text-center text-xs font-semibold text-[var(--text-inverse)] shadow-sm transition-colors hover:bg-[var(--text-secondary)] disabled:cursor-not-allowed disabled:opacity-40 max-[1450px]:h-9 max-[1450px]:whitespace-nowrap max-[1200px]:px-1 max-[1200px]:text-[10px] max-[1200px]:leading-tight"
                             >
                                 Publicar
@@ -343,7 +347,7 @@ export function EventsActionsPanel({
                             </button>
                             <button
                                 type="button"
-                                disabled={selectedEvents.length === 0}
+                                disabled={isFinishedEventsAction || selectedEvents.length === 0}
                                 className="min-w-0 w-full whitespace-normal break-words rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-2 py-2 text-center text-xs font-semibold text-[var(--text-primary)] shadow-sm transition-colors hover:border-[var(--text-primary)] hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-40 max-[1450px]:h-9 max-[1450px]:whitespace-nowrap max-[1200px]:px-1 max-[1200px]:text-[10px] max-[1200px]:leading-tight"
                             >
                                 Apagar
