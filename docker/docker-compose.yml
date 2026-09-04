@@ -1,6 +1,22 @@
 name: scrappy
 
 services:
+  next:
+    build:
+      context: ../
+      dockerfile: ./ops/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:5000
+    container_name: scrappy_web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
   api:
     build:
       context: ../
@@ -9,12 +25,14 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ConnectionStrings__MongoDB=mongodb://mongodb:27017/scrappy_db
-      - ConnectionStrings__Redis=redis:6379
-      - ASPNETCORE_ENVIRONMENT=Development
+      ConnectionStrings__MongoDb: mongodb://mongodb:27017/scrappy_db
+      ASPNETCORE_ENVIRONMENT: Development
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
   ingestion-worker:
     build:
@@ -32,10 +50,10 @@ services:
         condition: service_started
     restart: unless-stopped
 
-
   mongodb:
-    # image: mongo:latest
-    image: mongo:8.3.8-noble
+    build:
+      context: ../
+      dockerfile: ./ops/mongodb/Dockerfile
     container_name: scrappy_mongo
     ports:
       - "27017:27017"
@@ -43,22 +61,18 @@ services:
       MONGO_INITDB_DATABASE: scrappy_db
     volumes:
       - mongo_data:/data/db
-
+    restart: unless-stopped
 
   redis:
-    # image: redis:alpine
-    image: redis:8.10.0-alpine
+    build:
+      context: ../
+      dockerfile: ./ops/redis/Dockerfile
     container_name: scrappy_redis
     ports:
       - "6379:6379"
-    volumes: 
+    volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+    restart: unless-stopped
 
 volumes:
   redis_data:
