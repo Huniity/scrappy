@@ -38,7 +38,7 @@ export function EventsList({
     isActionsPanelOpen,
 }: EventsListProps) {
     return (
-        <div className={`${styles.eventsPanel} w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]`}>
+        <div className={`${styles.eventsPanel} w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] shadow-sm`}>
             {view === 'map' ? (
                 <div className="h-full w-full">
                     <EventMap

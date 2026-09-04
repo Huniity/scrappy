@@ -104,11 +104,11 @@ export function EventsFilters({
     }, [isSortOpen]);
 
     return (
-        <div className="flex min-h-[80px] w-full flex-col gap-4 rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] px-4 py-6 max-[1200px]:gap-3 max-[1200px]:px-3 max-[1200px]:py-4">
+        <div className="flex min-h-[80px] w-full flex-col gap-4 rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] px-4 py-6 shadow-sm max-[1200px]:gap-3 max-[1200px]:px-3 max-[1200px]:py-4">
             <div className="grid grid-cols-[4fr_2fr_3fr_1fr] items-end gap-6 max-[1200px]:gap-3">
                 <div className="flex flex-col gap-1">
                     <span className="text-sm font-bold text-[var(--text-secondary)]">Estado</span>
-                    <div className="flex w-full rounded-md border border-[var(--border-strong)]">
+                    <div className="flex w-full rounded-md border border-[var(--border-strong)] shadow-sm">
                         <button
                             type="button"
                             aria-pressed={publishedFilter === 'all'}
@@ -216,7 +216,7 @@ export function EventsFilters({
                         type="text"
                         value={searchQuery}
                         onChange={(event) => onSearchQueryChange(event.target.value)}
-                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-sm outline-none focus:border-[var(--primary)]"
                     />
                 </div>
 
@@ -230,7 +230,7 @@ export function EventsFilters({
                             setIsSortOpen(false);
                             setIsFiltersOpen((open) => !open);
                         }}
-                        className="flex w-auto items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                        className="flex w-auto items-center justify-center gap-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] shadow-sm transition-colors hover:bg-[var(--surface-muted)]"
                     >
                         <span>Filtros</span>
                         <span
@@ -260,7 +260,7 @@ export function EventsFilters({
                                         type="date"
                                         value={startDate}
                                         onChange={(event) => onStartDateChange(event.target.value)}
-                                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-sm outline-none focus:border-[var(--primary)]"
                                     />
                                 </div>
 
@@ -276,13 +276,13 @@ export function EventsFilters({
                                         type="date"
                                         value={endDate}
                                         onChange={(event) => onEndDateChange(event.target.value)}
-                                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                                        className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] shadow-sm outline-none focus:border-[var(--primary)]"
                                     />
                                 </div>
 
                                 <div className="col-span-2 flex flex-col gap-1">
                                     <span className="text-sm font-bold text-[var(--text-secondary)]">Preço</span>
-                                    <div className="flex w-full rounded-md border border-[var(--border-strong)]">
+                                    <div className="flex w-full rounded-md border border-[var(--border-strong)] shadow-sm">
                                         <button
                                             type="button"
                                             aria-pressed={priceFilter === 'all'}
@@ -326,7 +326,7 @@ export function EventsFilters({
                                 <button
                                     type="button"
                                     onClick={onReset}
-                                    className="max-w-lg cursor-pointer rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                                    className="max-w-lg cursor-pointer rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] shadow-sm transition-colors hover:bg-[var(--surface-muted)]"
                                 >
                                     Limpar filtros
                                 </button>

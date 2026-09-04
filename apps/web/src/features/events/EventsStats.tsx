@@ -31,7 +31,7 @@ function StatCard({
 }: StatCardProps) {
     return (
         <div>
-            <div className="grid h-[100px] w-full grid-cols-[2fr_5fr] rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] max-[1200px]:h-[92px]">
+            <div className="grid h-[100px] w-full grid-cols-[2fr_5fr] rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] shadow-sm max-[1200px]:h-[92px]">
                 <div className="relative flex h-full w-full items-center justify-center">
                     <div
                         aria-hidden="true"

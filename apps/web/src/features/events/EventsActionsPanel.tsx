@@ -34,7 +34,6 @@ type EventOffer = {
     name?: string | null;
     price?: number | null;
     priceCurrency?: string | null;
-    availability?: string | null;
     url?: string | null;
     validFrom?: string | null;
 };
@@ -254,7 +253,7 @@ export function EventsActionsPanel({
     }, [isImageExpanded]);
 
     return (
-        <div className={`${styles.eventsPanel} relative w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)]`}>
+        <div className={`${styles.eventsPanel} relative w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] shadow-sm`}>
             <div className="flex h-full flex-col overflow-hidden p-3">
                 <div className="relative flex shrink-0 justify-center">
                     <button
@@ -568,11 +567,6 @@ export function EventsActionsPanel({
                                             {offer.priceCurrency && (
                                                 <DetailRow label="Moeda">
                                                     {offer.priceCurrency}
-                                                </DetailRow>
-                                            )}
-                                            {offer.availability && (
-                                                <DetailRow label="Disponibilidade">
-                                                    <ExternalLink href={offer.availability} />
                                                 </DetailRow>
                                             )}
                                             {offer.url && (
