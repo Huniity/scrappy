@@ -7,9 +7,9 @@ using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
+using Scrappy.Mappers;
 using Scrappy.Services.Interfaces;
 using Scrappy.Validators;
-using System.Globalization;
 
 namespace Scrappy.Services;
 
@@ -33,8 +33,6 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         if (geoData is null)
             return Result<DistrictEvent>.Failure("Could not find geo data for the provided locality.");
-
-        var resolvedGeoData = geoData.Value;
 
         dto.Location.District = geoData.Value.District;
         dto.Location.Region = geoData.Value.Region;
@@ -151,48 +149,13 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             cleanLocation,
             dto.Type);
 
-        var districtEvent = new DistrictEvent
-        {
-            Id = ObjectId.GenerateNewId().ToString(),
-            District = resolvedGeoData.District,
-            Event = new Event
-            {
-                Id = ObjectId.GenerateNewId().ToString(),
-                Title = dto.Title.Trim(),
-                Description = cleanDescription,
-                StartDate = startDate,
-                EndDate = endDate,
-                Location = MapLocation(dto.Location, resolvedGeoData),
-                SourceUrl = dto.SourceUrl.Trim(),
-                SourceUrls = [dto.SourceUrl.Trim()],
-                AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
-                ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
-                IsFinished = isFinished,
-                RetentionUntil = retentionUntil,
-                DoorTime = dto.DoorTime,
-                IsAccessibleForFree = dto.IsAccessibleForFree,
-                PhysicalAccessibility = dto.PhysicalAccessibility,
-                AgeRating = dto.AgeRating,
-                Status = dto.Status ?? EventStatus.Scheduled,
-                MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
-                Keywords = MapKeywords(dto.Keywords),
-                Type = dto.Type!.Value,
-                Organizer = MapAgents(dto.Organizer),
-                Promoter = MapAgents(dto.Promoter),
-                Maintainer = MapAgents(dto.Maintainer),
-                Funder = MapAgents(dto.Funder),
-                Actor = MapAgents(dto.Actor),
-                Director = MapAgents(dto.Director),
-                Composer = MapAgents(dto.Composer),
-                Performers = MapAgents(dto.Performers),
-                Audience = MapAudiences(dto.Audience),
-                Duration = dto.Duration?.Trim(),
-                AttendanceMode = dto.AttendanceMode,
-                Offers = MapOffers(dto.Offers),
-                QualityScore = qualityScore,
-                Schedule = MapSchedule(dto.Schedule)
-            }
-        };
+        var districtEvent = dto.ToEntity(
+            startDate,
+            endDate,
+            cleanDescription,
+            qualityScore,
+            isFinished,
+            retentionUntil);
 
         // Prevent two concurrent ingestion jobs for the same locality from both
         // observing "no match" and inserting duplicate documents.
@@ -374,7 +337,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         var schedule = dto.Schedule is null
             ? existingEvent.Event.Schedule
-            : MapSchedule(dto.Schedule);
+            : dto.Schedule.ToScheduleModel();
 
         if (!Validator.IsScheduleValid(schedule, startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid schedule.");
@@ -387,7 +350,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
 
         var offers = dto.Offers is null
             ? existingEvent.Event.Offers
-            : MapOffers(dto.Offers);
+            : dto.Offers.Select(offer => offer.ToOfferModel()).ToList();
 
         if (!Validator.AreOffersValid(offers, startDate, endDate))
             return Result<DistrictEvent>.Failure("Invalid offers.");
@@ -396,7 +359,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         var description = dto.Description?.Trim() ?? existingEvent.Event.Description;
         var location = dto.Location is null
             ? existingEvent.Event.Location
-            : MapLocation(dto.Location);
+            : dto.Location.ToEventLocation();
         var locationName = location?.Name;
         var district = location?.District ?? existingEvent.District;
         var title = dto.Title?.Trim() ?? existingEvent.Event.Title;
@@ -404,7 +367,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         var imageUrl = dto.ImageUrl?.Trim() ?? existingEvent.Event.ImageUrl;
         var keywords = dto.Keywords is null
             ? existingEvent.Event.Keywords
-            : MapKeywords(dto.Keywords);
+            : dto.Keywords.Select(keyword => keyword.Trim()).ToList();
 
         if (!Validator.IsTitleValid(title))
             return Result<DistrictEvent>.Failure("Invalid title.");
@@ -415,130 +378,29 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
                 "An event with the same district, title, and start date already exists.");
         }
 
-        if (dto.Organizer is not null)
-            existingEvent.Event.Organizer = MapAgents(dto.Organizer);
-
-        if (dto.Promoter is not null)
-            existingEvent.Event.Promoter = MapAgents(dto.Promoter);
-
-        if (dto.Maintainer is not null)
-            existingEvent.Event.Maintainer = MapAgents(dto.Maintainer);
-
-        if (dto.Performers is not null)
-            existingEvent.Event.Performers = MapAgents(dto.Performers);
-
-        if (dto.Funder is not null)
-            existingEvent.Event.Funder = MapAgents(dto.Funder);
-
-        if (dto.Actor is not null)
-            existingEvent.Event.Actor = MapAgents(dto.Actor);
-
-        if (dto.Director is not null)
-            existingEvent.Event.Director = MapAgents(dto.Director);
-
-        if (dto.Composer is not null)
-            existingEvent.Event.Composer = MapAgents(dto.Composer);
-
-        if (dto.Audience is not null)
-            existingEvent.Event.Audience = MapAudiences(dto.Audience);
-
-        if (dto.Schedule is not null)
-            existingEvent.Event.Schedule = schedule;
-
-        if (dto.Offers is not null)
-            existingEvent.Event.Offers = offers;
-
-        if (dto.IsPublished.HasValue)
-            existingEvent.Event.IsPublished = dto.IsPublished.Value;
+        existingEvent.UpdateEntity(dto);
 
         existingEvent.District = district;
-        existingEvent.Event.Title = title;
-        existingEvent.Event.Description = description;
         existingEvent.Event.StartDate = startDate;
         existingEvent.Event.EndDate = endDate;
         existingEvent.Event.Location = location;
-        existingEvent.Event.SourceUrl = dto.SourceUrl?.Trim() ?? existingEvent.Event.SourceUrl;
-        existingEvent.Event.AlternateName = alternateName;
-        existingEvent.Event.ImageUrl = imageUrl;
+        existingEvent.Event.Schedule = schedule;
+        existingEvent.Event.Offers = offers;
+        existingEvent.Event.Keywords = keywords;
         existingEvent.Event.IsFinished = isFinished;
         existingEvent.Event.RetentionUntil = retentionUntil;
-        existingEvent.Event.DoorTime = dto.DoorTime ?? existingEvent.Event.DoorTime;
-        existingEvent.Event.IsAccessibleForFree =
-            dto.IsAccessibleForFree ?? existingEvent.Event.IsAccessibleForFree;
-        existingEvent.Event.PhysicalAccessibility =
-            dto.PhysicalAccessibility ?? existingEvent.Event.PhysicalAccessibility;
-        existingEvent.Event.AgeRating = dto.AgeRating ?? existingEvent.Event.AgeRating;
-        existingEvent.Event.MaximumAttendeeCapacity =
-            dto.MaximumAttendeeCapacity ?? existingEvent.Event.MaximumAttendeeCapacity;
-        existingEvent.Event.Keywords = keywords;
         existingEvent.Event.Type = eventType;
         existingEvent.Event.QualityScore = EventQualityService.ComputeQualityScore(
             description,
             startDate,
             locationName,
             eventType);
-        existingEvent.Event.Duration = dto.Duration?.Trim() ?? existingEvent.Event.Duration;
-
-        if (dto.AttendanceMode.HasValue)
-            existingEvent.Event.AttendanceMode =
-            dto.AttendanceMode;
-
-        if (dto.Status.HasValue)
-            existingEvent.Event.Status = dto.Status.Value;
 
         await _eventsCollection.ReplaceOneAsync(
             e => e.Id == existingEvent.Id,
             existingEvent);
 
         return Result<DistrictEvent>.Success(existingEvent);
-    }
-
-    private static EventLocation MapLocation(EventLocationRequestDto dto) => new()
-    {
-        Name = dto.Name.Trim(),
-        StreetAddress = dto.StreetAddress?.Trim(),
-        PostalCode = dto.PostalCode?.Trim(),
-        Locality = dto.Locality!.Value,
-        District = dto.District!.Value,
-        Region = dto.Region!.Value,
-        Country = dto.Country.Trim(),
-        DicoCode = dto.DicoCode?.Trim(),
-        Url = dto.Url,
-        SameAs = dto.SameAs,
-        Latitude = ParseCoordinate(dto.Latitude),
-        Longitude = ParseCoordinate(dto.Longitude)
-    };
-
-    private static EventLocation MapLocation(
-        EventLocationRequestDto dto,
-        (DistrictName? District, Nuts2Region Region, string DicoCode) geoData) => new()
-    {
-        Name = dto.Name.Trim(),
-        StreetAddress = dto.StreetAddress?.Trim(),
-        PostalCode = dto.PostalCode?.Trim(),
-        Locality = dto.Locality!.Value,
-        District = geoData.District,
-        Region = geoData.Region,
-        Country = "PT",
-        DicoCode = geoData.DicoCode,
-        Url = dto.Url,
-        SameAs = dto.SameAs,
-        Latitude = ParseCoordinate(dto.Latitude),
-        Longitude = ParseCoordinate(dto.Longitude)
-    };
-
-    private static double? ParseCoordinate(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        return double.TryParse(
-            value,
-            NumberStyles.Float,
-            CultureInfo.InvariantCulture,
-            out var coordinate)
-            ? coordinate
-            : null;
     }
 
     public async Task<Result<DistrictEvent>> DeleteEvent(string id)
@@ -574,74 +436,4 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             : Result<DistrictEvent>.Success(districtEvent);
     }
 
-    private static AgentModel MapAgent(EventAgentRequestDto dto) => new()
-    {
-        Name = dto.Name.Trim(),
-        Type = dto.Type,
-        Url = dto.Url?.Trim(),
-        ImageUrl = dto.ImageUrl?.Trim(),
-        SameAs = dto.SameAs?.Trim()
-    };
-
-    private static List<AgentModel> MapAgents( IEnumerable<EventAgentRequestDto>? agents)
-    {
-        return agents?
-            .Where(agent => agent is not null)
-            .Select(MapAgent)
-            .ToList() ?? new();
-    }
-
-    private static OfferModel MapOffer(EventOfferRequestDto dto) => new()
-    {
-        Name = dto.Name.Trim(),
-        Price = dto.Price,
-        PriceCurrency = dto.PriceCurrency.Trim().ToUpperInvariant(),
-        Availability = dto.Availability.Trim(),
-        Url = dto.Url?.Trim(),
-        ValidFrom = dto.ValidFrom
-    };
-
-    private static List<OfferModel> MapOffers(
-        IEnumerable<EventOfferRequestDto>? offers)
-    {
-        return offers?
-            .Select(MapOffer)
-            .ToList() ?? new();
-    }
-
-    private static AudienceModel MapAudience(EventAudienceRequestDto dto) => new()
-    {
-        Name = dto.Name?.Trim(),
-        AudienceType = dto.AudienceType?.Trim()
-    };
-
-    private static List<AudienceModel> MapAudiences(IEnumerable<EventAudienceRequestDto>? audiences)
-    {
-        return audiences?
-            .Select(MapAudience)
-            .ToList() ?? new();
-    }
-
-    private static List<string> MapKeywords(IEnumerable<string>? keywords)
-    {
-        return keywords?
-            .Select(keyword => keyword.Trim())
-            .ToList() ?? new();
-    }
-
-    private static ScheduleModel? MapSchedule(EventScheduleRequestDto? dto)
-    {
-        if (dto is null)
-            return null;
-
-        return new ScheduleModel
-        {
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
-            StartTime = dto.StartTime?.Trim(),
-            EndTime = dto.EndTime?.Trim(),
-            TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
-            RepeatDays = dto.RepeatDays
-        };
-    }
 }

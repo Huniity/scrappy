@@ -1,5 +1,6 @@
 
 
+using MongoDB.Bson;
 using System.Globalization;
 using Scrappy.DTOs.Requests;
 using Scrappy.Models;
@@ -19,41 +20,60 @@ public static class EventRequestMapper
 {
     /// <summary> Maps a <see cref="CreateEventDto"/> to a <see cref="DistrictEvent"/> entity. </summary>
     /// <param name="dto">The <see cref="CreateEventDto"/> to map.</param>
+    /// <param name="startDate">The normalized event start date.</param>
+    /// <param name="endDate">The normalized event end date.</param>
+    /// <param name="description">The validated event description.</param>
+    /// <param name="qualityScore">The calculated event quality score.</param>
+    /// <param name="isFinished">Whether the event has already finished.</param>
+    /// <param name="retentionUntil">The event retention deadline, if finished.</param>
     /// <returns>A new <see cref="DistrictEvent"/> entity with properties mapped from the provided DTO.</returns>
-    public static DistrictEvent ToEntity(this CreateEventDto dto) => new()
+    public static DistrictEvent ToEntity(
+        this CreateEventDto dto,
+        DateTime startDate,
+        DateTime? endDate,
+        string description,
+        decimal qualityScore,
+        bool isFinished,
+        DateTime? retentionUntil) => new()
     {
+        Id = ObjectId.GenerateNewId().ToString(),
         District = dto.Location.District
             ?? throw new ArgumentException("Location district is required.", nameof(dto)),
         Event = new Event
         {
-            Title = dto.Title,
-            Description = CreateEventInputNormalizer.NormalizeDescription(
-                dto.Description,
-                dto.Title),
-            AlternateName = dto.AlternateName ?? string.Empty,
-            StartDate = CreateEventInputNormalizer.NormalizeStartDate(dto.StartDate),
-            EndDate = CreateEventInputNormalizer.NormalizeEndDate(dto.EndDate),
+            Id = ObjectId.GenerateNewId().ToString(),
+            Title = dto.Title.Trim(),
+            Description = description,
+            AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
+            StartDate = startDate,
+            EndDate = endDate,
             DoorTime = dto.DoorTime,
-            Type = dto.Type,
-            SourceUrl = dto.SourceUrl,
-            ImageUrl = dto.ImageUrl ?? string.Empty,
+            Type = dto.Type!.Value,
+            SourceUrl = dto.SourceUrl.Trim(),
+            SourceUrls = [dto.SourceUrl.Trim()],
+            ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
             IsAccessibleForFree = dto.IsAccessibleForFree,
             PhysicalAccessibility = dto.PhysicalAccessibility,
             AgeRating = dto.AgeRating,
             MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
-            Keywords = dto.Keywords,
+            Keywords = dto.Keywords?.Select(keyword => keyword.Trim()).ToList() ?? new(),
             Location = dto.Location.ToEventLocation(),
-            Organizer = dto.Organizer.Select(ToAgentModel).ToList(),
-            Promoter = dto.Promoter.Select(ToAgentModel).ToList(),
-            Performers = dto.Performers.Select(ToAgentModel).ToList(),
-            Maintainer = dto.Maintainer.Select(ToAgentModel).ToList(),
-            Actor = dto.Actor.Select(ToAgentModel).ToList(),
-            Director = dto.Director.Select(ToAgentModel).ToList(),
-            Composer = dto.Composer.Select(ToAgentModel).ToList(),
-            Funder = dto.Funder.Select(ToAgentModel).ToList(),
-            Audience = dto.Audience.Select(ToAudienceModel).ToList(),
+            Organizer = dto.Organizer?.Select(ToAgentModel).ToList() ?? new(),
+            Promoter = dto.Promoter?.Select(ToAgentModel).ToList() ?? new(),
+            Performers = dto.Performers?.Select(ToAgentModel).ToList() ?? new(),
+            Maintainer = dto.Maintainer?.Select(ToAgentModel).ToList() ?? new(),
+            Actor = dto.Actor?.Select(ToAgentModel).ToList() ?? new(),
+            Director = dto.Director?.Select(ToAgentModel).ToList() ?? new(),
+            Composer = dto.Composer?.Select(ToAgentModel).ToList() ?? new(),
+            Funder = dto.Funder?.Select(ToAgentModel).ToList() ?? new(),
+            Audience = dto.Audience?.Select(ToAudienceModel).ToList() ?? new(),
             Duration = dto.Duration?.Trim(),
             AttendanceMode = dto.AttendanceMode,
+            Status = dto.Status ?? EventStatus.Scheduled,
+            IsFinished = isFinished,
+            RetentionUntil = retentionUntil,
+            QualityScore = qualityScore,
+            Offers = dto.Offers?.Select(ToOfferModel).ToList() ?? new(),
             Schedule = dto.Schedule?.ToScheduleModel()
         }
     };
@@ -65,20 +85,27 @@ public static class EventRequestMapper
     {
         var eventModel = entity.Event;
 
-        if (!string.IsNullOrWhiteSpace(dto.Title)) eventModel.Title = dto.Title;
-        if (!string.IsNullOrWhiteSpace(dto.Description)) eventModel.Description = dto.Description;
-        if (dto.AlternateName is not null) eventModel.AlternateName = dto.AlternateName;
+        if (!string.IsNullOrWhiteSpace(dto.Title)) eventModel.Title = dto.Title.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.Description)) eventModel.Description = dto.Description.Trim();
+        if (dto.AlternateName is not null) eventModel.AlternateName = dto.AlternateName.Trim();
         if (dto.StartDate.HasValue) eventModel.StartDate = dto.StartDate.Value;
         if (dto.EndDate.HasValue) eventModel.EndDate = dto.EndDate;
         if (dto.DoorTime.HasValue) eventModel.DoorTime = dto.DoorTime;
         if (dto.Type.HasValue) eventModel.Type = dto.Type;
-        if (!string.IsNullOrWhiteSpace(dto.SourceUrl)) eventModel.SourceUrl = dto.SourceUrl;
-        if (dto.ImageUrl is not null) eventModel.ImageUrl = dto.ImageUrl;
+        if (!string.IsNullOrWhiteSpace(dto.SourceUrl))
+        {
+            var sourceUrl = dto.SourceUrl.Trim();
+            eventModel.SourceUrl = sourceUrl;
+
+            if (!eventModel.SourceUrls.Contains(sourceUrl, StringComparer.OrdinalIgnoreCase))
+                eventModel.SourceUrls.Add(sourceUrl);
+        }
+        if (dto.ImageUrl is not null) eventModel.ImageUrl = dto.ImageUrl.Trim();
         if (dto.IsAccessibleForFree.HasValue) eventModel.IsAccessibleForFree = dto.IsAccessibleForFree.Value;
         if (dto.PhysicalAccessibility.HasValue) eventModel.PhysicalAccessibility = dto.PhysicalAccessibility.Value;
         if (dto.AgeRating.HasValue) eventModel.AgeRating = dto.AgeRating;
         if (dto.MaximumAttendeeCapacity.HasValue) eventModel.MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity;
-        if (dto.Keywords is not null) eventModel.Keywords = dto.Keywords;
+        if (dto.Keywords is not null) eventModel.Keywords = dto.Keywords.Select(keyword => keyword.Trim()).ToList();
         if (dto.Location is not null)
         {
             eventModel.Location = dto.Location.ToEventLocation();
@@ -96,7 +123,9 @@ public static class EventRequestMapper
         if (dto.Audience is not null) eventModel.Audience = dto.Audience.Select(ToAudienceModel).ToList();
         if (dto.Duration is not null) eventModel.Duration = dto.Duration?.Trim();
         if (dto.AttendanceMode.HasValue) eventModel.AttendanceMode = dto.AttendanceMode;
-        
+        if (dto.Status.HasValue) eventModel.Status = dto.Status.Value;
+        if (dto.IsPublished.HasValue) eventModel.IsPublished = dto.IsPublished.Value;
+        if (dto.Offers is not null) eventModel.Offers = dto.Offers.Select(ToOfferModel).ToList();
         if (dto.Schedule is not null) eventModel.Schedule = dto.Schedule.ToScheduleModel();
 
     }
@@ -106,7 +135,7 @@ public static class EventRequestMapper
     /// <returns>A new <see cref="EventLocation"/> model with properties mapped from the provided DTO.</returns>
     public static EventLocation ToEventLocation(this EventLocationRequestDto dto) => new()
     {
-        Name = dto.Name,
+        Name = dto.Name.Trim(),
         StreetAddress = dto.StreetAddress?.Trim(),
         PostalCode = dto.PostalCode?.Trim(),
         Locality = dto.Locality
@@ -115,10 +144,10 @@ public static class EventRequestMapper
             ?? throw new ArgumentException("Location district is required.", nameof(dto)),
         Region = dto.Region
             ?? throw new ArgumentException("Location region is required.", nameof(dto)),
-        Country = dto.Country,
-        DicoCode = dto.DicoCode,
-        Url = dto.Url,
-        SameAs = dto.SameAs,
+        Country = dto.Country.Trim(),
+        DicoCode = dto.DicoCode?.Trim(),
+        Url = dto.Url?.Trim(),
+        SameAs = dto.SameAs?.Trim(),
         Latitude = ParseCoordinate(dto.Latitude),
         Longitude = ParseCoordinate(dto.Longitude)
     };
@@ -128,11 +157,22 @@ public static class EventRequestMapper
     /// <returns>A new <see cref="AgentModel"/> with properties mapped from the provided DTO.</returns>
     public static AgentModel ToAgentModel(this EventAgentRequestDto dto) => new()
     {
-        Name = dto.Name,
+        Name = dto.Name.Trim(),
         Type = dto.Type,
-        Url = dto.Url,
-        SameAs = dto.SameAs,
-        ImageUrl = dto.ImageUrl,
+        Url = dto.Url?.Trim(),
+        SameAs = dto.SameAs?.Trim(),
+        ImageUrl = dto.ImageUrl?.Trim(),
+    };
+
+    /// <summary> Maps an offer request DTO to its persisted model. </summary>
+    public static OfferModel ToOfferModel(this EventOfferRequestDto dto) => new()
+    {
+        Name = dto.Name.Trim(),
+        Price = dto.Price,
+        PriceCurrency = dto.PriceCurrency.Trim().ToUpperInvariant(),
+        Availability = dto.Availability.Trim(),
+        Url = dto.Url?.Trim(),
+        ValidFrom = dto.ValidFrom
     };
 
     /// <summary> Maps a <see cref="EventScheduleRequestDto"/> to a <see cref="ScheduleModel"/>. </summary>
@@ -142,9 +182,9 @@ public static class EventRequestMapper
     {
         StartDate = dto.StartDate,
         EndDate = dto.EndDate,
-        StartTime = dto.StartTime,
-        EndTime = dto.EndTime,
-        TimeZone = dto.TimeZone ?? "Europe/Lisbon",
+        StartTime = dto.StartTime?.Trim(),
+        EndTime = dto.EndTime?.Trim(),
+        TimeZone = dto.TimeZone?.Trim() ?? "Europe/Lisbon",
         RepeatDays = dto.RepeatDays
     };
 
@@ -156,7 +196,8 @@ public static class EventRequestMapper
             ? coordinate
             : null;
 
-    private static AudienceModel ToAudienceModel(this EventAudienceRequestDto dto) => new()
+    /// <summary> Maps an audience request DTO to its persisted model. </summary>
+    public static AudienceModel ToAudienceModel(this EventAudienceRequestDto dto) => new()
     {
         Name = dto.Name?.Trim(),
         AudienceType = dto.AudienceType?.Trim()

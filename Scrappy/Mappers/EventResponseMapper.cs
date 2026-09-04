@@ -21,11 +21,12 @@ public static class EventResponseMapper
         var eventModel = entity.Event;
         return new EventResponseDto
         {
-            Id = entity.Id,
+            Id = eventModel.Id,
             Title = eventModel.Title,
             Description = eventModel.Description ?? string.Empty,
             AlternateName = eventModel.AlternateName,
             SourceUrl = eventModel.SourceUrl,
+            SourceUrls = eventModel.SourceUrls,
             ImageUrl = eventModel.ImageUrl,
             StartDate = eventModel.StartDate,
             EndDate = eventModel.EndDate,
@@ -34,6 +35,7 @@ public static class EventResponseMapper
             Type = eventModel.Type?.ToString() ?? string.Empty,
             Status = eventModel.Status.ToString(),
             IsFinished = eventModel.IsFinished,
+            IsPublished = eventModel.IsPublished,
             RetentionUntil = eventModel.RetentionUntil,
             IsAccessibleForFree = eventModel.IsAccessibleForFree,
             PhysicalAccessibility = eventModel.PhysicalAccessibility,
@@ -56,6 +58,18 @@ public static class EventResponseMapper
         };
     }
 
+    /// <summary>
+    /// Maps a district-event entity while preserving the envelope used by the
+    /// web client and by the search endpoints.
+    /// </summary>
+    public static DistrictEventResponseDto ToDistrictEventResponseDto(
+        this DistrictEvent entity) => new()
+    {
+        Id = entity.Id,
+        District = entity.District?.GetDisplayName() ?? string.Empty,
+        Event = entity.ToResponseDto()
+    };
+
     /// <summary> Maps a <see cref="DistrictEvent"/> entity to an <see cref="EventSummaryDto"/>. </summary>
     /// <param name="entity">The <see cref="DistrictEvent"/> entity to map.</param>
     /// <returns>A new <see cref="EventSummaryDto"/> with properties mapped from the provided entity.</returns>
@@ -71,7 +85,9 @@ public static class EventResponseMapper
             ? entity.District.Value.GetDisplayName()
             : string.Empty,
         QualityScore = (double)entity.Event.QualityScore,
-        IsAccessibleForFree = entity.Event.IsAccessibleForFree
+        IsAccessibleForFree = entity.Event.IsAccessibleForFree,
+        IsPublished = entity.Event.IsPublished,
+        IsFinished = entity.Event.IsFinished
     };
 
     /// <summary> Maps a paged result of <see cref="DistrictEvent"/> entities to a paged result of <see cref="EventSummaryDto"/>. </summary>
@@ -83,6 +99,16 @@ public static class EventResponseMapper
         PageSize = source.PageSize,
         TotalCount = source.TotalCount,
         Items = source.Items.Select(ToSummaryDto).ToList()
+    };
+
+    /// <summary> Maps a paged district-event result to API response DTOs. </summary>
+    public static PagedResult<DistrictEventResponseDto> ToResponsePagedResult(
+        this PagedResult<DistrictEvent> source) => new()
+    {
+        Page = source.Page,
+        PageSize = source.PageSize,
+        TotalCount = source.TotalCount,
+        Items = source.Items.Select(ToDistrictEventResponseDto).ToList()
     };
 
     /// <summary> Maps an <see cref="EventLocation"/> model to an <see cref="EventLocationResponseDto"/>. </summary>

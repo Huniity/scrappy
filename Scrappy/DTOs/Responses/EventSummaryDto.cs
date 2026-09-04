@@ -46,4 +46,10 @@ public class EventSummaryDto
 
     /// <summary> Gets or sets a value indicating whether the event is accessible for free. </summary>
     public bool? IsAccessibleForFree { get; set; }
+
+    /// <summary> Gets or sets whether the event is published. </summary>
+    public bool IsPublished { get; set; }
+
+    /// <summary> Gets or sets whether the event date has passed. </summary>
+    public bool IsFinished { get; set; }
 }

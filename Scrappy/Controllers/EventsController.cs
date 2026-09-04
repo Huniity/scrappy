@@ -57,7 +57,7 @@ public class EventsController(
         {
             return StatusCode(500, new { error = result.Error });
         }
-        return Ok(result.Value);
+        return Ok(result.Value!.Select(eventEntity => eventEntity.ToSummaryDto()));
     }
 
     /// <summary> Retrieves an event by its ID. </summary>
@@ -74,7 +74,7 @@ public class EventsController(
         {
             return NotFound(new { error = result.Error });
         }
-        return Ok(result.Value);
+        return Ok(result.Value!.ToDistrictEventResponseDto());
     }
 
     /// <summary> Creates a new event. </summary>
@@ -97,9 +97,12 @@ public class EventsController(
                 Response.Headers["X-Ingestion-Updated-Fields"] =
                     string.Join(',', eventService.LastUpdatedFields);
 
+            var eventEntity = result.Value!;
+            var response = eventEntity.ToDistrictEventResponseDto();
+
             return eventService.LastIngestionAction == "created"
-                ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)
-                : Ok(result.Value);
+                ? CreatedAtAction(nameof(GetById), new { id = eventEntity.Id }, response)
+                : Ok(response);
         }
         catch (ValidationException ex)
         {
@@ -132,7 +135,7 @@ public class EventsController(
                     ? NotFound(new { error = result.Error })
                     : BadRequest(new { error = result.Error });
             }
-            return Ok(result.Value);
+            return Ok(result.Value!.ToDistrictEventResponseDto());
         }
         catch (ValidationException ex)
         {
@@ -160,7 +163,7 @@ public class EventsController(
         {
             return NotFound(new { error = result.Error });
         }
-        return Ok(result.Value);
+        return Ok(result.Value!.ToDistrictEventResponseDto());
     }
 
 }

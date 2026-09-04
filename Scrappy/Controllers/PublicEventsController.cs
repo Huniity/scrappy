@@ -1,8 +1,9 @@
   
   
-  using Microsoft.AspNetCore.Mvc;
-  using Scrappy.DTOs.Requests;
-  using Scrappy.Services;
+using Microsoft.AspNetCore.Mvc;
+using Scrappy.DTOs.Requests;
+using Scrappy.Mappers;
+using Scrappy.Services;
 
   namespace Scrappy.Controllers;
 
@@ -33,7 +34,7 @@
                   });
               }
 
-              return Ok(result.Value);
+              return Ok(result.Value!.ToResponsePagedResult());
           }
           catch (Exception exception)
           {

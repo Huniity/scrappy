@@ -80,6 +80,9 @@ public class EventResponseDto
     /// <summary> Gets or sets the source URL of the event. </summary>
     public string? SourceUrl { get; set; }
 
+    /// <summary> Gets or sets all source URLs contributing to the event. </summary>
+    public List<string> SourceUrls { get; set; } = new();
+
     /// <summary> Gets or sets the image URL of the event. </summary>
     public string? ImageUrl { get; set; }
 
@@ -103,6 +106,9 @@ public class EventResponseDto
 
     /// <summary> Gets or sets whether the event date has passed. </summary>
     public bool IsFinished { get; set; }
+
+    /// <summary> Gets or sets whether the event is published. </summary>
+    public bool IsPublished { get; set; }
 
     /// <summary> Gets or sets the date after which the event can be removed. </summary>
     public DateTime? RetentionUntil { get; set; }

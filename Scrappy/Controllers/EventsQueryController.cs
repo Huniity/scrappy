@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Scrappy.DTOs.Common;
 using Scrappy.DTOs.Requests;
+using Scrappy.Mappers;
 using Scrappy.Models;
 using Scrappy.Services;
 
@@ -27,7 +28,7 @@ public class EventsQueryController(
                 return BadRequest(new { error = result.Error });
             }
 
-            return Ok(result.Value);
+            return Ok(result.Value!.ToResponsePagedResult());
         }
         catch (Exception ex)
         {
