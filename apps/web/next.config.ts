@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "bolimg.blob.core.windows.net",
       },
+      {
+        protocol: "https",
+        hostname: "backend.museusemonumentos.pt",
+        pathname: "/uploads/**",
+      },
     ],
   },
 };

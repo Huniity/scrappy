@@ -64,13 +64,9 @@ function hasCoordinates(record: EventRecord): record is
     );
 }
 
-const districtColors: Record<string, string> = {
-    Faro: '#1f63e9',
-    Leiria: '#8755b5',
-};
 
 function getEventPinIcon(district: string, eventType: string) {
-    const color = districtColors[district] ?? '#2d8a5f';
+    const color = '#22448a';
 
     return divIcon({
         className: 'event-map-pin-wrapper',

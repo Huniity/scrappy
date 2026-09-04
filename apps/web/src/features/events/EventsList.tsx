@@ -23,6 +23,8 @@ const EventMap = dynamic(
 type EventsListProps = {
     view: EventView;
     events: EventRecord[];
+    isLoading: boolean;
+    error: string | null;
     selectedEventIds: string[];
     onToggleEventSelection: (eventId: string) => void;
     onOpenEventDetails: (eventId: string) => void;
@@ -32,6 +34,8 @@ type EventsListProps = {
 export function EventsList({
     view,
     events,
+    isLoading,
+    error,
     selectedEventIds,
     onToggleEventSelection,
     onOpenEventDetails,
@@ -40,16 +44,33 @@ export function EventsList({
     return (
         <div className={`${styles.eventsPanel} w-full rounded-md border border-[var(--border-strong)] bg-[var(--bg-secondary)] shadow-sm`}>
             {view === 'map' ? (
-                <div className="h-full w-full">
+                <div className="relative h-full w-full">
                     <EventMap
                         events={events}
                         onToggleEventSelection={onToggleEventSelection}
                         onOpenEventDetails={onOpenEventDetails}
                     />
+                    {(isLoading || error) && (
+                        <div className="pointer-events-none absolute left-3 top-3 z-[500] rounded-md bg-[var(--surface)]/95 px-3 py-2 text-xs text-[var(--text-secondary)] shadow-sm">
+                            {error ?? 'A carregar eventos...'}
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="h-full overflow-y-auto rounded-md bg-[var(--surface)]">
-                    {events.map(({ id, event }) => {
+                    {isLoading ? (
+                        <div className="flex h-full items-center justify-center p-6 text-sm text-[var(--text-secondary)]">
+                            A carregar eventos...
+                        </div>
+                    ) : error ? (
+                        <div className="flex h-full items-center justify-center p-6 text-sm text-[var(--text-secondary)]">
+                            {error}
+                        </div>
+                    ) : events.length === 0 ? (
+                        <div className="flex h-full items-center justify-center p-6 text-sm text-[var(--text-secondary)]">
+                            Não foram encontrados eventos para este município.
+                        </div>
+                    ) : events.map(({ id, event }) => {
                         const eventDate = new Date(event.startDate);
                         const eventDateLabel = eventDate.toLocaleDateString('pt-PT', {
                             day: '2-digit',

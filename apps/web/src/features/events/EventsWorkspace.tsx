@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { fetchEvents as fetchEventsFromApi } from '@/services/eventsApi';
+
 import styles from './events.module.css';
-import eventsMock from './events.mock.json';
 import { EventsActionsPanel } from './EventsActionsPanel';
-import { EventsFilters } from './EventsFilters';
+import { EventsFilters } from './filters/EventsFilters';
 import { EventsList } from './EventsList';
 import { useMunicipality } from '@/components/backoffice/BackofficeShell';
 import { EventsStats } from './EventsStats';
@@ -17,10 +18,6 @@ import type {
     PublishedFilter,
     SortOption,
 } from './events.types';
-
-async function fetchEvents(): Promise<EventRecord[]> {
-    return eventsMock;
-}
 
 function normalizeSearchValue(value: string) {
     return value
@@ -54,12 +51,12 @@ function isFreeEvent(event: EventRecord['event']) {
         return event.isAccessibleForFree;
     }
 
-    return event.offers.length === 0 || event.offers.every(({ price }) => price <= 0);
+    return event.offers.length === 0 || event.offers.every(({ price }) => (price ?? 0) <= 0);
 }
 
 function getEventPrice(event: EventRecord['event']) {
     return event.offers.length > 0
-        ? Math.min(...event.offers.map(({ price }) => price))
+        ? Math.min(...event.offers.map(({ price }) => price ?? 0))
         : 0;
 }
 
@@ -98,7 +95,11 @@ export function EventsWorkspace() {
     const [priceFilter, setPriceFilter] = useState<PriceFilter>('all');
     const [publishedFilter, setPublishedFilter] = useState<PublishedFilter>('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [events, setEvents] = useState<EventRecord[]>(eventsMock);
+    const [events, setEvents] = useState<EventRecord[]>([]);
+    const [isEventsLoading, setIsEventsLoading] = useState(true);
+    const [eventsError, setEventsError] = useState<string | null>(null);
+    const [loadedMunicipality, setLoadedMunicipality] = useState<string | null>(null);
+    const [errorMunicipality, setErrorMunicipality] = useState<string | null>(null);
     const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
     const [detailsEventId, setDetailsEventId] = useState<string | null>(null);
     const [activePanel, setActivePanel] = useState<ActivePanel>('details');
@@ -157,12 +158,52 @@ export function EventsWorkspace() {
     }
 
     useEffect(() => {
-        fetchEvents()
-            .then((data) => setEvents(data))
-            .catch((error) => console.error('Error loading events:', error));
-    }, []);
+        const controller = new AbortController();
 
-    const selectedEvents = events.filter(({ event }) =>
+        fetchEventsFromApi({
+            municipality: selectedMunicipality,
+            signal: controller.signal,
+        })
+            .then((data) => {
+                if (controller.signal.aborted) {
+                    return;
+                }
+
+                setEvents(data);
+                setLoadedMunicipality(selectedMunicipality);
+                setErrorMunicipality(null);
+                setEventsError(null);
+            })
+            .catch((error: unknown) => {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+
+                console.error('Error loading events:', error);
+                setErrorMunicipality(selectedMunicipality);
+                setEventsError('Não foi possível carregar os eventos.');
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setIsEventsLoading(false);
+                }
+            });
+
+        return () => controller.abort();
+    }, [selectedMunicipality]);
+
+    const hasLoadedSelectedMunicipality = loadedMunicipality === selectedMunicipality;
+    const eventsForMunicipality = useMemo(
+        () => hasLoadedSelectedMunicipality ? events : [],
+        [events, hasLoadedSelectedMunicipality],
+    );
+    const currentEventsError = errorMunicipality === selectedMunicipality
+        ? eventsError
+        : null;
+    const isLoadingSelectedMunicipality =
+        isEventsLoading || !hasLoadedSelectedMunicipality;
+
+    const selectedEvents = eventsForMunicipality.filter(({ event }) =>
         selectedEventIds.includes(event.id),
     );
 
@@ -178,7 +219,7 @@ export function EventsWorkspace() {
     const visibleEvents = useMemo(() => {
         const normalizedQuery = normalizeSearchValue(searchQuery.trim());
 
-        return events
+        return eventsForMunicipality
             .filter(({ district, event }) => {
                 const eventDate = getEventDateKey(event.startDate);
 
@@ -240,7 +281,7 @@ export function EventsWorkspace() {
             .sort((first, second) => compareEvents(first, second, sortOption));
     }, [
         endDate,
-        events,
+        eventsForMunicipality,
         priceFilter,
         publishedFilter,
         searchQuery,
@@ -336,6 +377,8 @@ export function EventsWorkspace() {
                     <EventsList
                         view={view}
                         events={visibleEvents}
+                        isLoading={isLoadingSelectedMunicipality}
+                        error={currentEventsError}
                         selectedEventIds={selectedEventIds}
                         onToggleEventSelection={toggleEventSelection}
                         onOpenEventDetails={openEventDetails}
@@ -351,6 +394,7 @@ export function EventsWorkspace() {
                 >
                     <EventsActionsPanel
                         activePanel={activePanel}
+                        events={eventsForMunicipality}
                         selectedEvents={selectedEvents}
                         detailsEventId={detailsEventId}
                         isFinishedEventsAction={isFinishedEventsAction}

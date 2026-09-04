@@ -5,7 +5,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import styles from './events.module.css';
 import { getEventListTitle } from './events.config';
-import eventsMock from './events.mock.json';
 import type { ActivePanel, EventRecord } from './events.types';
 
 type EventEntity = {
@@ -202,6 +201,7 @@ function AudienceGroup({ audience }: { audience: EventAudience[] }) {
 
 type EventsActionsPanelProps = {
     activePanel: ActivePanel;
+    events: EventRecord[];
     selectedEvents: EventRecord[];
     detailsEventId: string | null;
     isFinishedEventsAction: boolean;
@@ -212,6 +212,7 @@ type EventsActionsPanelProps = {
 
 export function EventsActionsPanel({
     activePanel,
+    events,
     selectedEvents,
     detailsEventId,
     isFinishedEventsAction,
@@ -219,7 +220,7 @@ export function EventsActionsPanel({
     onRemoveEvent,
     onClose,
 }: EventsActionsPanelProps) {
-    const event = eventsMock.find(({ event }) => event.id === detailsEventId)?.event;
+    const event = events.find(({ event }) => event.id === detailsEventId)?.event;
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isImageExpanded, setIsImageExpanded] = useState(false);
     const [expandedImageRatio, setExpandedImageRatio] = useState<number | null>(null);
@@ -359,13 +360,15 @@ export function EventsActionsPanel({
 
                     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3">
                         <div className="relative aspect-[2/1] w-full shrink-0 overflow-hidden rounded-md bg-[var(--surface-muted)]">
-                            <Image
-                                src={event.imageUrl}
-                                alt={event.title}
-                                fill
-                                sizes="(max-width: 1200px) 100vw, 50vw"
-                                className="object-cover"
-                            />
+                            {event.imageUrl && (
+                                <Image
+                                    src={event.imageUrl}
+                                    alt={event.title}
+                                    fill
+                                    sizes="(max-width: 1200px) 100vw, 50vw"
+                                    className="object-cover"
+                                />
+                            )}
                             <button
                                 type="button"
                                 aria-label="Ampliar imagem do evento"
@@ -621,7 +624,7 @@ export function EventsActionsPanel({
                 )}
             </div>
 
-            {event && isImageExpanded && (
+            {event && event.imageUrl && isImageExpanded && (
                 <div
                     role="dialog"
                     aria-modal="true"
