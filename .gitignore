@@ -16,3 +16,4 @@ dist/
 
 apps/scraper/data/geo/raw/
 storage/
+logs/

@@ -26,6 +26,7 @@ RUN pnpm --filter @scrappy/scraper exec playwright install --with-deps --only-sh
 COPY apps/scraper ./apps/scraper
 COPY apps/shared ./apps/shared
 COPY apps/ingestion/queue.ts ./apps/ingestion/queue.ts
+COPY ops/scheduler/run-scraper-schedule.sh ./ops/scheduler/run-scraper-schedule.sh
 
 ENV NODE_ENV=production
 

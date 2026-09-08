@@ -50,22 +50,45 @@ services:
         condition: service_started
     restart: unless-stopped
 
-  # scraper:
-  #   build:
-  #     context: ../
-  #     dockerfile: ./ops/scraper/Dockerfile
-  #   environment:
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: "6379"
-  #     API_URL: http://api:5000/events
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #     ingestion-worker:
-  #       condition: service_started
-  #   profiles:
-  #     - scheduled
-  #   restart: "no"
+  scraper:
+    build:
+      context: ../
+      dockerfile: ./ops/scraper/Dockerfile
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      API_URL: http://api:5000/events
+    depends_on:
+      redis:
+        condition: service_healthy
+      ingestion-worker:
+        condition: service_started
+    profiles:
+      - scheduled
+    restart: "no"
+
+  scheduler:
+    build:
+      context: ../
+      dockerfile: ./ops/scraper/Dockerfile
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      API_URL: http://api:5000/events
+      SCRAPER_SCHEDULE_MODE: ${SCRAPER_SCHEDULE_MODE:-daily}
+      SCRAPER_SCHEDULE_TIME: ${SCRAPER_SCHEDULE_TIME:-06:00}
+      SCRAPER_TIMEZONE: ${SCRAPER_TIMEZONE:-Europe/Lisbon}
+      SCRAPER_INTERVAL_SECONDS: ${SCRAPER_INTERVAL_SECONDS:-300}
+      SCRAPER_RUN_ON_START: ${SCRAPER_RUN_ON_START:-false}
+    depends_on:
+      redis:
+        condition: service_healthy
+      ingestion-worker:
+        condition: service_started
+    profiles:
+      - scheduler
+    command: ["/app/ops/scheduler/run-cron-scrap.sh"]
+    restart: unless-stopped
 
   mongodb:
     build:
