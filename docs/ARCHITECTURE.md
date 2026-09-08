@@ -2,6 +2,9 @@
 
 This document details the complete data flow, architecture layers, dependencies, and ecosystem integration for the **Scrappy** platform.
 
+For the source-specific scraping process, see the Portuguese
+[Scraping Pipeline](SCRAPING.md) guide.
+
 ---
 
 ## 📑 Table of Contents
@@ -40,7 +43,7 @@ This document details the complete data flow, architecture layers, dependencies,
   │                                  │
   ▼ (HTTP REST / JSON)               ▼ (HTTP / application/ld+json)
 [ FRONTEND ]                       [ AMA / ARTE PORTALS & PUBLIC CONSUMERS ]
- (planned, not in repo)
+ (`apps/web`)
 ```
 
 ---
@@ -114,13 +117,15 @@ scrappy/
 ├── apps/
 │   ├── scraper/      # Ingestion Crawler Engine (Node.js + Crawlee)
 │   ├── ingestion/    # BullMQ queue producer + API worker
-│   └── shared/       # Shared Zod schemas, Redis config, utilities
-├── docker/           # Docker Compose Infrastructure (MongoDB + Redis + API)
+│   ├── shared/       # Shared Zod schemas, Redis config, utilities
+│   └── web/           # Next.js frontend
+├── docker/           # Docker Compose services and infrastructure
+├── ops/              # Container build files and scheduler entrypoint
 └── docs/             # Technical Specs & Guidelines
 ```
 
-A frontend (`apps/web`) and a `packages/` tier are planned but not present in the
-repository yet. Shared TypeScript contracts currently live in `apps/shared/`.
+Shared TypeScript contracts currently live in `apps/shared/`. The frontend is
+implemented in `apps/web`; the `packages/` tier is not currently used.
 
 ---
 
@@ -133,4 +138,4 @@ repository yet. Shared TypeScript contracts currently live in `apps/shared/`.
 | **Ingestion Worker** | Bridge between Redis queues and API ingestion | Node.js, TypeScript, `fetch` |
 | **Web API** | Ingestion pipeline, queries, and REST/JSON-LD endpoints | .NET 10, C# |
 | **Database** | Flexible document storage & geospatial queries | MongoDB |
-| **Frontend** *(planned)* | User UI, event search, and filtering | Next.js, React, Tailwind CSS |
+| **Frontend** | User UI, event search, and filtering | Next.js, React, Tailwind CSS |

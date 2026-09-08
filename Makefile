@@ -21,6 +21,9 @@ help:
 up:
 	docker compose -f docker/docker-compose.yml up
 
+down:
+	docker compose -f docker/docker-compose.yml --profile scheduler --profile scheduled down
+
 rebuild-all:
 	docker compose -f docker/docker-compose.yml up -d --build
 
@@ -40,7 +43,7 @@ rebuild-redis:
 	docker compose -f docker/docker-compose.yml up -d --build redis
 
 scraper:
-	docker compose -f docker/docker-compose.yml --profile scheduled up -d --build
+	docker compose -f docker/docker-compose.yml --profile scheduled run --rm --no-deps --build scraper
 
 scheduler:
 	docker compose -f docker/docker-compose.yml --profile scheduler up -d --build scheduler

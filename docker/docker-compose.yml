@@ -16,6 +16,9 @@ services:
       api:
         condition: service_started
     restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.5"
+    pids_limit: 256
 
   api:
     build:
@@ -33,6 +36,9 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    mem_limit: 768m
+    cpus: "1.0"
+    pids_limit: 256
 
   ingestion-worker:
     build:
@@ -49,6 +55,9 @@ services:
       api:
         condition: service_started
     restart: unless-stopped
+    mem_limit: 512m
+    cpus: "1.0"
+    pids_limit: 256
 
   scraper:
     build:
@@ -66,6 +75,9 @@ services:
     profiles:
       - scheduled
     restart: "no"
+    mem_limit: 1024m
+    cpus: "1.5"
+    pids_limit: 512
 
   scheduler:
     build:
@@ -89,6 +101,9 @@ services:
       - scheduler
     command: ["/app/ops/scheduler/run-cron-scrap.sh"]
     restart: unless-stopped
+    mem_limit: 1024m
+    cpus: "1.5"
+    pids_limit: 512
 
   mongodb:
     build:
@@ -102,6 +117,9 @@ services:
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+    mem_limit: 1024m
+    cpus: "1.0"
+    pids_limit: 512
 
   redis:
     build:
@@ -113,6 +131,9 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.5"
+    pids_limit: 128
 
 volumes:
   redis_data:
