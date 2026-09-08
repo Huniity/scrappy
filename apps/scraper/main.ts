@@ -17,6 +17,7 @@ import {
     closeIngestionQueue,
     flushIngestionBatch,
 } from '../ingestion/queue';
+import { browserHeaders } from './src/crawlers/httpHeaders';
 
 // Crawlee logs the final request error before calling failedRequestHandler.
 // Keep its internal output silent so we can hand off to Playwright first and
@@ -25,11 +26,6 @@ log.setLevel(LogLevel.OFF);
 const crawlJobs =
     crawlJobsSchema.parse(sources);
 
-
-const browserUserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-    'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-    'Chrome/131.0.0.0 Safari/537.36';
 
 /**
  * Main function to run the web crawler. It initializes a CheerioCrawler with the specified request handler and pre-navigation hooks, and then runs the crawler with the provided crawl jobs.
@@ -84,7 +80,7 @@ async function main(): Promise<void> {
             async (_context, gotOptions) => {
                 gotOptions.headers = {
                     ...gotOptions.headers,
-                    'user-agent': browserUserAgent,
+                    ...browserHeaders,
                 };
             },
         ],

@@ -20,6 +20,10 @@ import type { NormalizedEvent } from './src/types/normalizedEvent';
 import { isEventStartingTodayOrLater } from './src/normalization/dates';
 import { rejectBolCookies } from './src/crawlers/bol/extractors';
 import { scrapeViralAgendaEvent, getViralAgendaEventUrls } from './src/crawlers/viralAgenda';
+import {
+    browserHeaders,
+    browserUserAgent,
+} from './src/crawlers/httpHeaders';
 import { logEventFound as printEventFound } from '../shared/eventLog';
 
 
@@ -36,11 +40,6 @@ const viralAgendaEventPathPattern =
 
 let playwrightBrowser: Browser | undefined;
 let playwrightBrowserPromise: Promise<Browser> | undefined;
-
-const playwrightUserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-    'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-    'Chrome/131.0.0.0 Safari/537.36';
 
 function logEventFound(url: string): void {
     eventsFound += 1;
@@ -88,7 +87,8 @@ export async function discoverViralAgendaEventUrls(
     const page =
         await browser.newPage({
             userAgent:
-                playwrightUserAgent,
+                browserUserAgent,
+            extraHTTPHeaders: browserHeaders,
 
             locale:
                 'pt-PT',
@@ -433,7 +433,8 @@ export async function fallbackViralAgendaEventWithPlaywright(
 
         try {
             page = await browser.newPage({
-                userAgent: playwrightUserAgent,
+                userAgent: browserUserAgent,
+                extraHTTPHeaders: browserHeaders,
                 locale: 'pt-PT',
             });
         } catch {
@@ -491,7 +492,8 @@ export async function fallbackBolEventWithPlaywright(
 
         try {
             page = await browser.newPage({
-                userAgent: playwrightUserAgent,
+                userAgent: browserUserAgent,
+                extraHTTPHeaders: browserHeaders,
                 locale: 'pt-PT',
             });
         } catch {

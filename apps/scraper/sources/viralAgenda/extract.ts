@@ -13,6 +13,7 @@ import type {
 import type { NormalizedEvent } from '../../src/types/normalizedEvent';
 import { normalizeViralAgendaDates } from '../../src/normalization/dates';
 import { normalizeViralAgendaEvent } from '../../src/normalization/viralAgenda';
+import { browserHeaders } from '../../src/crawlers/httpHeaders';
 
 
 
@@ -134,6 +135,7 @@ export function getViralAgendaMapRequest(
             ajax: '1',
         },
         headers: {
+            ...browserHeaders,
             'x-requested-with':
                 'XMLHttpRequest',
             referer: `${pageUrl.origin}/`,
