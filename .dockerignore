@@ -40,6 +40,10 @@ coverage.*
 **/.yarn
 **/.pnpm-store
 
+# Generated scraper geography variants are not read at runtime. The scraper
+# uses apps/scraper/data/geo/municipalities.geojson instead.
+apps/scraper/data/geo/prepared
+
 # Local environment and secrets
 .env
 .env.*

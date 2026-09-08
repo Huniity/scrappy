@@ -1,3 +1,7 @@
 {
-    "postman.settings.dotenv-detection-notification-visibility": false
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "js/ts.tsserver.maxMemory": 768,
+    "js/ts.tsserver.useSyntaxServer": "never",
+    "js/ts.preferences.includePackageJsonAutoImports":"off",
+    "js/ts.tsserver.automaticTypeAcquisition.enabled":false
 }

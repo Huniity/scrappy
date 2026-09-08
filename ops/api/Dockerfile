@@ -4,7 +4,7 @@ WORKDIR /src
 COPY ["Scrappy/Scrappy.csproj", "Scrappy/"]
 RUN dotnet restore "Scrappy/Scrappy.csproj"
 
-COPY . .
+COPY Scrappy ./Scrappy
 WORKDIR /src/Scrappy
 RUN dotnet publish "Scrappy.csproj" \
     --configuration Release \
