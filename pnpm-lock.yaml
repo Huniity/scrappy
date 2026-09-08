@@ -7,31 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@turf/boolean-point-in-polygon':
-        specifier: ^7.4.0
-        version: 7.4.0
-      '@turf/helpers':
-        specifier: ^7.4.0
-        version: 7.4.0
-      bullmq:
-        specifier: ^6.1.1
-        version: 6.1.1(ioredis@6.0.0(supports-color@7.2.0))
-      crawlee:
-        specifier: ^3.18.1
-        version: 3.18.1(@types/node@26.2.0)(playwright@1.62.1)(supports-color@7.2.0)
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      ioredis:
-        specifier: ^6.0.0
-        version: 6.0.0(supports-color@7.2.0)
-      playwright:
-        specifier: ^1.62.1
-        version: 1.62.1
-      zod:
-        specifier: ^4.4.3
-        version: 4.5.4
     devDependencies:
       '@types/node':
         specifier: ^26.2.0
@@ -48,6 +23,72 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+
+  apps/ingestion:
+    dependencies:
+      '@scrappy/shared':
+        specifier: workspace:*
+        version: link:../shared
+      bullmq:
+        specifier: ^6.1.1
+        version: 6.1.1(ioredis@6.0.0(supports-color@7.2.0))
+      ioredis:
+        specifier: ^6.0.0
+        version: 6.0.0(supports-color@7.2.0)
+    devDependencies:
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.13
+
+  apps/scraper:
+    dependencies:
+      '@scrappy/ingestion':
+        specifier: workspace:*
+        version: link:../ingestion
+      '@scrappy/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@turf/boolean-point-in-polygon':
+        specifier: ^7.4.0
+        version: 7.4.0
+      '@turf/helpers':
+        specifier: ^7.4.0
+        version: 7.4.0
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      crawlee:
+        specifier: ^3.18.1
+        version: 3.18.1(@types/node@26.2.0)(playwright@1.62.1)(supports-color@7.2.0)
+      playwright:
+        specifier: ^1.62.1
+        version: 1.62.1
+      zod:
+        specifier: ^4.4.3
+        version: 4.5.4
+    devDependencies:
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.13
+
+  apps/shared:
+    dependencies:
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
+      zod:
+        specifier: ^4.4.3
+        version: 4.5.4
+    devDependencies:
+      bullmq:
+        specifier: ^6.1.1
+        version: 6.1.1(ioredis@6.0.0(supports-color@7.2.0))
+      ioredis:
+        specifier: ^6.0.0
+        version: 6.0.0(supports-color@7.2.0)
 
   apps/web:
     dependencies:

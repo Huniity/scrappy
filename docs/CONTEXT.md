@@ -229,9 +229,8 @@ extract → normalize → enrich (territory) → rawEventSchema.parse → ingest
   classify status codes (400/422 should go to review, not retry forever).
 - `docker/docker-compose.yml` Redis healthcheck runs `curl` against port 6379 — it can
   never pass. Should be `redis-cli ping`.
-- `pnpm-workspace.yaml` contains an unresolved placeholder
-  (`msgpackr-extract: set this to true or false`), and the repo actually uses npm
-  (`package-lock.json`). Clarify whether the pnpm workspace file is vestigial.
+- The repository uses a pnpm workspace with separate manifests for the web app,
+  scraper, ingestion worker, and shared Node dependencies.
 
 ---
 
@@ -248,8 +247,8 @@ API_URL=http://localhost:5000/events
 Inside Docker, use service names (`redis`, `api:5000`) — `localhost` in a container means
 that container.
 
-Scripts: `npm run scraper` (crawl side), `npm run worker` (ingestion side),
-`npm run typecheck`.
+Scripts: `pnpm scraper` (crawl side), `pnpm worker` (ingestion side),
+`pnpm typecheck`.
 
 ---
 

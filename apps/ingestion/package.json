@@ -1,0 +1,17 @@
+{
+  "name": "@scrappy/ingestion",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx worker.ts",
+    "clear": "tsx clearQueue.ts"
+  },
+  "dependencies": {
+    "@scrappy/shared": "workspace:*",
+    "bullmq": "^6.1.1",
+    "ioredis": "^6.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.12"
+  }
+}

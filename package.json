@@ -2,15 +2,16 @@
   "name": "scrappy",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.25.0",
   "description": "Event scraper for Portuguese municipalities",
   "scripts": {
     "prepare": "husky",
     "format:check": "dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes",
     "build:check": "dotnet build Scrappy/Scrappy.csproj --configuration Release --no-restore",
     "precommit": "lint-staged",
-    "prepush": "npm run build:check",
-    "scraper": "tsx apps/scraper/main.ts",
-    "worker": "tsx apps/ingestion/worker.ts",
+    "prepush": "pnpm run build:check",
+    "scraper": "pnpm --filter @scrappy/scraper start",
+    "worker": "pnpm --filter @scrappy/ingestion start",
     "test1": "node --import tsx --test apps/scraper/sources/viralAgenda/extract.test.ts",
     "test2": "node --import tsx --test apps/scraper/sources/bol/extractBol.test.ts",
     "clear":"node --import tsx apps/ingestion/clearQueue.ts",
@@ -26,15 +27,5 @@
   },
   "lint-staged": {
     "*.cs": "dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes --include"
-  },
-  "dependencies": {
-    "@turf/boolean-point-in-polygon": "^7.4.0",
-    "@turf/helpers": "^7.4.0",
-    "bullmq": "^6.1.1",
-    "crawlee": "^3.18.1",
-    "dotenv": "^17.4.2",
-    "ioredis": "^6.0.0",
-    "playwright": "^1.62.1",
-    "zod": "^4.4.3"
   }
 }

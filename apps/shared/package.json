@@ -1,0 +1,13 @@
+{
+  "name": "@scrappy/shared",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "bullmq": "^6.1.1",
+    "ioredis": "^6.0.0"
+  }
+}

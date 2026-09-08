@@ -10,6 +10,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
 
 RUN --mount=type=cache,id=scrappy-pnpm,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,id=scrappy-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile --filter web
 
 COPY apps/web apps/web
