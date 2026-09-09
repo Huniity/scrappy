@@ -5,7 +5,12 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import styles from './events.module.css';
 import { getEventListTitle } from './events.config';
-import type { ActivePanel, EventRecord } from './events.types';
+import { EventEditModal } from './EventEditModal';
+import type {
+    ActivePanel,
+    EventRecord,
+    EventUpdatePayload,
+} from './events.types';
 
 type EventEntity = {
     type?: string | null;
@@ -207,6 +212,10 @@ type EventsActionsPanelProps = {
     isFinishedEventsAction: boolean;
     onPanelChange: (panel: ActivePanel) => void;
     onRemoveEvent: (eventId: string) => void;
+    onUpdateEvent: (
+        eventId: string,
+        payload: EventUpdatePayload,
+    ) => Promise<void>;
     onClose: () => void;
 };
 
@@ -218,12 +227,15 @@ export function EventsActionsPanel({
     isFinishedEventsAction,
     onPanelChange,
     onRemoveEvent,
+    onUpdateEvent,
     onClose,
 }: EventsActionsPanelProps) {
-    const event = events.find(({ event }) => event.id === detailsEventId)?.event;
+    const eventRecord = events.find(({ event }) => event.id === detailsEventId);
+    const event = eventRecord?.event;
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isImageExpanded, setIsImageExpanded] = useState(false);
     const [expandedImageRatio, setExpandedImageRatio] = useState<number | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const eventDate = event ? formatDate(event.startDate) : null;
     const eventEndDate = event ? formatDate(event.endDate) : null;
     const eventDuration = event ? formatDuration(event.duration) : null;
@@ -238,6 +250,15 @@ export function EventsActionsPanel({
     const eventActors = (Array.isArray(event?.actor) ? event.actor : []) as EventEntity[];
     const eventDirectors = (Array.isArray(event?.director) ? event.director : []) as EventEntity[];
     const eventComposers = (Array.isArray(event?.composer) ? event.composer : []) as EventEntity[];
+
+    async function handleEventUpdate(payload: EventUpdatePayload) {
+        if (!eventRecord) {
+            return;
+        }
+
+        await onUpdateEvent(eventRecord.id, payload);
+        setIsEditModalOpen(false);
+    }
 
     useEffect(() => {
         if (!isImageExpanded) {
@@ -396,9 +417,31 @@ export function EventsActionsPanel({
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <h2 className="text-xl font-bold leading-tight text-[var(--text-primary)]">
-                                {event.title}
-                            </h2>
+                            <div className="flex items-start gap-2">
+                                <h2 className="text-xl font-bold leading-tight text-[var(--text-primary)]">
+                                    {event.title}
+                                </h2>
+                                <button
+                                    type="button"
+                                    aria-label={`Editar ${event.title}`}
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+                                >
+                                    <svg
+                                        aria-hidden="true"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        className="h-4 w-4"
+                                    >
+                                        <path d="M12 20h9" />
+                                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
+                                    </svg>
+                                </button>
+                            </div>
                             {event.alternateName && (
                                 <DetailRow label="Nome alternativo">{event.alternateName}</DetailRow>
                             )}
@@ -666,6 +709,14 @@ export function EventsActionsPanel({
                         </button>
                     </div>
                 </div>
+            )}
+
+            {event && isEditModalOpen && (
+                <EventEditModal
+                    event={event}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={handleEventUpdate}
+                />
             )}
         </div>
     );

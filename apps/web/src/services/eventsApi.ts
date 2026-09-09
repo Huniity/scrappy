@@ -6,6 +6,7 @@ import type {
     EventOffer,
     EventRecord,
     EventSchedule,
+    EventUpdatePayload,
     PriceFilter,
     PublishedFilter,
     SortOption,
@@ -210,4 +211,40 @@ export async function fetchEvents(
     } while (events.length < totalCount);
 
     return events;
+}
+
+export async function updateEvent(
+    eventId: string,
+    payload: EventUpdatePayload,
+): Promise<EventRecord> {
+    const response = await fetch(
+        `${apiBaseUrl}/events/${encodeURIComponent(eventId)}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        },
+    );
+
+    const data = (await response.json().catch(() => null)) as
+        | ApiDistrictEvent
+        | { error?: string }
+        | null;
+
+    if (!response.ok) {
+        const message =
+            data && 'error' in data && data.error
+                ? data.error
+                : `Failed to update event (${response.status})`;
+
+        throw new Error(message);
+    }
+
+    if (!data || !('event' in data)) {
+        throw new Error('A API devolveu uma resposta inválida ao editar o evento.');
+    }
+
+    return mapEvent(data);
 }

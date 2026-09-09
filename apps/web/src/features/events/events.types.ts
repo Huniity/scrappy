@@ -103,3 +103,82 @@ export type EventRecord = {
     district: string;
     event: EventItem;
 };
+
+export type EventUpdateEntity = {
+    name: string;
+    type: string;
+    url?: string;
+    sameAs?: string;
+    imageUrl?: string;
+};
+
+export type EventUpdateAudience = {
+    name?: string;
+    audienceType?: string;
+};
+
+export type EventUpdateLocation = {
+    name: string;
+    streetAddress?: string;
+    postalCode?: string;
+    locality: string;
+    district: string;
+    region: string;
+    country: string;
+    dicoCode: string;
+    url?: string;
+    sameAs?: string;
+    latitude: string;
+    longitude: string;
+};
+
+export type EventUpdateSchedule = {
+    startDate: string;
+    endDate?: string;
+    startTime?: string;
+    endTime?: string;
+    timeZone?: string;
+    repeatDays?: string[];
+};
+
+export type EventUpdateOffer = {
+    name: string;
+    price: number;
+    priceCurrency: string;
+    availability: string;
+    url?: string;
+    validFrom?: string;
+};
+
+export type EventUpdatePayload = {
+    title: string;
+    description?: string;
+    alternateName?: string;
+    startDate: string;
+    endDate?: string;
+    doorTime?: string;
+    duration?: string;
+    type?: string;
+    location: EventUpdateLocation;
+    sourceUrl: string;
+    imageUrl?: string;
+    isAccessibleForFree?: boolean;
+    physicalAccessibility: boolean;
+    ageRating?: number;
+    maximumAttendeeCapacity?: number;
+    keywords: string[];
+    organizer: EventUpdateEntity[];
+    promoter: EventUpdateEntity[];
+    performers: EventUpdateEntity[];
+    maintainer: EventUpdateEntity[];
+    funder: EventUpdateEntity[];
+    actor: EventUpdateEntity[];
+    director: EventUpdateEntity[];
+    composer: EventUpdateEntity[];
+    audience: EventUpdateAudience[];
+    eventAttendanceMode?: string;
+    schedule?: EventUpdateSchedule;
+    offers: EventUpdateOffer[];
+    eventStatus?: string;
+    isPublished: boolean;
+};

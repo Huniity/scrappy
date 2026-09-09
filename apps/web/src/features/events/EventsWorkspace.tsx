@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { fetchEvents as fetchEventsFromApi } from '@/services/eventsApi';
+import {
+    fetchEvents as fetchEventsFromApi,
+    updateEvent as updateEventInApi,
+} from '@/services/eventsApi';
 
 import styles from './events.module.css';
 import { EventsActionsPanel } from './EventsActionsPanel';
@@ -17,6 +20,7 @@ import type {
     PriceFilter,
     PublishedFilter,
     SortOption,
+    EventUpdatePayload,
 } from './events.types';
 
 function normalizeSearchValue(value: string) {
@@ -131,6 +135,18 @@ export function EventsWorkspace() {
         setDetailsEventId(eventId);
         setActivePanel('details');
         setIsActionsPanelOpen(true);
+    }
+
+    async function updateEvent(eventId: string, payload: EventUpdatePayload) {
+        const updatedRecord = await updateEventInApi(eventId, payload);
+
+        setEvents((currentEvents) =>
+            currentEvents.map((record) =>
+                record.id === updatedRecord.id
+                    ? updatedRecord
+                    : record,
+            ),
+        );
     }
 
     function openFinishedEventsActions() {
@@ -400,6 +416,7 @@ export function EventsWorkspace() {
                         isFinishedEventsAction={isFinishedEventsAction}
                         onPanelChange={setActivePanel}
                         onRemoveEvent={toggleEventSelection}
+                        onUpdateEvent={updateEvent}
                         onClose={() => setIsActionsPanelOpen(false)}
                     />
                 </div>
