@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.OpenApi;
 using MongoDB.Driver;
 using Scrappy.Services;
+using Scrappy.Integrations.WhatsApp;
 using Scrappy.Services.Interfaces;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-
 namespace Scrappy.Extensions;
 
 /// <summary>
@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         services
             .AddScrappyCors()
             .AddScrappyMongoDb(configuration)
+            .AddWhatsAppIntegration(configuration)
             .AddScrappyControllers()
             .AddScrappyOpenApi()
             .AddScrappyRouting()
@@ -187,4 +188,17 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+
+    private static IServiceCollection AddWhatsAppIntegration(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services
+            .AddOptions<WhatsAppOptions>()
+            .Bind(configuration.GetSection(WhatsAppOptions.SectionName));
+
+        return services;
+    }
+
 }
