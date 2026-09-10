@@ -100,9 +100,9 @@ The actual entrypoint is `Scrappy/Api.cs`, which delegates service registration 
 `AddScrappyServices`.
 
 ### Done when
-- [ ] `WhatsAppOptions.cs` exists
-- [ ] Config section is registered
-- [ ] API starts without configuration errors
+- [x] `WhatsAppOptions.cs` exists
+- [x] Config section is registered
+- [x] API starts without configuration errors
 
 ---
 
@@ -139,8 +139,8 @@ You choose:
 Never commit Meta credentials or verification tokens.
 
 ### Done when
-- [ ] Secrets load locally
-- [ ] No credentials are committed to Git
+- [x] Secrets load locally
+- [x] No credentials are committed to Git
 
 ---
 
