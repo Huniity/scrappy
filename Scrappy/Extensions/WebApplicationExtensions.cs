@@ -1,5 +1,7 @@
 
 
+using Microsoft.AspNetCore.HttpOverrides;
+
 namespace Scrappy.Extensions;
 
 /// <summary>
@@ -22,7 +24,10 @@ public static class WebApplicationExtensions
                 options.SwaggerEndpoint("/openapi/v1.json", "Scrappy API V1");
             });
         }
-
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
         app.UseHttpsRedirection();
         app.UseCors(ServiceCollectionExtensions.CorsPolicyName);
         app.UseAuthorization();

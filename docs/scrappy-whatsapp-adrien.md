@@ -199,13 +199,24 @@ Verify Token
 
 # Task A5 — Expose API for webhook development
 
-Run Scrappy locally and expose it through a development HTTPS tunnel.
+For local development and demonstrations, run Scrappy locally and expose it through
+an ngrok HTTPS tunnel. Use the stable development domain assigned to the ngrok
+account so Meta's callback URL does not change between sessions.
 
 Example:
 
 ```bash
-cloudflared tunnel --url http://localhost:<PORT>
+docker run --rm -it \
+  --network host \
+  -e NGROK_AUTHTOKEN \
+  ngrok/ngrok:latest \
+  http --url=https://<assigned-domain>.ngrok-free.app \
+  http://127.0.0.1:<PORT>
 ```
+
+Keep `NGROK_AUTHTOKEN` outside the repository. The tunnel is development-only;
+staging and production must expose the deployed Scrappy API through their own stable
+HTTPS domains.
 
 Because the public HTTPS tunnel forwards to the local HTTP endpoint, configure
 ASP.NET forwarded headers before `UseHttpsRedirection()`. This ensures that Scrappy
@@ -214,11 +225,12 @@ recognizes the original request as HTTPS and does not generate an incorrect redi
 Webhook:
 
 ```text
-https://<tunnel>/webhooks/whatsapp
+https://<assigned-domain>.ngrok-free.app/webhooks/whatsapp
 ```
 
 ### Done when
-- [ ] Public HTTPS URL reaches Scrappy
+- [x] Stable ngrok development domain is configured
+- [x] Public HTTPS URL reaches Scrappy
 - [ ] Gonçalo can use it in Meta
 
 ---

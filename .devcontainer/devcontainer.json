@@ -15,7 +15,7 @@
 		"ghcr.io/devcontainers/features/node:2": {},
 		"ghcr.io/devcontainers-extra/features/pnpm:2": {},
 		"ghcr.io/devcontainers-extra/features/typescript:2": {}
-	},
+		},
 	"forwardPorts": [5000, 27017, 6379],
 	"customizations": {
 		"vscode": {

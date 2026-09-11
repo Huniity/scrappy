@@ -65,3 +65,13 @@ mongo-logs:
 
 redis-logs:
 	docker compose -f docker/docker-compose.yml logs -f redis
+
+ngrok-tunnel:
+	@test -n "$$NGROK_AUTHTOKEN" || (echo "NGROK_AUTHTOKEN is not configured" && exit 1)
+	@test -n "$$NGROK_DOMAIN" || (echo "NGROK_DOMAIN is not configured" && exit 1)
+	docker run --rm -it \
+			--network host \
+			-e NGROK_AUTHTOKEN \
+			ngrok/ngrok:latest \
+			http --url="https://$$NGROK_DOMAIN" \
+			http://127.0.0.1:5275
