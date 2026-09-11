@@ -191,9 +191,9 @@ Verify Token
 ```
 
 ### Done when
-- [ ] GET endpoint works locally
-- [ ] Correct token returns challenge
-- [ ] Wrong token returns forbidden
+- [x] GET endpoint works locally
+- [x] Correct token returns challenge
+- [x] Wrong token returns forbidden
 
 ---
 
