@@ -306,8 +306,8 @@ One Meta webhook can contain zero, one or multiple messages, so parsing should r
 a collection of normalized messages.
 
 ### Done when
-- [ ] Meta payload can be transformed into `IncomingWhatsAppMessage`
-- [ ] Multiple messages in one webhook are transformed independently
+- [x] Meta payload can be transformed into `IncomingWhatsAppMessage`
+- [x] Multiple messages in one webhook are transformed independently
 - [x] Controller no longer needs to know deep JSON structure
 
 ---
@@ -332,9 +332,9 @@ Responsibilities:
 - ignore unsupported webhook events safely
 
 ### Done when
-- [ ] Text messages parse correctly
-- [ ] Status webhooks do not crash parser
-- [ ] Missing fields are handled safely
+- [x] Text messages parse correctly
+- [x] Status webhooks do not crash parser
+- [x] Missing fields are handled safely
 
 ---
 
@@ -661,6 +661,182 @@ Do NOT build yet:
 - Production PhoneNumberId → locality resolver
 
 Those are Sprint 2+.
+
+---
+
+# Sprint 2 Goal — Deliver real locality events
+
+Sprint 2 extends the subscription created in Sprint 1 with two delivery moments:
+
+```text
+New or reactivated FOLLOW
+        ↓
+Query real upcoming events for that locality
+        ↓
+Send the current event selection immediately
+```
+
+```text
+Weekly scheduled run
+        ↓
+Load active subscriptions
+        ↓
+Query real upcoming events by locality
+        ↓
+Send the approved weekly WhatsApp template
+```
+
+In this plan, a user's **area** means the subscribed `LocalityName`. Radius or
+GPS-based subscriptions require a separate data model and are not part of this
+sprint.
+
+The first version uses deterministic chronological selection. AI recommendations
+and personalized ranking can be added later without blocking real event delivery.
+
+---
+
+# Task A16 — Create locality event selection service
+
+Create a service that reuses the existing `EventQueryService` and the locality
+resolved by the subscription flow.
+
+Rules:
+- query `DistrictEvents` through the existing event query layer
+- filter by the subscribed `LocalityName`
+- include only published events
+- include only upcoming events
+- order by start date ascending
+- limit the number of events per WhatsApp message using configuration
+- return a deterministic result so retries produce the same selection
+
+The result should contain only the fields required to format the WhatsApp message,
+such as event ID, title, start date, place and public event URL.
+
+### Done when
+- [ ] Published upcoming events are returned for the requested locality
+- [ ] Past, unpublished and other-locality events are excluded
+- [ ] Results are ordered and limited consistently
+- [ ] No-events result is handled explicitly
+
+---
+
+# Task A17 — Send current events after subscription
+
+After a new subscription or reactivation succeeds, query the current real events
+for that locality and send them in the WhatsApp conversation. This is triggered by
+the user's `FOLLOW` message and can use the normal reply flow.
+
+Suggested reply shape:
+
+```text
+✅ Agora estás a seguir os eventos de Alcobaça.
+
+Próximos eventos:
+1. Nome do evento — 14 Jun, 21:00 — Local
+2. Nome do evento — 16 Jun, 18:30 — Local
+
+Ver todos: <public locality/events URL>
+```
+
+If there are no upcoming published events, confirm the subscription and explain
+that the user will receive the next weekly update when events are available.
+
+Rules:
+- a re-delivery of the same Meta `MessageId` must not send the list twice
+- an already active duplicate `FOLLOW` must remain idempotent
+- event-query or Meta API failure must not undo a subscription already saved
+- do not expose unpublished event data
+
+### Done when
+- [ ] New subscription receives real events for the correct locality
+- [ ] Reactivated subscription receives the current event selection
+- [ ] Empty locality result produces a controlled message
+- [ ] Duplicate webhook delivery does not repeat the event message
+
+---
+
+# Task A18 — Add approved weekly template sending
+
+Coordinate with Gonçalo's template work and extend `WhatsAppClient` with a template
+message method. The final Meta template must define the language and variables used
+for the locality, event summary and public link.
+
+Weekly messages are proactive and may be sent outside the active customer service
+window, so the production flow must use a template approved by Meta. Keep template
+name, language and variable mapping in configuration rather than hard-coding them
+inside the scheduler.
+
+### Done when
+- [ ] Weekly template is approved in Meta
+- [ ] `WhatsAppClient` can send the approved template
+- [ ] Template name, language and variables are mapped explicitly
+- [ ] Meta API errors are recorded without exposing tokens or phone numbers in logs
+
+---
+
+# Task A19 — Schedule the weekly locality digest
+
+Run one weekly dispatch using a production-capable scheduler or worker. Do not rely
+on an uncoordinated in-memory timer inside every API replica.
+
+Flow:
+1. load active subscriptions
+2. group them by locality so events are queried once per locality
+3. generate the current event selection
+4. send the approved template to each subscribed user
+5. record the dispatch result
+
+Rules:
+- use the `Europe/Lisbon` timezone for the agreed delivery day and time
+- check that the subscription is still active immediately before sending
+- retry transient Meta failures with bounded backoff
+- prevent duplicate delivery with a unique key such as
+  `WhatsAppUserId + LocalitySlug + WeekStart`
+- one failed recipient must not stop the remaining weekly dispatch
+
+### Done when
+- [ ] Weekly run finds all active subscriptions
+- [ ] Each user receives events only for subscribed localities
+- [ ] The same locality is queried once per run
+- [ ] A retry or repeated scheduler run does not duplicate a weekly message
+- [ ] STOPped subscriptions receive no later weekly message
+
+---
+
+# Task A20 — Sprint 2 backend tests
+
+Minimum tests:
+
+## Event selection
+- [ ] Filters by locality, publication status and future date
+- [ ] Orders and limits results consistently
+- [ ] Handles a locality with no upcoming events
+
+## Immediate subscription delivery
+- [ ] Sends the correct locality's events after a new subscription
+- [ ] Does not repeat delivery for the same Meta `MessageId`
+- [ ] Preserves the subscription if event delivery fails
+
+## Weekly dispatch
+- [ ] Sends only to active subscriptions
+- [ ] Supports one user subscribed to multiple localities
+- [ ] Prevents duplicate delivery for the same week
+- [ ] Continues after an individual send failure
+- [ ] Uses the configured approved template
+
+---
+
+# Sprint 2 Deliverables
+
+At the end of Sprint 2 you should have:
+
+- [ ] Real upcoming event selection by locality
+- [ ] Immediate event message after subscription or reactivation
+- [ ] Approved weekly WhatsApp template
+- [ ] Template sending support in `WhatsAppClient`
+- [ ] Production-capable weekly scheduled dispatch
+- [ ] Weekly delivery idempotency and retry handling
+- [ ] Sprint 2 backend tests
 
 ---
 

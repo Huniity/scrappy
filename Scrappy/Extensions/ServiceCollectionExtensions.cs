@@ -171,7 +171,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds and configures application-specific services for the Scrappy API, including services related to event management, filtering, sorting, and querying.
+    /// Adds and configures application-specific services for the Scrappy API, including event-related services and a hosted service for managing event lifecycles. Also registers a singleton service for geodata operations.
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
@@ -199,6 +199,7 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(WhatsAppOptions.SectionName));
 
         services.AddSingleton<WhatsAppWebhookSignatureValidator>();
+        services.AddSingleton<WhatsAppMessageParser>();
 
         return services;
     }
