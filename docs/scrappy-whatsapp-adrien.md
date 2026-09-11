@@ -537,8 +537,8 @@ to the destination number from the incoming webhook and supports the future
 
 ### Done when
 - [ ] Scrappy can send a text message
-- [ ] API errors are logged/returned clearly
-- [ ] Access token is not hard-coded
+- [x] API errors are logged/returned clearly
+- [x] Access token is not hard-coded
 
 ---
 

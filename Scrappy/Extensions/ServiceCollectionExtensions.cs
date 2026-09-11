@@ -204,6 +204,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<WhatsAppSubscriptionService>();
         services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
 
+        services.AddHttpClient<WhatsAppClient>(client =>
+        {
+            client.BaseAddress =
+                new Uri("https://graph.facebook.com/");
+
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+
         return services;
     }
 
