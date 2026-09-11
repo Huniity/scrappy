@@ -9,7 +9,7 @@ namespace Scrappy.Models.Entities;
 /// <summary>
 /// Represents a subscription to WhatsApp notifications for a specific locality.
 /// </summary>
-public sealed class WhatsAppSubscriptionModel
+public sealed class WhatsAppSubscription
 {
     /// <summary> The name of the MongoDB collection where WhatsApp subscriptions are stored. </summary>
     public const string CollectionName = "WhatsAppSubscriptions";
@@ -27,7 +27,7 @@ public sealed class WhatsAppSubscriptionModel
     [BsonElement("LocalitySlug")]
     public string LocalitySlug { get; set; } = string.Empty;
 
-    /// <summary> Gets or sets the name of the locality for which the user is subscribed to notifications. </summary>
+    /// <summary> Gets or sets a value indicating whether the subscription is active. </summary>
     [BsonElement("IsActive")]
     public bool IsActive { get; set; }
 
