@@ -201,6 +201,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WhatsAppWebhookSignatureValidator>();
         services.AddSingleton<WhatsAppMessageParser>();
         services.AddSingleton<WhatsAppCommandResolver>();
+        services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
 
         return services;
     }
