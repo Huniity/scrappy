@@ -308,7 +308,7 @@ a collection of normalized messages.
 ### Done when
 - [ ] Meta payload can be transformed into `IncomingWhatsAppMessage`
 - [ ] Multiple messages in one webhook are transformed independently
-- [ ] Controller no longer needs to know deep JSON structure
+- [x] Controller no longer needs to know deep JSON structure
 
 ---
 
