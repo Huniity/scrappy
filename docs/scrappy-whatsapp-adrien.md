@@ -281,10 +281,10 @@ You should see:
 
 ### Done when
 - [ ] Incoming message reaches Scrappy
-- [ ] Valid Meta signature is accepted
-- [ ] Invalid or missing signature is rejected
+- [x] Valid Meta signature is accepted
+- [x] Invalid or missing signature is rejected
 - [ ] Sender, destination, message ID and type are visible in development logs
-- [ ] Endpoint returns 200
+- [x] Endpoint returns 200
 
 ---
 

@@ -1,4 +1,4 @@
-PHONY: up rebuild-all rebuild-api rebuild-worker rebuild-next rebuild-mongo rebuild-redis scraper scheduler scheduler-logs scraper-logs worker-logs web-logs mongo-logs redis-logs
+PHONY: up rebuild-all rebuild-api rebuild-worker rebuild-next rebuild-mongo rebuild-redis scraper scheduler scheduler-logs scraper-logs worker-logs web-logs mongo-logs redis-logs ngrok-tunnel help
 
 help:
 	@echo "Makefile commands:"
@@ -17,6 +17,7 @@ help:
 	@echo "  web-logs           - View logs for the Next.js service"
 	@echo "  mongo-logs         - View logs for the MongoDB service"
 	@echo "  redis-logs         - View logs for the Redis service"
+	@echo "  ngrok-tunnel       - Start an ngrok tunnel to expose the local service"
 
 up:
 	docker compose -f docker/docker-compose.yml up

@@ -198,6 +198,8 @@ public static class ServiceCollectionExtensions
             .AddOptions<WhatsAppOptions>()
             .Bind(configuration.GetSection(WhatsAppOptions.SectionName));
 
+        services.AddSingleton<WhatsAppWebhookSignatureValidator>();
+
         return services;
     }
 
