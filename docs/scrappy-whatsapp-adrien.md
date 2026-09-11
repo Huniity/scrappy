@@ -338,9 +338,9 @@ Responsibilities:
 
 ---
 
-# Task A9 — Implement development locality resolver
+# Task A9 — Implement locality command resolver
 
-For DEV, locality comes from the message:
+For Sprint 1, locality comes from the message:
 
 ```text
 SCRAPPY FOLLOW alcobaca
@@ -348,7 +348,7 @@ SCRAPPY FOLLOW faro
 SCRAPPY FOLLOW lourinha
 ```
 
-Create a simple resolver.
+Create a resolver that supports every value in the existing `LocalityName` enum.
 
 Suggested result:
 
@@ -363,16 +363,38 @@ Rules:
 - command should be case-insensitive
 - invalid locality should not create a subscription
 
-Reuse the existing `LocalityName` enum through an explicit pilot mapping:
+The command result should preserve both the stable slug used by the subscription
+and the corresponding enum value used by Scrappy:
 
-```text
-alcobaca → LocalityName.Alcobaça
-faro → LocalityName.Faro
-lourinha → LocalityName.Lourinhã
+```csharp
+public sealed record FollowLocalityCommand(
+    string LocalitySlug,
+    LocalityName Locality
+);
 ```
 
-Do not derive slugs automatically from enum names because accents, spaces and
-punctuation require a stable shared convention with the website.
+Build the lookup once from `Enum.GetValues<LocalityName>()`. Generate each canonical
+slug from the enum's existing `Display(Name)` value by:
+
+- converting to lowercase
+- removing diacritics
+- replacing spaces and punctuation with a single `-`
+- trimming leading and trailing separators
+
+Examples:
+
+```text
+Alcobaça → alcobaca
+Lourinhã → lourinha
+Póvoa de Varzim → povoa-de-varzim
+Calheta (Açores) → calheta-acores
+Calheta (Madeira) → calheta-madeira
+```
+
+Do not maintain a second hard-coded list of municipalities. Fail during lookup
+creation if two enum values generate the same slug, so an ambiguous locality is
+never selected silently. This slug convention must also be returned to or shared
+with the website when it creates the pre-filled WhatsApp message.
 
 ### Important
 
@@ -383,9 +405,11 @@ PhoneNumberId → Locality
 ```
 
 ### Done when
-- [ ] `FOLLOW alcobaca` resolves Alcobaça
-- [ ] `FOLLOW faro` resolves Faro
-- [ ] invalid locality returns controlled error
+- [x] `FOLLOW alcobaca` resolves Alcobaça
+- [x] `FOLLOW faro` resolves Faro
+- [x] Multi-word and accented localities resolve through their canonical slug
+- [x] All `LocalityName` values have a unique generated slug
+- [x] invalid locality returns controlled error
 
 ---
 
