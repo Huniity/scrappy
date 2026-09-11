@@ -458,10 +458,10 @@ One user must be able to follow many localities.
 ```
 
 ### Done when
-- [ ] Subscription collection exists
-- [ ] Unique compound index exists
-- [ ] Duplicate subscriptions are prevented
-- [ ] Same user can follow multiple localities
+- [x] Subscription collection exists
+- [x] Unique compound index exists
+- [x] Duplicate subscriptions are prevented
+- [x] Same user can follow multiple localities
 
 ---
 
@@ -492,9 +492,9 @@ Rules:
 - asynchronous methods accept a `CancellationToken`
 
 ### Done when
-- [ ] Subscribe works
-- [ ] Unsubscribe works
-- [ ] Multiple localities work independently
+- [x] Subscribe works
+- [x] Unsubscribe works
+- [x] Multiple localities work independently
 
 ---
 
