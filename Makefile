@@ -28,6 +28,9 @@ up:
 down:
 	docker compose -f docker/docker-compose.yml --profile scheduler --profile scheduled down
 
+build:
+	docker compose -f docker/docker-compose.yml up --build
+
 rebuild-all:
 	docker compose -f docker/docker-compose.yml up -d --build
 
@@ -78,4 +81,4 @@ ngrok-tunnel:
 			-e NGROK_AUTHTOKEN \
 			ngrok/ngrok:latest \
 			http --url="https://$$NGROK_DOMAIN" \
-			http://127.0.0.1:5275
+			http://127.0.0.1:5000

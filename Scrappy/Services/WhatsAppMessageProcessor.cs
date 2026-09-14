@@ -39,7 +39,7 @@ public sealed class WhatsAppMessageProcessor(
                 await whatsAppClient.SendTextAsync(
                     message.PhoneNumberId,
                     message.UserId,
-                    "Comando inválido. Usa: SCRAPPY FOLLOW <localidade>.", cancellationToken);
+                    "Comando inválido. Usa: Obter eventos de <localidade>.", cancellationToken);
                 return;
             }
 

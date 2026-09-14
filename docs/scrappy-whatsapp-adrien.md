@@ -573,10 +573,10 @@ Expected reply:
 ```
 
 ### Done when
-- [ ] Message creates MongoDB subscription
+- [x] Message creates MongoDB subscription
 - [ ] User receives confirmation
-- [ ] Duplicate follow remains idempotent
-- [ ] Re-delivery of the same Meta `MessageId` does not send a second confirmation
+- [x] Duplicate follow remains idempotent
+- [x] Re-delivery of the same Meta `MessageId` does not send a second confirmation
 - [ ] Webhook acknowledgement is returned promptly to avoid unnecessary Meta retries
 
 ---
@@ -733,6 +733,11 @@ Rules:
 - limit the number of events per WhatsApp message using configuration
 - return a deterministic result so retries produce the same selection
 
+Expose a canonical locality contract for the frontend, generated from the same
+`LocalityName` and `LocalitySlug` code used by the WhatsApp resolver. The contract
+must provide at least the enum code, display name and slug. The frontend must not
+maintain its own hard-coded list or a separate slug algorithm.
+
 The result should contain only the fields required to format the WhatsApp message,
 such as event ID, title, start date, place and public event URL.
 
@@ -741,6 +746,7 @@ such as event ID, title, start date, place and public event URL.
 - [ ] Past, unpublished and other-locality events are excluded
 - [ ] Results are ordered and limited consistently
 - [ ] No-events result is handled explicitly
+- [ ] Frontend can obtain canonical locality codes, display names and slugs from Scrappy
 
 ---
 
@@ -767,7 +773,10 @@ that the user will receive the next weekly update when events are available.
 
 Rules:
 - a re-delivery of the same Meta `MessageId` must not send the list twice
-- an already active duplicate `FOLLOW` must remain idempotent
+- update `SubscribeAsync` to report whether the subscription was created,
+  reactivated or was already active
+- send the initial event selection only for a created or reactivated subscription
+- an already active duplicate `FOLLOW` must not send the event selection again
 - event-query or Meta API failure must not undo a subscription already saved
 - do not expose unpublished event data
 
@@ -776,6 +785,7 @@ Rules:
 - [ ] Reactivated subscription receives the current event selection
 - [ ] Empty locality result produces a controlled message
 - [ ] Duplicate webhook delivery does not repeat the event message
+- [ ] Already active duplicate `FOLLOW` does not repeat the event selection
 
 ---
 
@@ -855,6 +865,7 @@ Minimum tests:
 At the end of Sprint 2 you should have:
 
 - [ ] Real upcoming event selection by locality
+- [ ] Canonical locality contract available to the frontend
 - [ ] Immediate event message after subscription or reactivation
 - [ ] Approved weekly WhatsApp template
 - [ ] Template sending support in `WhatsAppClient`

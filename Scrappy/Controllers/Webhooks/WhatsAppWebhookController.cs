@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Scrappy.Integrations.WhatsApp;
+using Scrappy.Services;
 
 namespace Scrappy.Controllers.Webhooks;
 
@@ -15,6 +16,9 @@ namespace Scrappy.Controllers.Webhooks;
 public sealed class WhatsAppWebhookController(
     IOptions<WhatsAppOptions> options,
     WhatsAppWebhookSignatureValidator signatureValidator,
+    WhatsAppMessageProcessor messageProcessor,
+    WhatsAppMessageParser messageParser,
+    IHostEnvironment environment,
     ILogger<WhatsAppWebhookController> logger
 ) : ControllerBase
 {
@@ -83,8 +87,30 @@ public sealed class WhatsAppWebhookController(
             return Unauthorized();
         }
 
+        var messages = messageParser.Parse(payload);
+
         logger.LogInformation(
-            "Received signed WhatsApp webhook containing {PayloadLength} bytes.", payload.Length);
+            "Received signed WhatsApp webhook containing " +
+            "{PayloadLength} bytes and {MessageCount} text messages.",
+            payload.Length,
+            messages.Count);
+
+        foreach (var message in messages)
+        {
+            if (environment.IsDevelopment())
+            {
+                logger.LogInformation(
+                    "Processing WhatsApp text message {MessageId} " +
+                    "from {UserId} to phone number ID {PhoneNumberId}.",
+                    message.MessageId,
+                    message.UserId,
+                    message.PhoneNumberId);
+            }
+
+            await messageProcessor.ProcessAsync(
+                message,
+                cancellationToken);
+        }
 
         return Ok();
     }

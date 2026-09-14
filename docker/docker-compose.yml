@@ -30,6 +30,12 @@ services:
     environment:
       ConnectionStrings__MongoDb: mongodb://mongodb:27017/scrappy_db
       ASPNETCORE_ENVIRONMENT: Development
+      WhatsApp__AccessToken: ${WHATSAPP_ACCESS_TOKEN}
+      WhatsApp__AppSecret: ${WHATSAPP_APP_SECRET}
+      WhatsApp__PhoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID}
+      WhatsApp__WabaId: ${WHATSAPP_WABA_ID}
+      WhatsApp__VerifyToken: ${WHATSAPP_VERIFY_TOKEN}
+      WhatsApp__GraphApiVersion: ${WHATSAPP_GRAPH_API_VERSION}
     depends_on:
       mongodb:
         condition: service_healthy

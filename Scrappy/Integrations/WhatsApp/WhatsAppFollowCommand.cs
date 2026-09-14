@@ -44,12 +44,14 @@ public sealed class WhatsAppCommandResolver
             StringSplitOptions.RemoveEmptyEntries |
             StringSplitOptions.TrimEntries);
 
-        if (parts.Length != 3 ||
-            !string.Equals(parts[0], "SCRAPPY",
+        if (parts.Length != 4 ||
+            !string.Equals(parts[0], "Obter",
                 StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(parts[1], "FOLLOW",
+            !string.Equals(parts[1], "eventos",
                 StringComparison.OrdinalIgnoreCase) ||
-            !LocalitiesBySlug.TryGetValue(parts[2], out var locality))
+            !string.Equals(parts[2], "de",
+                StringComparison.OrdinalIgnoreCase) ||
+            !LocalitiesBySlug.TryGetValue(parts[3], out var locality))
         {
             return false;
         }
