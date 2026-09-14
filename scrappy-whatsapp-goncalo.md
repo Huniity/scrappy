@@ -505,16 +505,227 @@ This avoids vague reports like:
 
 ---
 
-# Not in Sprint 1
+# Sprint 2 Goal — Deliver real locality events
+
+Sprint 2 extends the Sprint 1 subscription flow with real event delivery:
+
+```text
+New or reactivated FOLLOW
+        ↓
+Real upcoming events for the subscribed locality
+        ↓
+Immediate WhatsApp message
+```
+
+```text
+Weekly scheduled run
+        ↓
+Approved WhatsApp template
+        ↓
+Locality event digest
+```
+
+Adrien owns the event query, message sending and scheduler implementation. Gonçalo
+owns the Meta template, the public event-link contract and the end-to-end validation
+of the real-data flow.
+
+---
+
+# Task G16 — Finalize and submit the weekly WhatsApp template
+
+Turn the draft from G11 into the approved Meta template that Adrien can send from
+the weekly dispatcher.
+
+The final contract must define:
+
+```text
+Template name
+Language
+Variable order
+Variable meaning
+```
+
+Keep the variables aligned with the backend:
+
+```text
+{{1}} LocalityName
+{{2}} EventCount
+{{3}} HighlightSummary
+{{4}} LocalityEventsUrl
+```
+
+Submit the template through Meta, record the exact approved name and language, and
+deliver those values to Adrien. Do not put credentials in the documentation.
+
+### Done when
+- [ ] Template wording is finalized
+- [ ] Template is submitted and approved by Meta
+- [ ] Name, language and variable order are documented
+- [ ] Approved template details are delivered to Adrien
+
+---
+
+# Task G17 — Define the public locality-events link contract
+
+For every canonical `LocalitySlug` supported by Scrappy, define the public URL that
+will be used in the immediate reply and in the weekly template.
+
+Document:
+
+```text
+LocalitySlug → public locality/events URL
+```
+
+The link must open the published events for the same locality and must not expose
+unpublished events. Keep the slug convention shared with Adrien; do not create a
+second list of locality names in the frontend.
+
+### Done when
+- [ ] Public URL pattern is agreed with Adrien
+- [ ] Locality slug-to-URL mapping is documented or generated
+- [ ] Links for the initial localities open the correct event list
+- [ ] Event URL is available as the `LocalityEventsUrl` template variable
+
+---
+
+# Task G18 — Define the real-event message contract
+
+Coordinate with Adrien on the fields shown in WhatsApp for the immediate message
+and the weekly digest:
+
+```text
+Event title
+Start date/time
+Place
+Public event URL
+```
+
+Agree the Portuguese wording for:
+- a locality with upcoming events
+- a locality with no upcoming published events
+- an event whose place or URL is unavailable
+
+The presentation must match Adrien's deterministic chronological selection and must
+not imply radius, GPS or nearby-event detection.
+
+### Done when
+- [ ] Immediate-message fields and formatting are agreed
+- [ ] Weekly-template variables match the backend output
+- [ ] No-events wording is agreed
+- [ ] Missing optional event fields have a defined fallback
+
+---
+
+# Task G19 — Agree weekly delivery configuration
+
+Before Adrien implements the dispatcher, provide the operational values for:
+
+```text
+Delivery day
+Delivery time
+Timezone: Europe/Lisbon
+Maximum events per digest
+Approved template name
+Approved template language
+```
+
+Document the values in the integration setup note. The scheduler must use the
+approved template outside the normal customer-service window.
+
+### Done when
+- [ ] Delivery day and time are agreed
+- [ ] `Europe/Lisbon` is recorded as the timezone
+- [ ] Event limit and template configuration are delivered to Adrien
+- [ ] No scheduler configuration is hard-coded only in the frontend
+
+---
+
+# Task G20 — QA immediate real-event delivery
+
+After Adrien connects the subscription flow to the real event query, test:
+
+```text
+New FOLLOW
+→ subscription saved
+→ correct locality events received immediately
+```
+
+Also verify:
+- reactivated subscriptions receive the current event selection
+- an empty locality produces the agreed controlled message
+- only published upcoming events are shown
+- events are ordered chronologically and respect the configured limit
+- a duplicate `FOLLOW` or Meta webhook re-delivery does not send the list twice
+- an event-query or outgoing Meta failure does not remove the saved subscription
+
+### Done when
+- [ ] New subscription receives real events for the correct locality
+- [ ] Reactivation receives the current event selection
+- [ ] No-events case is correct
+- [ ] Duplicate delivery is not repeated
+- [ ] Failure handling is confirmed with Adrien
+
+---
+
+# Task G21 — QA the weekly locality digest
+
+Test the scheduled flow with representative subscriptions and real event data.
+
+Minimum scenarios:
+
+```text
+Active subscription → receives the digest
+STOPped subscription → receives nothing
+One user + two localities → receives the correct events for each locality
+Repeated weekly run → does not duplicate the same digest
+One failed recipient → remaining recipients are still processed
+```
+
+Check that the approved template renders the locality, event summary and public
+link correctly in WhatsApp Web and on mobile.
+
+### Done when
+- [ ] Only active subscriptions receive weekly messages
+- [ ] Multiple localities remain independent
+- [ ] Same-week duplicate delivery is prevented
+- [ ] One recipient failure does not stop the run
+- [ ] Template renders correctly on desktop and mobile
+
+---
+
+# Task G22 — Update integration documentation for Sprint 2
+
+Extend the Meta setup note with:
+
+```text
+Approved template name and language
+Template variables
+Weekly delivery day/time and timezone
+Public locality-events URL convention
+Test data and QA scenarios
+Known production prerequisites
+```
+
+Never include access tokens, app secrets or personal phone numbers. Record any
+remaining dependency on Adrien's scheduler, event query or Meta client explicitly.
+
+### Done when
+- [ ] Sprint 2 setup is reproducible by another developer
+- [ ] Template and delivery configuration are documented
+- [ ] QA evidence and known limitations are recorded
+- [ ] No secrets are included
+
+---
+
+# Not in Sprint 2
 
 Do NOT build yet:
 
-- Weekly scheduler
-- BullMQ jobs
 - AI recommendations
-- Event digest ranking
-- Real number per locality
-- Production template sending logic
+- Personalized/event digest ranking
+- Radius or GPS-based subscriptions
+- One real WhatsApp number per locality
+- Production `PhoneNumberId → locality` resolver
 - Mass onboarding of Portuguese municipalities
 
 ---
@@ -539,3 +750,19 @@ At the end of Sprint 1 you should have:
 - [ ] Production phone-number mapping note
 - [ ] Meta integration documentation
 - [ ] End-to-end QA completed with Adrien
+
+---
+
+# Gonçalo Sprint 2 Deliverables
+
+At the end of Sprint 2 you should have:
+
+- [ ] Approved weekly WhatsApp template
+- [ ] Template name, language and variables shared with Adrien
+- [ ] Public locality-events URL convention
+- [ ] Real-event message and no-events wording agreed
+- [ ] Weekly delivery day, time and timezone configured
+- [ ] Immediate real-event delivery QA completed
+- [ ] Weekly digest QA completed
+- [ ] Duplicate, STOP and failure scenarios verified
+- [ ] Sprint 2 Meta/integration documentation updated
