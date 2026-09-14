@@ -204,6 +204,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<WhatsAppSubscriptionService>();
         services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
         services.AddScoped<WhatsAppMessageIdempotencyService>();
+        services.AddScoped<WhatsAppMessageProcessor>();
 
         services.AddHttpClient<WhatsAppClient>(client =>
         {
