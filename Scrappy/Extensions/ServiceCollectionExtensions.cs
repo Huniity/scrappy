@@ -203,6 +203,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WhatsAppCommandResolver>();
         services.AddScoped<WhatsAppSubscriptionService>();
         services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
+        services.AddScoped<WhatsAppMessageIdempotencyService>();
 
         services.AddHttpClient<WhatsAppClient>(client =>
         {

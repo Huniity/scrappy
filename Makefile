@@ -1,5 +1,8 @@
 PHONY: up rebuild-all rebuild-api rebuild-worker rebuild-next rebuild-mongo rebuild-redis scraper scheduler scheduler-logs scraper-logs worker-logs web-logs mongo-logs redis-logs ngrok-tunnel help
 
+-include .env
+export
+
 help:
 	@echo "Makefile commands:"
 	@echo "  up                 - Start all services defined in docker-compose.yml"
