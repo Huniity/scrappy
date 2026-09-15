@@ -2,6 +2,7 @@
 
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Globalization;
 using Microsoft.Extensions.Options;
 
 namespace Scrappy.Integrations.WhatsApp;
@@ -20,13 +21,15 @@ public sealed class WhatsAppClient(
     private readonly WhatsAppOptions _options = options.Value;
 
     /// <summary>
-    /// Sends a text message to a specified recipient using the WhatsApp Business API.
+    /// Sends a text message to a specified recipient via the Meta WhatsApp API.
     /// </summary>
-    /// <param name="phoneNumberId">The phone number ID associated with the WhatsApp Business API account.</param>
-    /// <param name="recipient">The recipient's phone number in international format.</param>
-    /// <param name="message">The text message to be sent.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>   
+    /// <param name="phoneNumberId">The phone number ID associated with the WhatsApp Business API.</param>
+    /// <param name="recipient">The recipient's phone number in international format (e.g., +1234567890).</param>
+    /// <param name="message">The text message to send.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <exception cref="ArgumentException">Thrown when any of the required parameters are null, empty, or whitespace.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the WhatsApp access token is not configured.</exception>
+    /// <exception cref="HttpRequestException">Thrown when the Meta WhatsApp API returns an error.</exception>
     public async Task SendTextAsync(
         string phoneNumberId,
         string recipient,
@@ -36,18 +39,6 @@ public sealed class WhatsAppClient(
         ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
         ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
-
-        if (string.IsNullOrWhiteSpace(_options.AccessToken))
-        {
-            throw new InvalidOperationException(
-                "WhatsApp access token is not configured.");
-        }
-
-        var graphApiVersion = GetGraphApiVersion();
-
-        var requestUri =
-            $"{graphApiVersion}/" +
-            $"{Uri.EscapeDataString(phoneNumberId.Trim())}/messages";
 
         var payload = new
         {
@@ -62,14 +53,65 @@ public sealed class WhatsAppClient(
             }
         };
 
+        await SendPayloadAsync(
+            phoneNumberId,
+            payload,
+            cancellationToken);
+    }
+
+
+    /// <summary>
+    /// Combines the configured public base URL with a relative resource path.
+    /// </summary>
+    private string BuildPublicUrl(string relativePath)
+    {
+        if (!Uri.TryCreate(
+                _options.PublicBaseUrl?.Trim(),
+                UriKind.Absolute,
+                out var baseUri) ||
+            baseUri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new InvalidOperationException("WhatsApp PublicBaseUrl must be a valid HTTPS URL.");
+        }
+
+        var normalizedBaseUrl =
+            baseUri.AbsoluteUri.TrimEnd('/') + "/";
+
+        return new Uri(
+            new Uri(normalizedBaseUrl),
+            relativePath.TrimStart('/'))
+            .AbsoluteUri;
+    }
+
+
+    /// <summary>
+    /// Sends a message payload through the Meta WhatsApp API.
+    /// </summary>
+    private async Task SendPayloadAsync(
+        string phoneNumberId,
+        object payload,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
+        ArgumentNullException.ThrowIfNull(payload);
+
+        if (string.IsNullOrWhiteSpace(_options.AccessToken))
+        {
+            throw new InvalidOperationException("WhatsApp access token is not configured.");
+        }
+
+        var graphApiVersion = GetGraphApiVersion();
+
+        var requestUri =
+            $"{graphApiVersion}/" +
+            $"{Uri.EscapeDataString(phoneNumberId.Trim())}/messages";
+
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             requestUri);
 
         request.Headers.Authorization =
-            new AuthenticationHeaderValue(
-                "Bearer",
-                _options.AccessToken);
+            new AuthenticationHeaderValue("Bearer", _options.AccessToken);
 
         request.Content = JsonContent.Create(payload);
 
@@ -100,6 +142,132 @@ public sealed class WhatsAppClient(
             inner: null,
             response.StatusCode);
     }
+
+
+    /// <summary>
+    /// Sends the approved WhatsApp template containing published events.
+    /// </summary>
+    public async Task SendWeeklyEventsTemplateAsync(
+        string phoneNumberId,
+        string recipient,
+        WhatsAppEventsTemplateParameters parameters,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+        ArgumentNullException.ThrowIfNull(parameters);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(
+            parameters.LocalityName);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(
+            parameters.EventsSummary);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(
+            parameters.LogoPath);
+
+        // ArgumentException.ThrowIfNullOrWhiteSpace(
+        //     parameters.EventsPath);
+
+        if (parameters.EventCount < 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(parameters),
+                "The events template requires at least one event.");
+        }
+
+        if (string.IsNullOrWhiteSpace(
+                _options.WeeklyEventsTemplateName))
+        {
+            throw new InvalidOperationException("WhatsApp weekly events template name is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(
+                _options.TemplateLanguageCode))
+        {
+            throw new InvalidOperationException("WhatsApp template language is not configured.");
+        }
+
+        var logoUrl = BuildPublicUrl(parameters.LogoPath);
+
+        var payload = new
+        {
+            messaging_product = "whatsapp",
+            to = recipient.Trim(),
+            type = "template",
+            template = new
+            {
+                name = _options.WeeklyEventsTemplateName.Trim(),
+                language = new
+                {
+                    code = _options.TemplateLanguageCode.Trim()
+                },
+                components = new object[]
+                {
+                    new
+                    {
+                        type = "header",
+                        parameters = new object[]
+                        {
+                            new
+                            {
+                                type = "image",
+                                image = new
+                                {
+                                    link = logoUrl
+                                }
+                            }
+                        }
+                    },
+                    new
+                    {
+                        type = "body",
+                        parameters = new object[]
+                        {
+                            new
+                            {
+                                type = "text",
+                                text = parameters.LocalityName.Trim()
+                            },
+                            new
+                            {
+                                type = "text",
+                                text = parameters.EventCount.ToString(
+                                    CultureInfo.InvariantCulture)
+                            },
+                            new
+                            {
+                                type = "text",
+                                text = parameters.EventsSummary.Trim()
+                            }
+                        }
+                    },
+                    // new
+                    // {
+                    //     type = "button",
+                    //     sub_type = "url",
+                    //     index = "0",
+                    //     parameters = new object[]
+                    //     {
+                    //         new
+                    //         {
+                    //             type = "text",
+                    //             text = parameters.EventsPath
+                    //                 .Trim()
+                    //                 .TrimStart('/')
+                    //         }
+                    //     }
+                    // }
+                }
+            }
+        };
+
+        await SendPayloadAsync(
+            phoneNumberId,
+            payload,
+            cancellationToken);
+    }
+
 
     /// <summary> Retrieves the configured Graph API version for the WhatsApp Business API, ensuring it is valid and properly formatted. </summary>
     /// <returns>The Graph API version string, prefixed with 'v' if not already present.</returns>

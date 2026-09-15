@@ -15,6 +15,7 @@ public sealed class WhatsAppMessageProcessor(
     WhatsAppEventSelectionService eventSelectionService,
     WhatsAppReportWindowService reportWindowService,
     WhatsAppEventMessageFormatter eventMessageFormatter,
+    MunicipalityCatalog municipalityCatalog,
     WhatsAppMessageIdempotencyService idempotencyService,
     WhatsAppClient whatsAppClient,
     WhatsAppHelpCommand helpCommand,
@@ -90,28 +91,23 @@ public sealed class WhatsAppMessageProcessor(
                     return;
                 }
 
+                await whatsAppClient.SendTextAsync(
+                    message.PhoneNumberId,
+                    message.UserId,
+                    confirmationMessage,
+                    cancellationToken);
+
                 var reportWindow =
                     reportWindowService.CreateImmediateWindow();
 
+                WhatsAppEventSelection selection;
+
                 try
                 {
-                    var selection =
-                        await eventSelectionService.SelectAsync(
-                            followCommand.Locality,
-                            reportWindow.WindowStartUtc,
-                            reportWindow.WindowEndUtc,
-                            cancellationToken);
-
-                    var reportMessage =
-                        eventMessageFormatter.FormatImmediateReport(
-                            selection);
-
-                    await whatsAppClient.SendTextAsync(
-                        message.PhoneNumberId,
-                        message.UserId,
-                        confirmationMessage +
-                        "\n\n" +
-                        reportMessage,
+                    selection = await eventSelectionService.SelectAsync(
+                        followCommand.Locality,
+                        reportWindow.WindowStartUtc,
+                        reportWindow.WindowEndUtc,
                         cancellationToken);
                 }
                 catch (Exception exception)
@@ -119,17 +115,66 @@ public sealed class WhatsAppMessageProcessor(
                 {
                     logger.LogError(
                         exception,
-                        "Could not create the immediate WhatsApp event " +
-                        "report for locality {LocalitySlug}.",
+                        "Could not select immediate WhatsApp events " +
+                        "for locality {LocalitySlug}.",
                         followCommand.LocalitySlug);
 
                     await whatsAppClient.SendTextAsync(
                         message.PhoneNumberId,
                         message.UserId,
-                        confirmationMessage +
-                        "\n\nNão foi possível carregar os eventos neste momento. " +
+                        "Não foi possível carregar os eventos neste momento. " +
                         "A tua subscrição ficou ativa e receberás o próximo " +
                         "relatório semanal.",
+                        cancellationToken);
+
+                    return;
+                }
+
+                if (!selection.HasEvents)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        eventMessageFormatter.FormatImmediateReport(selection),
+                        cancellationToken);
+
+                    return;
+                }
+
+                try
+                {
+                    var municipality =
+                        municipalityCatalog.GetRequired(
+                            selection.LocalitySlug);
+
+                    var templateParameters =
+                        new WhatsAppEventsTemplateParameters(
+                            localityName,
+                            selection.TotalEventCount,
+                            eventMessageFormatter.FormatEventsSummary(selection),
+                            municipality.LogoPath
+                            // municipality.EventsPath
+                        );
+
+                    await whatsAppClient.SendWeeklyEventsTemplateAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        templateParameters,
+                        cancellationToken);
+                }
+                catch (Exception exception)
+                    when (exception is not OperationCanceledException)
+                {
+                    logger.LogError(
+                        exception,
+                        "Could not send immediate WhatsApp template " +
+                        "for locality {LocalitySlug}.",
+                        followCommand.LocalitySlug);
+
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        eventMessageFormatter.FormatImmediateReport(selection),
                         cancellationToken);
                 }
 
