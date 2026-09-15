@@ -18,8 +18,10 @@ public class EventQueryService(
 {
     private readonly IMongoCollection<DistrictEvent> _events = database.GetCollection<DistrictEvent>("DistrictEvents");
 
-    public async Task<Result<PagedResult<DistrictEvent>>> QueryAsync(EventQueryParameters query)
+    public async Task<Result<PagedResult<DistrictEvent>>> QueryAsync(EventQueryParameters query, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         if (query.StartDate.HasValue &&
             query.EndDate.HasValue &&
             query.StartDate.Value > query.EndDate.Value)
@@ -81,13 +83,13 @@ public class EventQueryService(
 
         var sort = sortingService.GetSortParams(sortBy);
 
-        var totalCount = await _events.CountDocumentsAsync(filter);
+        var totalCount = await _events.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
 
         var items = await _events.Find(filter)
                                  .Sort(sort)
                                  .Skip((query.Page - 1) * query.PageSize)
                                  .Limit(query.PageSize)
-                                 .ToListAsync();
+                                 .ToListAsync(cancellationToken);
 
         var pagedResult = new PagedResult<DistrictEvent>
         {

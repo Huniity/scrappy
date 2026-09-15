@@ -201,11 +201,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WhatsAppWebhookSignatureValidator>();
         services.AddSingleton<WhatsAppMessageParser>();
         services.AddSingleton<WhatsAppCommandResolver>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<WhatsAppReportWindowService>();
         services.AddScoped<WhatsAppSubscriptionService>();
-        services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
+        services.AddScoped<WhatsAppEventSelectionService>();
         services.AddScoped<WhatsAppMessageIdempotencyService>();
         services.AddScoped<WhatsAppMessageProcessor>();
         services.AddScoped<WhatsAppHelpCommand>();
+
+        services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
         services.AddHttpClient<WhatsAppClient>(client =>
         {
             client.BaseAddress =
