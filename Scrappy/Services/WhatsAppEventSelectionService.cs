@@ -56,7 +56,7 @@ public sealed class WhatsAppEventSelectionService(
                 StartDate = windowStartUtc,
                 EndDate = windowEndUtc,
                 SortBy = "date_asc",
-                IsPublished = true
+                IsPublished = false
             },
             cancellationToken);
 

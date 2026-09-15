@@ -12,6 +12,9 @@ namespace Scrappy.Services;
 public sealed class WhatsAppMessageProcessor(
     WhatsAppCommandResolver commandResolver,
     WhatsAppSubscriptionService subscriptionService,
+    WhatsAppEventSelectionService eventSelectionService,
+    WhatsAppReportWindowService reportWindowService,
+    WhatsAppEventMessageFormatter eventMessageFormatter,
     WhatsAppMessageIdempotencyService idempotencyService,
     WhatsAppClient whatsAppClient,
     WhatsAppHelpCommand helpCommand,
@@ -35,7 +38,6 @@ public sealed class WhatsAppMessageProcessor(
 
         try
         {
-
             if (helpCommand.TryResolveHelp(message.Text))
             {
                 await whatsAppClient.SendTextAsync(
@@ -48,7 +50,9 @@ public sealed class WhatsAppMessageProcessor(
             }
 
             if (commandResolver.TryResolveFollow(
-            message.Text, out var followCommand) && followCommand is not null)
+                    message.Text,
+                    out var followCommand) &&
+                followCommand is not null)
             {
                 var subscribeResult =
                     await subscriptionService.SubscribeAsync(
@@ -74,11 +78,60 @@ public sealed class WhatsAppMessageProcessor(
                         "Unknown WhatsApp subscription result.")
                 };
 
-                await whatsAppClient.SendTextAsync(
-                    message.PhoneNumberId,
-                    message.UserId,
-                    confirmationMessage,
-                    cancellationToken);
+                if (subscribeResult ==
+                    WhatsAppSubscribeResult.AlreadyActive)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        confirmationMessage,
+                        cancellationToken);
+
+                    return;
+                }
+
+                var reportWindow =
+                    reportWindowService.CreateImmediateWindow();
+
+                try
+                {
+                    var selection =
+                        await eventSelectionService.SelectAsync(
+                            followCommand.Locality,
+                            reportWindow.WindowStartUtc,
+                            reportWindow.WindowEndUtc,
+                            cancellationToken);
+
+                    var reportMessage =
+                        eventMessageFormatter.FormatImmediateReport(
+                            selection);
+
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        confirmationMessage +
+                        "\n\n" +
+                        reportMessage,
+                        cancellationToken);
+                }
+                catch (Exception exception)
+                    when (exception is not OperationCanceledException)
+                {
+                    logger.LogError(
+                        exception,
+                        "Could not create the immediate WhatsApp event " +
+                        "report for locality {LocalitySlug}.",
+                        followCommand.LocalitySlug);
+
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        confirmationMessage +
+                        "\n\nNão foi possível carregar os eventos neste momento. " +
+                        "A tua subscrição ficou ativa e receberás o próximo " +
+                        "relatório semanal.",
+                        cancellationToken);
+                }
 
                 return;
             }
