@@ -203,6 +203,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WhatsAppCommandResolver>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<WhatsAppReportWindowService>();
+        services.AddSingleton<WhatsAppEventMessageFormatter>();
         services.AddScoped<WhatsAppSubscriptionService>();
         services.AddScoped<WhatsAppEventSelectionService>();
         services.AddScoped<WhatsAppMessageIdempotencyService>();
