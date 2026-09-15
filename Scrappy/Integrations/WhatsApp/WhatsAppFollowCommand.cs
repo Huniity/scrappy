@@ -12,6 +12,15 @@ public sealed record FollowLocalityCommand(
     string LocalitySlug,
     LocalityName Locality);
 
+
+/// <summary>
+/// Represents a command to stop following a specific locality, containing the locality's slug and its corresponding <see cref="LocalityName"/>.
+/// </summary>
+public sealed record StopLocalityCommand(
+    string LocalitySlug,
+    LocalityName Locality);
+
+
 /// <summary>
 /// Resolves incoming WhatsApp text messages into structured commands, specifically for following localities.
 /// </summary>
@@ -45,13 +54,21 @@ public sealed class WhatsAppCommandResolver
             StringSplitOptions.TrimEntries);
 
         if (parts.Length != 4 ||
-            !string.Equals(parts[0], "Obter",
+            !string.Equals(
+                parts[0],
+                "Obter",
                 StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(parts[1], "eventos",
+            !string.Equals(
+                parts[1],
+                "eventos",
                 StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(parts[2], "de",
+            !string.Equals(
+                parts[2],
+                "de",
                 StringComparison.OrdinalIgnoreCase) ||
-            !LocalitiesBySlug.TryGetValue(parts[3], out var locality))
+            !LocalitiesBySlug.TryGetValue(
+                parts[3],
+                out var locality))
         {
             return false;
         }
@@ -62,6 +79,49 @@ public sealed class WhatsAppCommandResolver
 
         return true;
     }
+
+
+
+    /// <summary>
+    /// Attempts to resolve the given text message into a <see cref="StopLocalityCommand"/> if it matches the expected format for stopping events for a locality.
+    /// </summary>
+    /// <param name="text">The incoming text message to resolve.</param>
+    /// <param name="command">The resolved <see cref="StopLocalityCommand"/> if the text matches the expected format; otherwise, null.</param>
+    /// <returns>True if the text was successfully resolved into a command; otherwise, false.</returns>
+    public bool TryResolveStop(
+        string? text,
+        out StopLocalityCommand? command)
+    {
+        command = null;
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        var parts = text.Split(
+            (char[]?)null,
+            StringSplitOptions.RemoveEmptyEntries |
+            StringSplitOptions.TrimEntries);
+
+        if (parts.Length != 2 ||
+            !string.Equals(
+                parts[0],
+                "Stop",
+                StringComparison.OrdinalIgnoreCase) ||
+            !LocalitiesBySlug.TryGetValue(parts[1], out var
+            locality))
+        {
+            return false;
+        }
+
+        command = new StopLocalityCommand(
+            LocalitySlug.From(locality),
+            locality);
+
+        return true;
+    }
+
 
     /// <summary>
     /// Builds a dictionary mapping locality slugs to their corresponding <see cref="LocalityName"/> values by iterating through the <see cref="LocalityName"/> enum and generating slugs for each value.

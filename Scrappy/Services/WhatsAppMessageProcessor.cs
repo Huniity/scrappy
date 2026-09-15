@@ -14,6 +14,7 @@ public sealed class WhatsAppMessageProcessor(
     WhatsAppSubscriptionService subscriptionService,
     WhatsAppMessageIdempotencyService idempotencyService,
     WhatsAppClient whatsAppClient,
+    WhatsAppHelpCommand helpCommand,
     ILogger<WhatsAppMessageProcessor> logger)
 {
     public async Task ProcessAsync(
@@ -34,44 +35,83 @@ public sealed class WhatsAppMessageProcessor(
 
         try
         {
-            if (!commandResolver.TryResolveFollow(message.Text, out var command) || command is null)
+
+            if (helpCommand.TryResolveHelp(message.Text))
             {
                 await whatsAppClient.SendTextAsync(
                     message.PhoneNumberId,
                     message.UserId,
-                    "Comando inválido. Usa: Obter eventos de <localidade>.", cancellationToken);
+                    helpCommand.GetHelpMessage(),
+                    cancellationToken);
+
                 return;
             }
 
-            var subscribeResult =
-                await subscriptionService.SubscribeAsync(
+            if (commandResolver.TryResolveFollow(
+            message.Text, out var followCommand) && followCommand is not null)
+            {
+                var subscribeResult =
+                    await subscriptionService.SubscribeAsync(
+                        message.UserId,
+                        followCommand.LocalitySlug,
+                        cancellationToken);
+
+                var localityName =
+                    followCommand.Locality.GetDisplayName();
+
+                var confirmationMessage = subscribeResult switch
+                {
+                    WhatsAppSubscribeResult.Created =>
+                        $"✅ Agora estás a seguir os eventos de {localityName}.",
+
+                    WhatsAppSubscribeResult.Reactivated =>
+                        $"✅ Voltaste a seguir os eventos de {localityName}.",
+
+                    WhatsAppSubscribeResult.AlreadyActive =>
+                        $"ℹ️ Já estás a seguir os eventos de {localityName}.",
+
+                    _ => throw new InvalidOperationException(
+                        "Unknown WhatsApp subscription result.")
+                };
+
+                await whatsAppClient.SendTextAsync(
+                    message.PhoneNumberId,
                     message.UserId,
-                    command.LocalitySlug,
+                    confirmationMessage,
+                    cancellationToken);
+
+                return;
+            }
+
+        if (commandResolver.TryResolveStop( message.Text, out var stopCommand) && stopCommand is not null)
+        {
+            var wasUnsubscribed =
+                await subscriptionService.UnsubscribeAsync(
+                    message.UserId,
+                    stopCommand.LocalitySlug,
                     cancellationToken);
 
             var localityName =
-                command.Locality.GetDisplayName();
+                stopCommand.Locality.GetDisplayName();
 
-            var confirmationMessage = subscribeResult switch
-            {
-                WhatsAppSubscribeResult.Created =>
-                    $"✅ Agora estás a seguir os eventos de {localityName}.",
-
-                WhatsAppSubscribeResult.Reactivated =>
-                    $"✅ Voltaste a seguir os eventos de {localityName}.",
-
-                WhatsAppSubscribeResult.AlreadyActive =>
-                    $"ℹ️ Já estás a seguir os eventos de {localityName}.",
-
-                _ => throw new InvalidOperationException(
-                    "Unknown WhatsApp subscription result.")
-            };
+            var confirmationMessage = wasUnsubscribed
+                ? $"ℹ️ Deixaste de seguir os eventos de {localityName}."
+                : $"ℹ️ Não tens uma subscrição ativa para os eventos de {localityName}.";
 
             await whatsAppClient.SendTextAsync(
                 message.PhoneNumberId,
                 message.UserId,
                 confirmationMessage,
                 cancellationToken);
+
+            return;
+        }
+
+        await whatsAppClient.SendTextAsync(
+            message.PhoneNumberId,
+            message.UserId,
+            " ❌ Comando inválido. Usa: Obter eventos de <localidade> ou Stop <localidade>.",
+            cancellationToken);
         }
         catch
         {

@@ -129,7 +129,10 @@ public sealed class WhatsAppSubscriptionService
     {
         var filter = BuildIdentityFilter(
             NormalizeUserId(userId),
-            NormalizeSlug(localitySlug));
+            NormalizeSlug(localitySlug)) &
+            Builders<WhatsAppSubscription>.Filter.Eq(
+                subscription => subscription.IsActive,
+                true);
 
         var update = Builders<WhatsAppSubscription>.Update
             .Set(subscription => subscription.IsActive, false)
@@ -140,7 +143,7 @@ public sealed class WhatsAppSubscriptionService
             update,
             cancellationToken: cancellationToken);
 
-        return result.MatchedCount > 0;
+        return result.ModifiedCount > 0;
     }
 
     /// <summary> Checks if a user is currently subscribed to notifications for a specific locality. </summary>
