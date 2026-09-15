@@ -34,4 +34,16 @@ public sealed class WhatsAppOptions
 
     /// <summary> The time zone to use for generating messages. </summary>
     public string MessageTimeZone { get; init; } = "Europe/Lisbon";
+
+    /// <summary>Name of the approved template for reports containing events.</summary>
+    public string WeeklyEventsTemplateName { get; init; } = "scrappy_weekly_events";
+
+    /// <summary>Name of the approved template for reports without events.</summary>
+    public string NoEventsTemplateName { get; init; } = "scrappy_no_events";
+
+    /// <summary>Language code used by the approved WhatsApp templates.</summary>
+    public string TemplateLanguageCode { get; init; } = "pt_PT";
+
+    /// <summary> Public HTTPS base URL used for WhatsApp-accessible resources. </summary>
+    public string PublicBaseUrl { get; init; } = string.Empty;
 }

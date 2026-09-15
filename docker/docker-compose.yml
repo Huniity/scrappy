@@ -36,6 +36,7 @@ services:
       WhatsApp__WabaId: ${WHATSAPP_WABA_ID}
       WhatsApp__VerifyToken: ${WHATSAPP_VERIFY_TOKEN}
       WhatsApp__GraphApiVersion: ${WHATSAPP_GRAPH_API_VERSION}
+      WhatsApp__PublicBaseUrl: ${WHATSAPP_PUBLIC_BASE_URL}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -140,6 +141,7 @@ services:
     mem_limit: 512m
     cpus: "0.5"
     pids_limit: 128
+
 
 volumes:
   redis_data:

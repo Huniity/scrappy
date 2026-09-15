@@ -1,0 +1,17 @@
+
+
+{
+"MunicipalityCatalog": {
+    "Entries": {
+    "alcobaca": {
+        "LogoPath": "/municipality-logo/alcobaca.png"
+    },
+    "faro": {
+        "LogoPath": "/municipality-logo/faro.png"
+    },
+    "lourinha": {
+        "LogoPath": "/municipality-logo/lourinha.png"
+    }
+    }
+}
+}

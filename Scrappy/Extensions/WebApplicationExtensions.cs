@@ -29,6 +29,7 @@ public static class WebApplicationExtensions
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
         });
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
         app.UseCors(ServiceCollectionExtensions.CorsPolicyName);
         app.UseAuthorization();
         app.MapControllers();

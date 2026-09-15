@@ -9,6 +9,7 @@ using Scrappy.Integrations.WhatsApp;
 using Scrappy.Services.Interfaces;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Scrappy.Models.Configuration;
 namespace Scrappy.Extensions;
 
 /// <summary>
@@ -35,6 +36,7 @@ public static class ServiceCollectionExtensions
             .AddScrappyCors()
             .AddScrappyMongoDb(configuration)
             .AddWhatsAppIntegration(configuration)
+            .AddMunicipalityCatalog(configuration)
             .AddScrappyControllers()
             .AddScrappyOpenApi()
             .AddScrappyRouting()
@@ -66,6 +68,26 @@ public static class ServiceCollectionExtensions
                     .AllowAnyMethod();
             });
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds and configures the MunicipalityCatalog service, binding its options from the configuration.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    private static IServiceCollection AddMunicipalityCatalog(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services
+            .AddOptions<MunicipalityCatalogOptions>()
+            .Bind(configuration.GetSection(
+                MunicipalityCatalogOptions.SectionName));
+
+        services.AddSingleton<MunicipalityCatalog>();
 
         return services;
     }
