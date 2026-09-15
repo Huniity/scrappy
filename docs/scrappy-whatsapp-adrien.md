@@ -486,6 +486,7 @@ GetUserSubscriptionsAsync(userId)
 
 Rules:
 - subscribe twice = no duplicate
+- `SubscribeAsync` reports `Created`, `Reactivated` or `AlreadyActive`
 - unsubscribe Alcobaça must not unsubscribe Faro
 - inactive subscription can be reactivated
 - subscribe/reactivate uses an atomic MongoDB upsert
@@ -536,7 +537,7 @@ to the destination number from the incoming webhook and supports the future
 `PhoneNumberId → Locality` production mapping.
 
 ### Done when
-- [ ] Scrappy can send a text message
+- [x] Scrappy can send a text message
 - [x] API errors are logged/returned clearly
 - [x] Access token is not hard-coded
 
@@ -563,7 +564,7 @@ WhatsAppClient
 Example input:
 
 ```text
-SCRAPPY FOLLOW alcobaca
+Obter eventos de alcobaca
 ```
 
 Expected reply:
@@ -574,10 +575,11 @@ Expected reply:
 
 ### Done when
 - [x] Message creates MongoDB subscription
-- [ ] User receives confirmation
+- [x] User receives confirmation
 - [x] Duplicate follow remains idempotent
+- [x] A new follow command for an active subscription reports that it is already active
 - [x] Re-delivery of the same Meta `MessageId` does not send a second confirmation
-- [ ] Webhook acknowledgement is returned promptly to avoid unnecessary Meta retries
+- [x] Webhook acknowledgement is returned promptly to avoid unnecessary Meta retries
 
 ---
 
@@ -586,7 +588,7 @@ Expected reply:
 Support:
 
 ```text
-SCRAPPY STOP alcobaca
+Stop alcobaca
 ```
 
 Expected result:
@@ -597,8 +599,18 @@ Faro → unchanged
 ```
 
 ### Done when
-- [ ] Only requested locality is unsubscribed
-- [ ] User receives confirmation
+- [x] Only requested locality is unsubscribed
+- [x] Repeated STOP reports that there is no active subscription
+- [x] User receives confirmation
+
+## Additional command — Help
+
+Support the case-insensitive commands `Help` and `Ajuda`. Reply with the available
+FOLLOW and STOP formats without accessing MongoDB.
+
+### Done when
+- [x] `Help` and `Ajuda` are recognized
+- [x] User receives the available command list
 
 ---
 
@@ -644,7 +656,7 @@ Alcobaça website
       ↓
 WhatsApp
       ↓
-SCRAPPY FOLLOW alcobaca
+Obter eventos de alcobaca
       ↓
 Meta
       ↓
@@ -660,7 +672,7 @@ Then:
 ```text
 Faro website
       ↓
-SCRAPPY FOLLOW faro
+Obter eventos de faro
 ```
 
 Database must contain both.
@@ -695,7 +707,7 @@ Sprint 2 extends the subscription created in Sprint 1 with two delivery moments:
 ```text
 New or reactivated FOLLOW
         ↓
-Query real upcoming events for that locality
+Query events from the subscription time through the end of the current Sunday
         ↓
 Send the current event selection immediately
 ```
@@ -705,7 +717,7 @@ Weekly scheduled run
         ↓
 Load active subscriptions
         ↓
-Query real upcoming events by locality
+Query events for the following Monday-through-Sunday week
         ↓
 Send the approved weekly WhatsApp template
 ```
@@ -728,7 +740,11 @@ Rules:
 - query `DistrictEvents` through the existing event query layer
 - filter by the subscribed `LocalityName`
 - include only published events
-- include only upcoming events
+- accept an explicit inclusive date window in the `Europe/Lisbon` timezone
+- for an immediate subscription report, start at the subscription time and end at
+  the end of the current Sunday
+- for the Sunday weekly report, start at the following Monday and end at the
+  following Sunday
 - order by start date ascending
 - limit the number of events per WhatsApp message using configuration
 - return a deterministic result so retries produce the same selection
@@ -738,8 +754,10 @@ Expose a canonical locality contract for the frontend, generated from the same
 must provide at least the enum code, display name and slug. The frontend must not
 maintain its own hard-coded list or a separate slug algorithm.
 
-The result should contain only the fields required to format the WhatsApp message,
-such as event ID, title, start date, place and public event URL.
+The result must expose the total number of matching events before the display limit,
+plus the ordered event items required by the immediate and weekly messages: title,
+start date and place/address. All selected events are rendered sequentially; there
+is no highlighted-event concept.
 
 ### Done when
 - [ ] Published upcoming events are returned for the requested locality
@@ -754,7 +772,9 @@ such as event ID, title, start date, place and public event URL.
 
 After a new subscription or reactivation succeeds, query the current real events
 for that locality and send them in the WhatsApp conversation. This is triggered by
-the user's `FOLLOW` message and can use the normal reply flow.
+the user's `FOLLOW` message and can use the normal reply flow. The immediate report
+covers the subscription time through 23:59:59 on the current Sunday in
+`Europe/Lisbon`.
 
 Suggested reply shape:
 
@@ -772,6 +792,7 @@ If there are no upcoming published events, confirm the subscription and explain
 that the user will receive the next weekly update when events are available.
 
 Rules:
+- events earlier than the subscription time are excluded
 - a re-delivery of the same Meta `MessageId` must not send the list twice
 - update `SubscribeAsync` to report whether the subscription was created,
   reactivated or was already active
@@ -793,7 +814,39 @@ Rules:
 
 Coordinate with Gonçalo's template work and extend `WhatsAppClient` with a template
 message method. The final Meta template must define the language and variables used
-for the locality, event summary and public link.
+for the event summary. The current backend contract delivered by Gonçalo for
+`scrappy_weekly_events` (`pt_PT`) is:
+
+```text
+Header image → subscribed municipality logo URL
+Body {{1}}  → LocalityName
+Body {{2}}  → EventCount
+Body {{3}}  → EventsSummary
+URL button 0 → <LocalitySlug>/eventos
+```
+
+`EventsSummary` is one text parameter containing every selected event sequentially
+in chronological order. Each item contains its title, start date/time and
+place/address, for example:
+
+```text
+📌 Festival de Verão
+📅 18 de setembro, 21:00
+📍 Praça da República
+```
+
+Use the separate `scrappy_no_events` template when the selection is empty. Its
+exact language and component/parameter contract must be documented before the
+backend sender for that path is implemented.
+
+The approved template uses exactly one image header: the logo of the subscribed
+municipality. Resolve it through the canonical `LocalitySlug` (`faro` uses the Faro
+logo, `alcobaca` uses the Alcobaça logo, and so on), never from an event and never
+from the first item as an implicit highlight. The template-send contract must use
+either a Meta media ID or a public HTTPS logo URL, according to the approved
+template definition; localhost URLs are invalid for this purpose. Keep the
+`LocalitySlug → logo` source in configuration or in the canonical locality catalog,
+not in a code `switch`, and define a controlled fallback for a missing logo.
 
 Weekly messages are proactive and may be sent outside the active customer service
 window, so the production flow must use a template approved by Meta. Keep template
@@ -803,7 +856,11 @@ inside the scheduler.
 ### Done when
 - [ ] Weekly template is approved in Meta
 - [ ] `WhatsAppClient` can send the approved template
-- [ ] Template name, language and variables are mapped explicitly
+- [ ] `scrappy_weekly_events` with language `pt_PT` is mapped explicitly
+- [ ] `scrappy_no_events` component and parameter contract is mapped explicitly
+- [ ] Municipality logo is resolved from the subscribed `LocalitySlug`
+- [ ] Image header component and media source are mapped explicitly
+- [ ] Missing header image uses the agreed controlled fallback
 - [ ] Meta API errors are recorded without exposing tokens or phone numbers in logs
 
 ---
@@ -821,12 +878,15 @@ Flow:
 5. record the dispatch result
 
 Rules:
-- use the `Europe/Lisbon` timezone for the agreed delivery day and time
+- run on Sunday at the configured delivery time in `Europe/Lisbon`
+- the report window is the next Monday at 00:00 through the next Sunday at 23:59:59
 - check that the subscription is still active immediately before sending
 - retry transient Meta failures with bounded backoff
 - prevent duplicate delivery with a unique key such as
   `WhatsAppUserId + LocalitySlug + WeekStart`
 - one failed recipient must not stop the remaining weekly dispatch
+- if a user subscribes on Sunday after that week's dispatch, perform a catch-up for
+  the following Monday-through-Sunday window so that the user does not miss a week
 
 ### Done when
 - [ ] Weekly run finds all active subscriptions
