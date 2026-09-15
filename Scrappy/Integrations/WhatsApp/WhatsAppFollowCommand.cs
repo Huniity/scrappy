@@ -53,7 +53,7 @@ public sealed class WhatsAppCommandResolver
             StringSplitOptions.RemoveEmptyEntries |
             StringSplitOptions.TrimEntries);
 
-        if (parts.Length != 4 ||
+        if (parts.Length < 4 ||
             !string.Equals(
                 parts[0],
                 "Obter",
@@ -65,10 +65,14 @@ public sealed class WhatsAppCommandResolver
             !string.Equals(
                 parts[2],
                 "de",
-                StringComparison.OrdinalIgnoreCase) ||
-            !LocalitiesBySlug.TryGetValue(
-                parts[3],
-                out var locality))
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var localityText = string.Join(" ", parts.Skip(3));
+
+        if (!TryResolveLocality(localityText, out var locality))
         {
             return false;
         }
@@ -104,13 +108,18 @@ public sealed class WhatsAppCommandResolver
             StringSplitOptions.RemoveEmptyEntries |
             StringSplitOptions.TrimEntries);
 
-        if (parts.Length != 2 ||
+        if (parts.Length < 2 ||
             !string.Equals(
                 parts[0],
                 "Stop",
-                StringComparison.OrdinalIgnoreCase) ||
-            !LocalitiesBySlug.TryGetValue(parts[1], out var
-            locality))
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var localityText = string.Join(" ", parts.Skip(1));
+
+        if (!TryResolveLocality(localityText, out var locality))
         {
             return false;
         }
@@ -145,5 +154,20 @@ public sealed class WhatsAppCommandResolver
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Resolves user input by applying the same canonical normalization used
+    /// when the locality slug dictionary is built.
+    /// </summary>
+    private static bool TryResolveLocality(
+        string localityText,
+        out LocalityName locality)
+    {
+        var normalizedSlug = LocalitySlug.From(localityText);
+
+        return LocalitiesBySlug.TryGetValue(
+            normalizedSlug,
+            out locality);
     }
 }

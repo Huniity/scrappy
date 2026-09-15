@@ -20,7 +20,19 @@ public static class LocalitySlug
     /// <returns>A URL-friendly slug representing the locality.</returns>
     public static string From(LocalityName locality)
     {
-        var name = locality.GetDisplayName();
+        return From(locality.GetDisplayName());
+    }
+
+    /// <summary>
+    /// Generates a canonical slug from arbitrary locality text, including text
+    /// received from a WhatsApp message.
+    /// </summary>
+    /// <param name="name">The locality text to normalize.</param>
+    /// <returns>A lowercase, URL-friendly locality slug.</returns>
+    public static string From(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
         var decomposed = name.Normalize(NormalizationForm.FormD);
         var slug = new StringBuilder();
         var separatorPending = false;
