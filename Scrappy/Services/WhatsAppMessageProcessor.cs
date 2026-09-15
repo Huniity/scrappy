@@ -43,18 +43,35 @@ public sealed class WhatsAppMessageProcessor(
                 return;
             }
 
-            await subscriptionService.SubscribeAsync(
-                message.UserId,
-                command.LocalitySlug,
-                cancellationToken);
+            var subscribeResult =
+                await subscriptionService.SubscribeAsync(
+                    message.UserId,
+                    command.LocalitySlug,
+                    cancellationToken);
 
             var localityName =
                 command.Locality.GetDisplayName();
 
+            var confirmationMessage = subscribeResult switch
+            {
+                WhatsAppSubscribeResult.Created =>
+                    $"✅ Agora estás a seguir os eventos de {localityName}.",
+
+                WhatsAppSubscribeResult.Reactivated =>
+                    $"✅ Voltaste a seguir os eventos de {localityName}.",
+
+                WhatsAppSubscribeResult.AlreadyActive =>
+                    $"ℹ️ Já estás a seguir os eventos de {localityName}.",
+
+                _ => throw new InvalidOperationException(
+                    "Unknown WhatsApp subscription result.")
+            };
+
             await whatsAppClient.SendTextAsync(
                 message.PhoneNumberId,
                 message.UserId,
-                $"✅ Agora estás a seguir os eventos de {localityName}.", cancellationToken);
+                confirmationMessage,
+                cancellationToken);
         }
         catch
         {

@@ -7,6 +7,17 @@ using Scrappy.Models.Entities;
 namespace Scrappy.Services;
 
 /// <summary>
+/// Represents the result of a WhatsApp subscription operation.
+/// </summary>
+public enum WhatsAppSubscribeResult
+{
+    Created,
+    Reactivated,
+    AlreadyActive
+}
+
+
+/// <summary>
 /// Service for managing WhatsApp subscriptions in the MongoDB database.
 /// </summary>
 public sealed class WhatsAppSubscriptionService
@@ -29,7 +40,7 @@ public sealed class WhatsAppSubscriptionService
     /// <param name="localitySlug">The slug representing the locality for which the user is subscribing to notifications.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task SubscribeAsync(
+    public async Task<WhatsAppSubscribeResult> SubscribeAsync(
         string userId,
         string localitySlug,
         CancellationToken cancellationToken = default)
@@ -58,25 +69,52 @@ public sealed class WhatsAppSubscriptionService
                 subscription => subscription.CreatedAt,
                 now);
 
+        WhatsAppSubscription? previousSubscription;
+
         try
         {
-            await _subscriptions.UpdateOneAsync(
-                filter,
-                update,
-                new UpdateOptions { IsUpsert = true },
-                cancellationToken);
+            previousSubscription =
+                await _subscriptions.FindOneAndUpdateAsync(
+                    filter,
+                    update,
+                    new
+                    FindOneAndUpdateOptions<WhatsAppSubscription>
+                    {
+                        IsUpsert = true,
+                        ReturnDocument = ReturnDocument.Before
+                    },
+                    cancellationToken);
         }
-        catch (MongoWriteException exception)
-            when (exception.WriteError?.Category ==
-                ServerErrorCategory.DuplicateKey)
+        catch (MongoCommandException exception)
+            when (exception.Code == 11000)
         {
-            // Another concurrent webhook created the same subscription.
-            // Update the document that won the race.
-            await _subscriptions.UpdateOneAsync(
-                filter,
-                update,
-                cancellationToken: cancellationToken);
+            // Another request created the subscription concurrently.
+            previousSubscription =
+                await _subscriptions.FindOneAndUpdateAsync(
+                    filter,
+                    update,
+                    new
+                    FindOneAndUpdateOptions<WhatsAppSubscription>
+                    {
+                        IsUpsert = false,
+                        ReturnDocument = ReturnDocument.Before
+                    },
+                    cancellationToken);
+
+            if (previousSubscription is null)
+            {
+                throw;
+            }
         }
+
+        if (previousSubscription is null)
+        {
+            return WhatsAppSubscribeResult.Created;
+        }
+
+        return previousSubscription.IsActive
+            ? WhatsAppSubscribeResult.AlreadyActive
+            : WhatsAppSubscribeResult.Reactivated;
     }
 
     /// <summary> Unsubscribes a user from notifications for a specific locality by marking the subscription as inactive. </summary>
