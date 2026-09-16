@@ -4,7 +4,7 @@ namespace Scrappy.Integrations.WhatsApp;
 
 
 /// <summary>
-/// Represents an incoming WhatsApp text message after normalization.
+/// Represents an incoming WhatsApp message after normalization.
 /// </summary>
 /// <param name="MessageId">
 /// Unique message identifier assigned by Meta.
@@ -18,8 +18,12 @@ namespace Scrappy.Integrations.WhatsApp;
 /// <param name="Text">
 /// Text sent by the user like a subscription message or a command.
 /// </param>
+/// <param name="ButtonPayload">
+/// Optional payload sent by the user when clicking a button.
+/// </param>
 public sealed record IncomingWhatsAppMessage(
     string MessageId,
     string UserId,
     string PhoneNumberId,
-    string Text);
+    string Text,
+    string? ButtonPayload = null);
