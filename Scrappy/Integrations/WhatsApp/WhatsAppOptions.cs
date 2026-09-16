@@ -32,6 +32,12 @@ public sealed class WhatsAppOptions
     /// <summary> The maximum number of events to include in a single WhatsApp message. </summary>
     public int MaxEventsPerMessage { get; init; } = 100;
 
+    /// <summary> Maximum length of the dynamic event summary sent to a template. </summary>
+    public int MaxTemplateSummaryCharacters { get; init; } = 800;
+
+    /// <summary> Maximum number of template messages sent for one report. </summary>
+    public int MaxTemplateMessagesPerReport { get; init; } = 3;
+
     /// <summary> The time zone to use for generating messages. </summary>
     public string MessageTimeZone { get; init; } = "Europe/Lisbon";
 

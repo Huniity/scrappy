@@ -147,20 +147,26 @@ public sealed class WhatsAppMessageProcessor(
                         municipalityCatalog.GetRequired(
                             selection.LocalitySlug);
 
-                    var templateParameters =
-                        new WhatsAppEventsTemplateParameters(
-                            localityName,
-                            selection.TotalEventCount,
-                            eventMessageFormatter.FormatEventsSummary(selection),
-                            municipality.LogoPath
-                            // municipality.EventsPath
-                        );
+                    var summaryParts =
+                        eventMessageFormatter
+                            .FormatTemplateEventSummaryParts(selection);
 
-                    await whatsAppClient.SendWeeklyEventsTemplateAsync(
-                        message.PhoneNumberId,
-                        message.UserId,
-                        templateParameters,
-                        cancellationToken);
+                    foreach (var summaryPart in summaryParts)
+                    {
+                        var templateParameters =
+                            new WhatsAppEventsTemplateParameters(
+                                localityName,
+                                selection.TotalEventCount,
+                                summaryPart,
+                                municipality.LogoPath);
+
+                        await whatsAppClient
+                            .SendWeeklyEventsTemplateAsync(
+                                message.PhoneNumberId,
+                                message.UserId,
+                                templateParameters,
+                                cancellationToken);
+                    }
                 }
                 catch (Exception exception)
                     when (exception is not OperationCanceledException)

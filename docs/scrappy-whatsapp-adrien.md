@@ -605,12 +605,15 @@ Faro → unchanged
 
 ## Additional command — Help
 
-Support the case-insensitive commands `Help` and `Ajuda`. Reply with the available
-FOLLOW and STOP formats without accessing MongoDB.
+Support the case-insensitive commands `Help` and `Ajuda` without accessing MongoDB.
+The initial text reply proves the command-routing path; Task A18 replaces that reply
+with the approved `help` template and also sends the same template after a new or
+reactivated subscription.
 
 ### Done when
 - [x] `Help` and `Ajuda` are recognized
-- [x] User receives the available command list
+- [x] User receives the temporary text command list
+- [ ] Task A18 replaces the temporary text with the approved `help` template
 
 ---
 
@@ -707,9 +710,13 @@ Sprint 2 extends the subscription created in Sprint 1 with two delivery moments:
 ```text
 New or reactivated FOLLOW
         ↓
+Send approved help template
+        ↓
 Query events from the subscription time through the end of the current Sunday
         ↓
-Send the current event selection immediately
+Send scrappy_weekly_events summary template
+        ↓
+Send event details as free-form text while the 24-hour window is open
 ```
 
 ```text
@@ -719,8 +726,18 @@ Load active subscriptions
         ↓
 Query events for the following Monday-through-Sunday week
         ↓
-Send the approved weekly WhatsApp template
+Send scrappy_weekly_events summary template with a generic quick reply
+        ↓
+User taps "Receber eventos"
+        ↓
+Webhook receives the locality/report-window payload and opens the 24-hour window
+        ↓
+Send event details as free-form text
 ```
+
+The weekly template also contains a dynamic URL button that opens
+`https://www.scrappy.pt/municipio/<slug>`. Scrappy validates the canonical slug and
+redirects the browser to the municipality's configured official agenda URL.
 
 In this plan, a user's **area** means the subscribed `LocalityName`. Radius or
 GPS-based subscriptions require a separate data model and are not part of this
@@ -746,7 +763,8 @@ Rules:
 - for the Sunday weekly report, start at the following Monday and end at the
   following Sunday
 - order by start date ascending
-- limit the number of events per WhatsApp message using configuration
+- limit the total number of events per report using configuration; free-form
+  message splitting belongs to Task A17
 - return a deterministic result so retries produce the same selection
 
 Expose a canonical locality contract for the frontend, generated from the same
@@ -768,104 +786,251 @@ is no highlighted-event concept.
 
 ---
 
-# Task A17 — Send current events after subscription
+# Task A17 — Format event details as free-form messages
 
-After a new subscription or reactivation succeeds, query the current real events
-for that locality and send them in the WhatsApp conversation. This is triggered by
-the user's `FOLLOW` message and can use the normal reply flow. The immediate report
-covers the subscription time through 23:59:59 on the current Sunday in
-`Europe/Lisbon`.
-
-Suggested reply shape:
-
-```text
-✅ Agora estás a seguir os eventos de Alcobaça.
-
-Próximos eventos:
-1. Nome do evento — 14 Jun, 21:00 — Local
-2. Nome do evento — 16 Jun, 18:30 — Local
-
-Ver todos: <public locality/events URL>
-```
-
-If there are no upcoming published events, confirm the subscription and explain
-that the user will receive the next weekly update when events are available.
-
-Rules:
-- events earlier than the subscription time are excluded
-- a re-delivery of the same Meta `MessageId` must not send the list twice
-- update `SubscribeAsync` to report whether the subscription was created,
-  reactivated or was already active
-- send the initial event selection only for a created or reactivated subscription
-- an already active duplicate `FOLLOW` must not send the event selection again
-- event-query or Meta API failure must not undo a subscription already saved
-- do not expose unpublished event data
-
-### Done when
-- [ ] New subscription receives real events for the correct locality
-- [ ] Reactivated subscription receives the current event selection
-- [ ] Empty locality result produces a controlled message
-- [ ] Duplicate webhook delivery does not repeat the event message
-- [ ] Already active duplicate `FOLLOW` does not repeat the event selection
-
----
-
-# Task A18 — Add approved weekly template sending
-
-Coordinate with Gonçalo's template work and extend `WhatsAppClient` with a template
-message method. The final Meta template must define the language and variables used
-for the event summary. The current backend contract delivered by Gonçalo for
-`scrappy_weekly_events` (`pt_PT`) is:
-
-```text
-Header image → subscribed municipality logo URL
-Body {{1}}  → LocalityName
-Body {{2}}  → EventCount
-Body {{3}}  → EventsSummary
-URL button 0 → <LocalitySlug>/eventos
-```
-
-`EventsSummary` is one text parameter containing every selected event sequentially
-in chronological order. Each item contains its title, start date/time and
-place/address, for example:
+The event details no longer belong inside `scrappy_weekly_events`. Format them as
+normal WhatsApp text messages so each event can keep its line breaks:
 
 ```text
 📌 Festival de Verão
 📅 18 de setembro, 21:00
 📍 Praça da República
+
+📌 Concerto Municipal
+📅 19 de setembro, 18:30
+📍 Teatro Municipal
 ```
 
-Use the separate `scrappy_no_events` template when the selection is empty. Its
-exact language and component/parameter contract must be documented before the
-backend sender for that path is implemented.
+Replace the template-specific one-line formatter and its 800-character limit with
+a method such as:
 
-The approved template uses exactly one image header: the logo of the subscribed
-municipality. Resolve it through the canonical `LocalitySlug` (`faro` uses the Faro
-logo, `alcobaca` uses the Alcobaça logo, and so on), never from an event and never
-from the first item as an implicit highlight. The template-send contract must use
-either a Meta media ID or a public HTTPS logo URL, according to the approved
-template definition; localhost URLs are invalid for this purpose. Keep the
-`LocalitySlug → logo` source in configuration or in the canonical locality catalog,
-not in a code `switch`, and define a controlled fallback for a missing logo.
+```csharp
+IReadOnlyList<string> FormatEventDetailParts(
+    WhatsAppEventSelection selection);
+```
 
-Weekly messages are proactive and may be sent outside the active customer service
-window, so the production flow must use a template approved by Meta. Keep template
-name, language and variable mapping in configuration rather than hard-coding them
-inside the scheduler.
+Rules:
+- preserve the three visual lines for every event
+- normalize whitespace inside scraped title and place values
+- order events chronologically using the selection returned by Task A16
+- split a long report between complete event blocks, never in the middle of a
+  normal event
+- use a configured safe limit for free-form text messages
+- only abbreviate at a word boundary if one individual event exceeds that limit
+- return no parts for an empty selection
+- do not add a logo, button, total count or `Parte X/Y` to these messages
+
+The current `FormatTemplateEventSummaryParts`,
+`MaxTemplateSummaryCharacters` and `MaxTemplateMessagesPerReport` belong to the
+discarded design and must be removed when this task is implemented.
 
 ### Done when
-- [ ] Weekly template is approved in Meta
-- [ ] `WhatsAppClient` can send the approved template
-- [ ] `scrappy_weekly_events` with language `pt_PT` is mapped explicitly
-- [ ] `scrappy_no_events` component and parameter contract is mapped explicitly
-- [ ] Municipality logo is resolved from the subscribed `LocalitySlug`
-- [ ] Image header component and media source are mapped explicitly
-- [ ] Missing header image uses the agreed controlled fallback
-- [ ] Meta API errors are recorded without exposing tokens or phone numbers in logs
+- [ ] Event details retain line breaks
+- [ ] Long reports are split only between complete events
+- [ ] Template-only summary configuration has been removed
+- [ ] Empty selections return no free-form parts
 
 ---
 
-# Task A19 — Schedule the weekly locality digest
+# Task A18 — Implement the final approved template contracts
+
+Coordinate the exact component order and indexes with Gonçalo before changing the
+payloads. Keep the template names and language in `WhatsAppOptions`, not inside the
+message processor.
+
+## `help` (`pt_PT`)
+
+This is a fixed explanatory template. It tells the user how to subscribe, stop a
+subscription and request help. It has no locality-specific parameters.
+
+Send it:
+- when the incoming command is `Help` or `Ajuda`
+- immediately after a new or reactivated subscription
+- before the subscription's summary template
+
+Do not send it again for `AlreadyActive` unless that behavior is explicitly chosen
+later.
+
+Add a dedicated method such as:
+
+```csharp
+Task SendHelpTemplateAsync(
+    string phoneNumberId,
+    string recipient,
+    CancellationToken cancellationToken = default);
+```
+
+## `scrappy_weekly_events` (`pt_PT`)
+
+Final backend contract:
+
+```text
+Header image  → subscribed municipality logo URL
+Body {{1}}    → EventCount
+Body {{2}}    → LocalityName
+Button 0      → QUICK_REPLY, visible text "Receber eventos"
+Button 1      → dynamic URL, visible text "Ver no website"
+```
+
+The template body contains only the number of events and municipality. Remove
+`EventsSummary` from `WhatsAppEventsTemplateParameters` and from the Meta payload.
+
+The quick-reply label is fixed and generic. Its invisible payload is supplied for
+each send and must identify both the canonical locality and report window:
+
+```text
+event_report:faro:2026-09-21:2026-09-27
+```
+
+Including both dates supports the immediate `today → Sunday` window and the weekly
+`Monday → Sunday` window without ambiguity if a reply is received after midnight.
+It also identifies the intended report when the same user follows several
+municipalities. For an immediate subscription report, the quick reply is still
+present, but the backend sends the free-form details immediately because the
+incoming FOLLOW has already opened the service window.
+
+The URL button is defined in Meta as:
+
+```text
+https://www.scrappy.pt/municipio/{{1}}
+```
+
+The API supplies only the canonical slug (`faro`, `alcobaca`, `lourinha`) as the
+dynamic suffix. Confirm the final button indexes by reading the approved template
+from Meta; the send payload indexes must match it exactly.
+
+The template parameter model should carry the data required by these components,
+for example:
+
+```text
+LocalityName
+LocalitySlug
+EventCount
+WindowStartDate
+WindowEndDate
+LogoPath
+```
+
+## `scrappy_no_events` (`pt_PT`)
+
+Use this template when the selected window contains no events. Document its exact
+header, body parameters and buttons before implementing its sender. It must not
+offer a quick reply that promises event details when the selection is empty.
+
+## Client cleanup
+
+Update `WhatsAppClient` so template construction remains there. The processor
+chooses which message to send but must not build anonymous Meta JSON payloads.
+Keep the existing shared `SendPayloadAsync` transport and error handling.
+
+### Done when
+- [ ] Gonçalo has confirmed template names, language, parameter order and indexes
+- [ ] `help` is sent for `Help` and `Ajuda`
+- [ ] `help` is sent after a created or reactivated subscription
+- [ ] `scrappy_weekly_events` contains no event-detail summary parameter
+- [ ] Header image resolves from the canonical municipality catalog
+- [ ] Generic quick reply carries locality and report window in its payload
+- [ ] Dynamic URL button receives only the canonical slug suffix
+- [ ] `scrappy_no_events` has an explicit backend contract
+- [ ] Meta errors are logged without tokens or full phone numbers
+
+---
+
+# Task A19 — Add municipality agenda URLs and public redirects
+
+Extend `Scrappy/Configuration/municipalities.json` so each canonical municipality
+entry contains its logo and official agenda URL:
+
+```json
+"faro": {
+  "LogoPath": "/municipality-logo/faro.png",
+  "AgendaUrl": "https://www.cm-faro.pt/pt/agenda.aspx"
+}
+```
+
+Add `AgendaUrl` to `MunicipalityCatalogEntry` and return it from
+`MunicipalityCatalogItem`. Validate that every configured agenda URL is an absolute
+HTTPS URL. Do not accept a destination URL from query parameters or webhook input.
+
+Expose a public endpoint:
+
+```text
+GET /municipio/{localitySlug}
+```
+
+Behavior:
+- normalize and resolve the slug through `MunicipalityCatalog`
+- return HTTP 302 to the configured `AgendaUrl`
+- return HTTP 404 for an unknown slug
+- never behave as an open redirect
+
+Production routing must send `https://www.scrappy.pt/municipio/*` to this endpoint.
+The public domain and reverse proxy are deployment concerns; the application route
+and catalog remain testable locally.
+
+### Done when
+- [ ] Every supported municipality has a validated `AgendaUrl`
+- [ ] `/municipio/faro` redirects to Faro's configured agenda
+- [ ] `/municipio/alcobaca` redirects to Alcobaça's configured agenda
+- [ ] Unknown slugs return 404
+- [ ] Arbitrary destination URLs cannot be supplied by the caller
+
+---
+
+# Task A20 — Process quick replies and send free-form event details
+
+Extend the webhook parser and normalized incoming-message model beyond text
+messages. Meta template quick replies can arrive as a button message; support the
+actual webhook shape returned by the approved template and keep support for text
+commands.
+
+Recognize only payloads with this controlled format:
+
+```text
+event_report:<canonical-slug>:<yyyy-MM-dd-start>:<yyyy-MM-dd-end>
+```
+
+Processing rules:
+1. validate the payload shape, canonical slug and both ISO dates
+2. validate an allowed `today → Sunday` or `Monday → Sunday` report window in
+   `Europe/Lisbon`, never longer than seven calendar days
+3. confirm that the WhatsApp user still has an active subscription for that slug
+4. query published events for the validated encoded report window
+5. send each part returned by `FormatEventDetailParts` through `SendTextAsync`
+6. handle an empty or expired selection with a controlled reply
+
+Do not trust the payload as an event query by itself. The active subscription,
+canonical catalog and allowed weekly window remain server-side checks.
+
+Update the new/reactivated subscription flow to:
+
+```text
+save subscription
+    ↓
+send help template
+    ↓
+select events from now through current Sunday
+    ↓
+send scrappy_weekly_events, or scrappy_no_events when empty
+    ↓
+send free-form event-detail parts immediately when events exist
+```
+
+The incoming FOLLOW already opened the 24-hour customer service window, so the
+event-detail messages do not need approval as templates. A duplicate Meta
+`MessageId` must still be ignored before any template or text is sent.
+
+### Done when
+- [ ] Text commands still parse normally
+- [ ] Generic quick reply resolves the correct locality and report window
+- [ ] Inactive subscriptions cannot request a weekly report through an old payload
+- [ ] Immediate subscription sends help, summary and free-form details in order
+- [ ] Free-form details preserve their line breaks
+- [ ] Duplicate webhook delivery does not repeat the sequence
+
+---
+
+# Task A21 — Schedule the weekly locality digest
 
 Run one weekly dispatch using a production-capable scheduler or worker. Do not rely
 on an uncoordinated in-memory timer inside every API replica.
@@ -873,50 +1038,76 @@ on an uncoordinated in-memory timer inside every API replica.
 Flow:
 1. load active subscriptions
 2. group them by locality so events are queried once per locality
-3. generate the current event selection
-4. send the approved template to each subscribed user
-5. record the dispatch result
+3. select events for the next Monday-through-Sunday window
+4. send `scrappy_weekly_events` with the locality/report-window quick-reply
+   payload, or
+   `scrappy_no_events` when the selection is empty
+5. wait for the user's quick reply before sending free-form event details
+6. record the template dispatch result
 
 Rules:
 - run on Sunday at the configured delivery time in `Europe/Lisbon`
-- the report window is the next Monday at 00:00 through the next Sunday at 23:59:59
+- the report window is the next Monday at 00:00 through Sunday at 23:59:59
+- the URL button always uses the canonical slug and public Scrappy redirect
 - check that the subscription is still active immediately before sending
 - retry transient Meta failures with bounded backoff
-- prevent duplicate delivery with a unique key such as
+- prevent duplicate template delivery with
   `WhatsAppUserId + LocalitySlug + WeekStart`
 - one failed recipient must not stop the remaining weekly dispatch
-- if a user subscribes on Sunday after that week's dispatch, perform a catch-up for
-  the following Monday-through-Sunday window so that the user does not miss a week
+- if a user subscribes on Sunday after that week's dispatch, perform the existing
+  immediate subscription flow for the relevant window
+
+The scheduler sends only the approved summary/no-events template. It must not send
+the free-form event list until an inbound quick reply opens the service window.
 
 ### Done when
 - [ ] Weekly run finds all active subscriptions
-- [ ] Each user receives events only for subscribed localities
+- [ ] Each user receives summaries only for subscribed localities
 - [ ] The same locality is queried once per run
-- [ ] A retry or repeated scheduler run does not duplicate a weekly message
-- [ ] STOPped subscriptions receive no later weekly message
+- [ ] Quick-reply payload contains the correct locality and weekly window
+- [ ] A retry or repeated scheduler run does not duplicate the weekly template
+- [ ] STOPped subscriptions receive no later weekly template
 
 ---
 
-# Task A20 — Sprint 2 backend tests
+# Task A22 — Sprint 2 backend tests
 
 Minimum tests:
 
-## Event selection
-- [ ] Filters by locality, publication status and future date
-- [ ] Orders and limits results consistently
+## Event selection and formatting
+- [ ] Filters by locality, publication status and date window
+- [ ] Orders results consistently
+- [ ] Free-form formatter preserves the three lines per event
+- [ ] Long messages split between complete events
 - [ ] Handles a locality with no upcoming events
 
+## Template sending
+- [ ] `help` contains the configured name and language
+- [ ] Weekly body parameters match the approved order
+- [ ] Weekly header contains the correct municipality logo
+- [ ] Quick-reply payload contains locality and report-window dates
+- [ ] URL button parameter contains only the canonical slug
+- [ ] Weekly template contains no event-summary parameter
+
 ## Immediate subscription delivery
-- [ ] Sends the correct locality's events after a new subscription
-- [ ] Does not repeat delivery for the same Meta `MessageId`
-- [ ] Preserves the subscription if event delivery fails
+- [ ] Created/reactivated subscription sends help, summary and event details in order
+- [ ] Already-active subscription does not repeat the report
+- [ ] Duplicate Meta `MessageId` does not repeat delivery
+- [ ] Event or Meta failure does not remove the saved subscription
+
+## Redirects and quick replies
+- [ ] Known municipality redirects to its configured HTTPS agenda
+- [ ] Unknown municipality returns 404
+- [ ] Redirect endpoint cannot be used as an open redirect
+- [ ] Valid button payload selects the correct locality and report window
+- [ ] Malformed, expired or inactive-subscription payload is rejected safely
 
 ## Weekly dispatch
 - [ ] Sends only to active subscriptions
 - [ ] Supports one user subscribed to multiple localities
-- [ ] Prevents duplicate delivery for the same week
+- [ ] Prevents duplicate template delivery for the same week
 - [ ] Continues after an individual send failure
-- [ ] Uses the configured approved template
+- [ ] Does not send free-form details before a user reply
 
 ---
 
@@ -926,9 +1117,11 @@ At the end of Sprint 2 you should have:
 
 - [ ] Real upcoming event selection by locality
 - [ ] Canonical locality contract available to the frontend
-- [ ] Immediate event message after subscription or reactivation
-- [ ] Approved weekly WhatsApp template
-- [ ] Template sending support in `WhatsAppClient`
+- [ ] Approved `help`, `scrappy_weekly_events` and `scrappy_no_events` contracts
+- [ ] Immediate help, summary and free-form event flow after subscription
+- [ ] Generic quick reply carrying locality and report-window dates
+- [ ] Dynamic municipality website button and safe public redirect
+- [ ] Free-form event messages with line breaks and safe splitting
 - [ ] Production-capable weekly scheduled dispatch
 - [ ] Weekly delivery idempotency and retry handling
 - [ ] Sprint 2 backend tests

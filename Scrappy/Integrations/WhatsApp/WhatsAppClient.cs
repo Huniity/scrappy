@@ -166,9 +166,6 @@ public sealed class WhatsAppClient(
         ArgumentException.ThrowIfNullOrWhiteSpace(
             parameters.LogoPath);
 
-        // ArgumentException.ThrowIfNullOrWhiteSpace(
-        //     parameters.EventsPath);
-
         if (parameters.EventCount < 1)
         {
             throw new ArgumentOutOfRangeException(
@@ -241,23 +238,7 @@ public sealed class WhatsAppClient(
                                 text = parameters.EventsSummary.Trim()
                             }
                         }
-                    },
-                    // new
-                    // {
-                    //     type = "button",
-                    //     sub_type = "url",
-                    //     index = "0",
-                    //     parameters = new object[]
-                    //     {
-                    //         new
-                    //         {
-                    //             type = "text",
-                    //             text = parameters.EventsPath
-                    //                 .Trim()
-                    //                 .TrimStart('/')
-                    //         }
-                    //     }
-                    // }
+                    }
                 }
             }
         };
