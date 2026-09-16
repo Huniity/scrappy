@@ -7,6 +7,8 @@ namespace Scrappy.Integrations.WhatsApp;
 /// </summary>
 public sealed record WhatsAppEventsTemplateParameters(
     string LocalityName,
+    string LocalitySlug,
     long EventCount,
-    string EventsSummary,
+    DateOnly WindowStartDate,
+    DateOnly WindowEndDate,
     string LogoPath);

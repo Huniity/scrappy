@@ -143,9 +143,52 @@ public sealed class WhatsAppClient(
             response.StatusCode);
     }
 
+    public async Task SendHelpTemplateAsync(
+        string phoneNumberId,
+        string recipient,
+        CancellationToken cancellationToken  = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
+            ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+
+            if (string.IsNullOrWhiteSpace(
+                _options.HelpTemplateName))
+            {
+                throw new InvalidOperationException("WhatsApp help template name is not configured.");
+            }
+            
+            if (string.IsNullOrWhiteSpace(
+                _options.TemplateLanguageCode))
+            {
+                throw new InvalidOperationException("WhatsApp template language is not configured.");
+            }
+
+            var payload = new
+            {
+                messaging_product = "whatsapp",
+                recipient_type = "individual",
+                to = recipient.Trim(),
+                type = "template",
+                template = new
+                {
+                    name = _options.HelpTemplateName.Trim(),
+                    language = new
+                    {
+                        code = _options.TemplateLanguageCode.Trim()
+                    }
+                }
+            };
+
+        await SendPayloadAsync(
+            phoneNumberId,
+            payload,
+            cancellationToken);
+    }
+
+
 
     /// <summary>
-    /// Sends the approved WhatsApp template containing published events.
+    /// Sends the approved WhatsApp weekly-events summary template.
     /// </summary>
     public async Task SendWeeklyEventsTemplateAsync(
         string phoneNumberId,
@@ -153,18 +196,18 @@ public sealed class WhatsAppClient(
         WhatsAppEventsTemplateParameters parameters,
         CancellationToken cancellationToken = default)
     {
+
         ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
+
         ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+
         ArgumentNullException.ThrowIfNull(parameters);
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(
-            parameters.LocalityName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(parameters.LocalityName);
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(
-            parameters.EventsSummary);
+        ArgumentException.ThrowIfNullOrWhiteSpace(parameters.LocalitySlug);
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(
-            parameters.LogoPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(parameters.LogoPath);
 
         if (parameters.EventCount < 1)
         {
@@ -173,23 +216,51 @@ public sealed class WhatsAppClient(
                 "The events template requires at least one event.");
         }
 
+        var reportLengthInDays =
+            parameters.WindowEndDate.DayNumber -
+            parameters.WindowStartDate.DayNumber;
+
+        if (reportLengthInDays is < 0 or > 6)
+        {
+            throw new ArgumentException(
+                "The events template requires a valid report window " +
+                "of no more than seven calendar days.",
+                nameof(parameters));
+        }
+
         if (string.IsNullOrWhiteSpace(
                 _options.WeeklyEventsTemplateName))
         {
-            throw new InvalidOperationException("WhatsApp weekly events template name is not configured.");
+            throw new InvalidOperationException(
+                "WhatsApp weekly events template name is not configured.");
         }
 
         if (string.IsNullOrWhiteSpace(
                 _options.TemplateLanguageCode))
         {
-            throw new InvalidOperationException("WhatsApp template language is not configured.");
+            throw new InvalidOperationException(
+                "WhatsApp template language is not configured.");
         }
 
+        var localitySlug = parameters.LocalitySlug.Trim().ToLowerInvariant();
+
         var logoUrl = BuildPublicUrl(parameters.LogoPath);
+
+        var quickReplyPayload = string.Join(
+            ':',
+            "event_report",
+            localitySlug,
+            parameters.WindowStartDate.ToString(
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture),
+            parameters.WindowEndDate.ToString(
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture));
 
         var payload = new
         {
             messaging_product = "whatsapp",
+            recipient_type = "individual",
             to = recipient.Trim(),
             type = "template",
             template = new
@@ -224,18 +295,45 @@ public sealed class WhatsAppClient(
                             new
                             {
                                 type = "text",
-                                text = parameters.LocalityName.Trim()
-                            },
-                            new
-                            {
-                                type = "text",
-                                text = parameters.EventCount.ToString(
+                                text =
+                                parameters.EventCount
+                                .ToString(
                                     CultureInfo.InvariantCulture)
                             },
                             new
                             {
                                 type = "text",
-                                text = parameters.EventsSummary.Trim()
+                                text =
+                                parameters.LocalityName.Trim()
+                            }
+                        }
+                    },
+                    new
+                    {
+                        type = "button",
+                        sub_type = "quick_reply",
+                        index = "0",
+                        parameters = new object[]
+                        {
+                            new
+                            {
+                                type = "payload",
+                                payload =
+                                quickReplyPayload
+                            }
+                        }
+                    },
+                    new
+                    {
+                        type = "button",
+                        sub_type = "url",
+                        index = "1",
+                        parameters = new object[]
+                        {
+                            new
+                            {
+                                type = "text",
+                                text = localitySlug
                             }
                         }
                     }

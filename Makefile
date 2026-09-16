@@ -1,10 +1,11 @@
-PHONY: up rebuild-all rebuild-api rebuild-worker rebuild-next rebuild-mongo rebuild-redis scraper scheduler scheduler-logs scraper-logs worker-logs web-logs mongo-logs redis-logs ngrok-tunnel help
+PHONY: dotbuild up rebuild-all rebuild-api rebuild-worker rebuild-next rebuild-mongo rebuild-redis scraper scheduler scheduler-logs scraper-logs worker-logs web-logs mongo-logs redis-logs ngrok-tunnel help
 
 -include .env
 export
 
 help:
 	@echo "Makefile commands:"
+	@echo "  dotbuild           - Build the .NET project"
 	@echo "  up                 - Start all services defined in docker-compose.yml"
 	@echo "  rebuild-all        - Rebuild and start all services"
 	@echo "  rebuild-api        - Rebuild and start the API service"
@@ -21,6 +22,9 @@ help:
 	@echo "  mongo-logs         - View logs for the MongoDB service"
 	@echo "  redis-logs         - View logs for the Redis service"
 	@echo "  ngrok-tunnel       - Start an ngrok tunnel to expose the local service"
+
+dotbuild:
+	dotnet build Scrappy/Scrappy.csproj
 
 up:
 	docker compose -f docker/docker-compose.yml up

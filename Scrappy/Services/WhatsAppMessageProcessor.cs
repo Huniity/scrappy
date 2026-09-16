@@ -21,6 +21,12 @@ public sealed class WhatsAppMessageProcessor(
     WhatsAppHelpCommand helpCommand,
     ILogger<WhatsAppMessageProcessor> logger)
 {
+    /// <summary>
+    /// Processes an incoming WhatsApp message.
+    /// </summary>
+    /// <param name="message">The incoming WhatsApp message to process.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task ProcessAsync(
         IncomingWhatsAppMessage message,
         CancellationToken cancellationToken = default)
@@ -41,10 +47,9 @@ public sealed class WhatsAppMessageProcessor(
         {
             if (helpCommand.TryResolveHelp(message.Text))
             {
-                await whatsAppClient.SendTextAsync(
+                await whatsAppClient.SendHelpTemplateAsync(
                     message.PhoneNumberId,
                     message.UserId,
-                    helpCommand.GetHelpMessage(),
                     cancellationToken);
 
                 return;
@@ -97,6 +102,11 @@ public sealed class WhatsAppMessageProcessor(
                     confirmationMessage,
                     cancellationToken);
 
+                await whatsAppClient.SendHelpTemplateAsync(
+                    message.PhoneNumberId,
+                    message.UserId,
+                    cancellationToken);
+
                 var reportWindow =
                     reportWindowService.CreateImmediateWindow();
 
@@ -141,35 +151,31 @@ public sealed class WhatsAppMessageProcessor(
                     return;
                 }
 
+                var eventDetailParts = eventMessageFormatter.FormatEventDetailParts(selection);
+
                 try
                 {
-                    var municipality =
-                        municipalityCatalog.GetRequired(
-                            selection.LocalitySlug);
+                    var municipality = municipalityCatalog.GetRequired(selection.LocalitySlug);
 
-                    var summaryParts =
-                        eventMessageFormatter
-                            .FormatTemplateEventSummaryParts(selection);
+                    var templateParameters =
+                        new WhatsAppEventsTemplateParameters(
+                            localityName,
+                            selection.LocalitySlug,
+                            selection.TotalEventCount,
+                            reportWindow.WindowStartLocal,
+                            reportWindow.WindowEndLocal,
+                            municipality.LogoPath);
 
-                    foreach (var summaryPart in summaryParts)
-                    {
-                        var templateParameters =
-                            new WhatsAppEventsTemplateParameters(
-                                localityName,
-                                selection.TotalEventCount,
-                                summaryPart,
-                                municipality.LogoPath);
-
-                        await whatsAppClient
-                            .SendWeeklyEventsTemplateAsync(
-                                message.PhoneNumberId,
-                                message.UserId,
-                                templateParameters,
-                                cancellationToken);
-                    }
+                    await
+                    whatsAppClient.SendWeeklyEventsTemplateAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        templateParameters,
+                        cancellationToken);
                 }
                 catch (Exception exception)
-                    when (exception is not OperationCanceledException)
+                    when (exception is not
+                    OperationCanceledException)
                 {
                     logger.LogError(
                         exception,
@@ -177,10 +183,25 @@ public sealed class WhatsAppMessageProcessor(
                         "for locality {LocalitySlug}.",
                         followCommand.LocalitySlug);
 
+                    var eventLabel =
+                        selection.TotalEventCount == 1
+                            ? "evento"
+                            : "eventos";
+
                     await whatsAppClient.SendTextAsync(
                         message.PhoneNumberId,
                         message.UserId,
-                        eventMessageFormatter.FormatImmediateReport(selection),
+                        $"📅 Encontrámos {selection.TotalEventCount} " +
+                        $"{eventLabel} em {localityName}.",
+                        cancellationToken);
+                }
+
+                foreach (var eventDetailPart in eventDetailParts)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        eventDetailPart,
                         cancellationToken);
                 }
 

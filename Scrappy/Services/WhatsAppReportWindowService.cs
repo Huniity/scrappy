@@ -11,7 +11,9 @@ namespace Scrappy.Services;
 /// </summary>
 public sealed record WhatsAppReportWindow(
     DateTime WindowStartUtc,
-    DateTime WindowEndUtc
+    DateTime WindowEndUtc,
+    DateOnly WindowStartLocal,
+    DateOnly WindowEndLocal
 );
 
 /// <summary>
@@ -59,7 +61,7 @@ public sealed class WhatsAppReportWindowService
 
         var endUtc = TimeZoneInfo.ConvertTimeToUtc(endOfSundayLocal, _timeZone);
 
-        return new WhatsAppReportWindow(nowUtc.UtcDateTime, endUtc);
+        return new WhatsAppReportWindow(nowUtc.UtcDateTime, endUtc, DateOnly.FromDateTime(localNow.DateTime), DateOnly.FromDateTime(endOfSundayLocal));
     }
 
     /// <summary>
@@ -97,7 +99,7 @@ public sealed class WhatsAppReportWindowService
                 DateTimeKind.Unspecified),
             _timeZone);
 
-        return new WhatsAppReportWindow(startUtc, endUtc);
+        return new WhatsAppReportWindow(startUtc, endUtc, DateOnly.FromDateTime(nextMondayLocal), DateOnly.FromDateTime(endOfNextSundayLocal));
     }
 }
 

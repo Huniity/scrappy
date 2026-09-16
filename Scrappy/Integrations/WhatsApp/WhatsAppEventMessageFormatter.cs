@@ -14,38 +14,31 @@ namespace Scrappy.Integrations.WhatsApp;
 public sealed class WhatsAppEventMessageFormatter
 {
     private readonly TimeZoneInfo _timeZone;
-    private readonly int _maxTemplateSummaryCharacters;
-    private readonly int _maxTemplateMessagesPerReport;
+    private readonly int _maxFreeFormMessageCharacters;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WhatsAppEventMessageFormatter"/> class.
+    /// </summary>
     public WhatsAppEventMessageFormatter(IOptions<WhatsAppOptions> options)
     {
         _timeZone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.MessageTimeZone);
 
-        _maxTemplateSummaryCharacters =
-            options.Value.MaxTemplateSummaryCharacters;
+        _maxFreeFormMessageCharacters =
+            options.Value.MaxFreeFormMessageCharacters;
 
-        if (_maxTemplateSummaryCharacters is < 100 or > 800)
+        if (_maxFreeFormMessageCharacters is < 100 or > 4096)
         {
             throw new InvalidOperationException(
-                "WhatsApp MaxTemplateSummaryCharacters must be " +
-                "between 100 and 800.");
-        }
-
-        _maxTemplateMessagesPerReport =
-            options.Value.MaxTemplateMessagesPerReport;
-
-        if (_maxTemplateMessagesPerReport is < 1 or > 10)
-        {
-            throw new InvalidOperationException(
-                "WhatsApp MaxTemplateMessagesPerReport must be " +
-                "between 1 and 10.");
+                "WhatsApp MaxFreeFormMessageCharacters must be " +
+                "between 100 and 4096.");
         }
     }
 
     /// <summary>
     /// Formats the event list used by normal text reports.
     /// </summary>
-    public string FormatEventsSummary(WhatsAppEventSelection selection)
+    public string FormatEventsSummary(
+        WhatsAppEventSelection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
 
@@ -54,47 +47,50 @@ public sealed class WhatsAppEventMessageFormatter
             return string.Empty;
         }
 
-        var summary = new StringBuilder();
+        return string.Join(
+            "\n\n",
 
-        for (var index = 0; index < selection.Events.Count; index++)
-        {
-            var eventItem = selection.Events[index];
-
-            var startDateUtc = DateTime.SpecifyKind(
-                eventItem.StartDate,
-                DateTimeKind.Utc);
-
-            var localStartDate =
-                TimeZoneInfo.ConvertTimeFromUtc(
-                    startDateUtc,
-                    _timeZone);
-
-            var formattedDate = localStartDate.ToString(
-                "dd 'de' MMMM, HH:mm",
-                CultureInfo.GetCultureInfo("pt-PT"));
-
-            var title = string.IsNullOrWhiteSpace(
-                eventItem.Title)
-                    ? "Evento sem título"
-                    : eventItem.Title.Trim();
-
-            summary.AppendLine($"📌 {title}");
-            summary.AppendLine($"📅 {formattedDate}");
-            summary.AppendLine($"📍 {eventItem.Place}");
-
-            if (index < selection.Events.Count - 1)
-            {
-                summary.AppendLine();
-            }
-        }
-
-        return summary.ToString().TrimEnd();
+            selection.Events.Select(FormatEventDetailBlock));
     }
 
     /// <summary>
-    /// Formats the event list as template-safe text parameters.
+    /// Formats one event as a three-line free-form text block.
     /// </summary>
-    public IReadOnlyList<string> FormatTemplateEventSummaryParts(
+    private string FormatEventDetailBlock(
+        WhatsAppEventItem eventItem)
+    {
+        var startDateUtc = DateTime.SpecifyKind(
+            eventItem.StartDate,
+            DateTimeKind.Utc);
+
+        var localStartDate =
+        TimeZoneInfo.ConvertTimeFromUtc(
+            startDateUtc,
+            _timeZone);
+
+        var formattedDate = localStartDate.ToString(
+            "dd 'de' MMMM, HH:mm",
+            CultureInfo.GetCultureInfo("pt-PT"));
+
+        var title = NormalizeInlineText(
+            eventItem.Title,
+            "Evento sem título");
+
+        var place = NormalizeInlineText(
+            eventItem.Place,
+            "Local não indicado");
+
+        return
+            $"📌 {title}\n" +
+            $"📅 {formattedDate}\n" +
+            $"📍 {place}";
+    }
+
+    /// <summary>
+    /// Formats event details as free-form WhatsApp message parts.
+    /// </summary>
+    public IReadOnlyList<string>
+    FormatEventDetailParts(
         WhatsAppEventSelection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
@@ -105,74 +101,37 @@ public sealed class WhatsAppEventMessageFormatter
         }
 
         var eventBlocks = selection.Events
-            .Select(FormatTemplateEventBlock)
+            .Select(FormatEventDetailBlock)
             .ToArray();
 
-        // const string separator = " • ";
-        const string separator = "\n";
-        var completeSummary = string.Join(separator, eventBlocks);
-
-        if (completeSummary.Length <= _maxTemplateSummaryCharacters)
-        {
-            return [completeSummary];
-        }
-
-        var prefixReserve =
-            ($"Parte {_maxTemplateMessagesPerReport}/" +
-             $"{_maxTemplateMessagesPerReport} · ").Length;
-
-        var contentLimit =
-            _maxTemplateSummaryCharacters - prefixReserve;
-
-        var allParts = PackEventBlocks(
+        return PackEventBlocks(
             eventBlocks,
-            contentLimit,
-            separator);
+            _maxFreeFormMessageCharacters,
+            "\n\n");
+    }
 
-        var partCount = Math.Min(
-            allParts.Count,
-            _maxTemplateMessagesPerReport);
-
-        var parts = allParts
-            .Take(partCount)
-            .ToList();
-
-        if (allParts.Count > partCount)
+    /// <summary>
+    /// Normalizes inline text by trimming whitespace and replacing
+    /// multiple spaces with a single space. If the value is null or empty,
+    /// returns the provided fallback string.
+    /// </summary>
+    private static string NormalizeInlineText(
+        string? value,
+        string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
         {
-            parts[^1] = AddOmittedEventsMarker(
-                parts[^1],
-                contentLimit);
+            return fallback;
         }
 
-        return parts
-            .Select((part, index) =>
-                $"Parte {index + 1}/{partCount} · {part}")
-            .ToArray();
+        return Regex.Replace(value, @"\s+", " ").Trim();
     }
 
-    private string FormatTemplateEventBlock(
-        WhatsAppEventItem eventItem)
-    {
-        var startDateUtc = DateTime.SpecifyKind(
-            eventItem.StartDate,
-            DateTimeKind.Utc);
 
-        var localStartDate = TimeZoneInfo.ConvertTimeFromUtc(
-            startDateUtc,
-            _timeZone);
 
-        var formattedDate = localStartDate.ToString(
-            "dd 'de' MMMM, HH:mm",
-            CultureInfo.GetCultureInfo("pt-PT"));
-
-        var title = string.IsNullOrWhiteSpace(eventItem.Title)
-            ? "Evento sem título"
-            : eventItem.Title.Trim();
-
-        return NormalizeTemplateText(
-            $"📌 {title} · 📅 {formattedDate} · 📍 {eventItem.Place}");
-    }
-
+    /// <summary>
+    /// Packs event blocks into parts that do not exceed the specified content limit.
+    /// </summary>
     private static IReadOnlyList<string> PackEventBlocks(
         IReadOnlyList<string> eventBlocks,
         int contentLimit,
@@ -214,44 +173,11 @@ public sealed class WhatsAppEventMessageFormatter
         return parts;
     }
 
-    private static string AddOmittedEventsMarker(
-        string value,
-        int maximumLength)
-    {
-        const string separator = " • ";
-        const string marker = " • …";
 
-        if (value.Length + marker.Length <= maximumLength)
-        {
-            return value + marker;
-        }
 
-        var eventBlocks = value.Split(
-            separator,
-            StringSplitOptions.RemoveEmptyEntries);
-
-        for (var count = eventBlocks.Length - 1; count > 0; count--)
-        {
-            var completeEvents = string.Join(
-                separator,
-                eventBlocks.Take(count));
-
-            if (completeEvents.Length + marker.Length <= maximumLength)
-            {
-                return completeEvents + marker;
-            }
-        }
-
-        return TruncateAtWordBoundary(
-            value,
-            maximumLength - marker.Length) + marker;
-    }
-
-    private static string NormalizeTemplateText(string value)
-    {
-        return Regex.Replace(value, @"\s+", " ").Trim();
-    }
-
+    /// <summary>
+    /// Truncates the value at a word boundary if it exceeds the maximum length.
+    /// </summary>
     private static string TruncateAtWordBoundary(
         string value,
         int maximumLength)

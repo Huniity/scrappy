@@ -4,13 +4,16 @@
 "MunicipalityCatalog": {
     "Entries": {
     "alcobaca": {
-        "LogoPath": "/municipality-logo/alcobaca.png"
+        "LogoPath": "/municipality-logo/alcobaca.png",
+        "WebsiteUrl": "https://cm-alcobaca.pt/agenda"
     },
     "faro": {
-        "LogoPath": "/municipality-logo/faro.png"
+        "LogoPath": "/municipality-logo/faro.png",
+        "WebsiteUrl": "https://www.cm-faro.pt/pt/agenda.aspx"
     },
     "lourinha": {
-        "LogoPath": "/municipality-logo/lourinha.png"
+        "LogoPath": "/municipality-logo/lourinha.png",
+        "WebsiteUrl": "https://www.cm-lourinha.pt/agenda"
     }
     }
 }
