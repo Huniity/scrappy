@@ -11,7 +11,7 @@ namespace Scrappy.Services;
 public sealed record MunicipalityCatalogItem(
     string Slug,
     string LogoPath,
-    string EventsPath);
+    string WebsiteUrl);
 
 /// <summary>
 /// Resolves configured municipality resources.
@@ -35,7 +35,7 @@ public sealed class MunicipalityCatalog(
 
         if (!_options.Entries.TryGetValue(normalizedSlug, out var entry))
         {
-            throw new InvalidOperationException($"Municipality '{normalizedSlug}' is not configured.");
+            throw new KeyNotFoundException($"Municipality '{normalizedSlug}' is not configured.");
         }
 
         var logoPath = entry.LogoPath.Trim();
@@ -45,7 +45,14 @@ public sealed class MunicipalityCatalog(
             throw new InvalidOperationException($"Municipality '{normalizedSlug}' has an invalid logo path.");
         }
 
-        return new MunicipalityCatalogItem(normalizedSlug, logoPath, $"{normalizedSlug}/eventos");
+        var websiteUrl = entry.WebsiteUrl.Trim();
+
+        if (!IsValidWebsiteUrl(websiteUrl))
+        {
+            throw new InvalidOperationException($"Municipality '{normalizedSlug}' has an invalid website URL.");
+        }
+
+        return new MunicipalityCatalogItem(normalizedSlug, logoPath, websiteUrl);
     }
 
     /// <summary>
@@ -74,5 +81,18 @@ public sealed class MunicipalityCatalog(
                 extension.Equals(
                     ".jpeg",
                     StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Validates an official municipality website URL.
+    /// </summary>
+    private static bool IsValidWebsiteUrl(string websiteUrl)
+    {
+        return Uri.TryCreate(
+                    websiteUrl,
+                    UriKind.Absolute,
+                    out var uri) &&
+                uri.Scheme == Uri.UriSchemeHttps &&
+                !string.IsNullOrWhiteSpace(uri.Host);
     }
 }

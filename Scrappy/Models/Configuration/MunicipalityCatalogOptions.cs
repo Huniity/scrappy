@@ -24,4 +24,7 @@ public sealed class MunicipalityCatalogEntry
 {
     /// <summary>Relative public path of the municipality logo.</summary>
     public string LogoPath { get; init; } = string.Empty;
+
+    /// <summary> Absolute HTTPS URL of the municipality's official events agenda. </summary>
+    public string WebsiteUrl { get; init; } = string.Empty;
 }
