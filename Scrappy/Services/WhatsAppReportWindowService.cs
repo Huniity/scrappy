@@ -61,7 +61,19 @@ public sealed class WhatsAppReportWindowService
 
         var endUtc = TimeZoneInfo.ConvertTimeToUtc(endOfSundayLocal, _timeZone);
 
-        return new WhatsAppReportWindow(nowUtc.UtcDateTime, endUtc, DateOnly.FromDateTime(localNow.DateTime), DateOnly.FromDateTime(endOfSundayLocal));
+        var startOfTodayLocal = DateTime.SpecifyKind(
+            localNow.Date,
+            DateTimeKind.Unspecified);
+
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(
+            startOfTodayLocal,
+            _timeZone);
+
+        return new WhatsAppReportWindow(
+            startUtc,
+            endUtc,
+            DateOnly.FromDateTime(startOfTodayLocal),
+            DateOnly.FromDateTime(endOfSundayLocal));
     }
 
     /// <summary>
@@ -101,6 +113,45 @@ public sealed class WhatsAppReportWindowService
 
         return new WhatsAppReportWindow(startUtc, endUtc, DateOnly.FromDateTime(nextMondayLocal), DateOnly.FromDateTime(endOfNextSundayLocal));
     }
+
+
+    /// <summary>
+    /// Creates a UTC report window covering the supplied local calendar
+    /// dates, including both the start and end dates.
+    /// </summary>
+    public WhatsAppReportWindow CreateWindow(
+        DateOnly windowStartLocal,
+        DateOnly windowEndLocal)
+    {
+        if (windowStartLocal > windowEndLocal)
+        {
+            throw new ArgumentException("Window start cannot be later than window end.");
+        }
+
+        var startLocal = DateTime.SpecifyKind(
+
+            windowStartLocal.ToDateTime(TimeOnly.MinValue),
+            DateTimeKind.Unspecified);
+
+        var endLocal = DateTime.SpecifyKind(
+            windowEndLocal
+                .AddDays(1)
+                .ToDateTime(TimeOnly.MinValue)
+                .AddTicks(-1),
+            DateTimeKind.Unspecified);
+
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(
+            startLocal,
+            _timeZone);
+
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(
+            endLocal,
+            _timeZone);
+
+        return new WhatsAppReportWindow(
+            startUtc,
+            endUtc,
+            windowStartLocal,
+            windowEndLocal);
+    }
 }
-
-

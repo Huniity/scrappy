@@ -45,6 +45,94 @@ public sealed class WhatsAppMessageProcessor(
 
         try
         {
+            if (commandResolver.TryResolveEventReport(
+                    message.ButtonPayload,
+                    out var reportRequest) &&
+                reportRequest is not null)
+            {
+                var localityName = reportRequest.Locality.GetDisplayName();
+
+                var isSubscribed =
+                    await subscriptionService.IsSubscribedAsync(
+                        message.UserId,
+                        reportRequest.LocalitySlug,
+                        cancellationToken);
+
+                if (!isSubscribed)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        $"ℹ️ Já não tens uma subscrição ativa para os " +
+                        $"eventos de {localityName}. Envia \"Obter eventos de " +
+                        $"{reportRequest.LocalitySlug}\" para voltares a subscrever.",
+                        cancellationToken);
+
+                    return;
+                }
+
+                var reportWindow =
+                reportWindowService.CreateWindow(
+                    reportRequest.WindowStartDate,
+                    reportRequest.WindowEndDate);
+
+                WhatsAppEventSelection selection;
+
+                try
+                {
+                    selection = await
+                    eventSelectionService.SelectAsync(
+                        reportRequest.Locality,
+                        reportWindow.WindowStartUtc,
+                        reportWindow.WindowEndUtc,
+                        cancellationToken);
+                }
+                catch (Exception exception)
+                    when (exception is not
+                    OperationCanceledException)
+                {
+                    logger.LogError(
+                        exception,
+                        "Could not select WhatsApp events for quick reply " +
+                        "in locality {LocalitySlug}.",
+                        reportRequest.LocalitySlug);
+
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        "Não foi possível carregar os eventos neste momento. " +
+                        "Tenta novamente mais tarde.",
+                        cancellationToken);
+
+                    return;
+                }
+
+                if (!selection.HasEvents)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        $"Não existem eventos publicados em {localityName} " + "para este período.",
+                        cancellationToken);
+
+                    return;
+                }
+
+                var eventDetailParts = eventMessageFormatter.FormatEventDetailParts(selection);
+
+                foreach (var eventDetailPart in
+                eventDetailParts)
+                {
+                    await whatsAppClient.SendTextAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        eventDetailPart,
+                        cancellationToken);
+                }
+
+                return;
+            }
+
             if (helpCommand.TryResolveHelp(message.Text))
             {
                 await whatsAppClient.SendHelpTemplateAsync(
@@ -151,8 +239,6 @@ public sealed class WhatsAppMessageProcessor(
                     return;
                 }
 
-                var eventDetailParts = eventMessageFormatter.FormatEventDetailParts(selection);
-
                 try
                 {
                     var municipality = municipalityCatalog.GetRequired(selection.LocalitySlug);
@@ -194,15 +280,17 @@ public sealed class WhatsAppMessageProcessor(
                         $"📅 Encontrámos {selection.TotalEventCount} " +
                         $"{eventLabel} em {localityName}.",
                         cancellationToken);
-                }
 
-                foreach (var eventDetailPart in eventDetailParts)
-                {
-                    await whatsAppClient.SendTextAsync(
-                        message.PhoneNumberId,
-                        message.UserId,
-                        eventDetailPart,
-                        cancellationToken);
+                    var eventDetailParts = eventMessageFormatter.FormatEventDetailParts(selection);
+
+                    foreach (var eventDetailPart in eventDetailParts)
+                    {
+                        await whatsAppClient.SendTextAsync(
+                            message.PhoneNumberId,
+                            message.UserId,
+                            eventDetailPart,
+                            cancellationToken);
+                    }
                 }
 
                 return;

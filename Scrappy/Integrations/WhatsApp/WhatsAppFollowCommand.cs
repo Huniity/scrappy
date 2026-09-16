@@ -1,7 +1,7 @@
 
 
 using Scrappy.Models.Entities.Enums;
-
+using System.Globalization;
 
 namespace Scrappy.Integrations.WhatsApp;
 
@@ -20,6 +20,15 @@ public sealed record StopLocalityCommand(
     string LocalitySlug,
     LocalityName Locality);
 
+/// <summary>
+/// Represents a request to receive the event report for a locality
+/// within a specific date window.
+/// </summary>
+public sealed record WhatsAppEventReportRequest(
+    string LocalitySlug,
+    LocalityName Locality,
+    DateOnly WindowStartDate,
+    DateOnly WindowEndDate);
 
 /// <summary>
 /// Resolves incoming WhatsApp text messages into structured commands, specifically for following localities.
@@ -131,6 +140,68 @@ public sealed class WhatsAppCommandResolver
         return true;
     }
 
+
+    /// <summary>
+    /// Attempts to resolve a WhatsApp quick-reply payload into an event
+    /// report request.
+    /// </summary>
+    public bool TryResolveEventReport(
+        string? payload,
+        out WhatsAppEventReportRequest? request)
+    {
+        request = null;
+
+        if (string.IsNullOrWhiteSpace(payload))
+        {
+            return false;
+        }
+
+        var parts = payload.Split(
+            ':',
+            StringSplitOptions.TrimEntries);
+
+        if (parts.Length != 4 ||
+            !string.Equals(
+                parts[0],
+                "event_report",
+                StringComparison.Ordinal) ||
+            !LocalitiesBySlug.TryGetValue(
+                parts[1],
+                out var locality) ||
+            !DateOnly.TryParseExact(
+                parts[2],
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var windowStartDate) ||
+            !DateOnly.TryParseExact(
+                parts[3],
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var windowEndDate))
+        {
+            return false;
+        }
+
+        var windowLength =
+            windowEndDate.DayNumber -
+            windowStartDate.DayNumber;
+
+        if (windowLength is < 0 or > 6 ||
+            windowEndDate.DayOfWeek != DayOfWeek.Sunday)
+        {
+            return false;
+        }
+
+        request = new WhatsAppEventReportRequest(
+            LocalitySlug.From(locality),
+            locality,
+            windowStartDate,
+            windowEndDate);
+
+        return true;
+    }
 
     /// <summary>
     /// Builds a dictionary mapping locality slugs to their corresponding <see cref="LocalityName"/> values by iterating through the <see cref="LocalityName"/> enum and generating slugs for each value.
