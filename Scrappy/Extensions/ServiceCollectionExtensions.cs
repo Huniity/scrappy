@@ -226,6 +226,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<WhatsAppReportWindowService>();
         services.AddSingleton<WhatsAppEventMessageFormatter>();
+        services.AddScoped<WhatsAppWeeklyReportTracker>();
         services.AddScoped<WhatsAppSubscriptionService>();
         services.AddScoped<WhatsAppEventSelectionService>();
         services.AddScoped<WhatsAppMessageIdempotencyService>();
@@ -233,6 +234,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<WhatsAppHelpCommand>();
 
         services.AddHostedService<WhatsAppSubscriptionIndexInitializer>();
+        services.AddHostedService<WhatsAppWeeklyReportIndexInitializer>();
         services.AddHttpClient<WhatsAppClient>(client =>
         {
             client.BaseAddress =

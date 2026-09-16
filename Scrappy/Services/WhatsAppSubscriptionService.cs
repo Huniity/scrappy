@@ -195,6 +195,27 @@ public sealed class WhatsAppSubscriptionService
             .ToListAsync(cancellationToken);
     }
 
+
+    /// <summary>
+    /// Retrieves every active WhatsApp subscription in a deterministic order.
+    /// </summary>
+    public async Task<IReadOnlyList<WhatsAppSubscription>>
+        GetActiveSubscriptionsAsync(
+            CancellationToken cancellationToken = default)
+    {
+        var filter =
+            Builders<WhatsAppSubscription>.Filter.Eq(
+                subscription => subscription.IsActive,
+                true);
+
+        return await _subscriptions
+            .Find(filter)
+            .SortBy(subscription => subscription.LocalitySlug)
+            .ThenBy(subscription => subscription.WhatsAppUserId)
+            .ToListAsync(cancellationToken);
+    }
+
+
     /// <summary> Builds a filter definition to identify a subscription based on the user ID and locality slug. </summary>
     /// <param name="userId">The WhatsApp user ID to filter by.</param>
     /// <param name="localitySlug">The slug representing the locality to filter by.</param>

@@ -712,11 +712,13 @@ New or reactivated FOLLOW
         ↓
 Send approved help template
         ↓
-Query events from the subscription time through the end of the current Sunday
+Query events from the start of the subscription date through the end of the current Sunday
         ↓
-Send scrappy_weekly_events summary template
+Send scrappy_weekly_events summary template with a generic quick reply
         ↓
-Send event details as free-form text while the 24-hour window is open
+User taps "Receber eventos"
+        ↓
+Send event details as free-form text
 ```
 
 ```text
@@ -885,9 +887,10 @@ event_report:faro:2026-09-21:2026-09-27
 Including both dates supports the immediate `today → Sunday` window and the weekly
 `Monday → Sunday` window without ambiguity if a reply is received after midnight.
 It also identifies the intended report when the same user follows several
-municipalities. For an immediate subscription report, the quick reply is still
-present, but the backend sends the free-form details immediately because the
-incoming FOLLOW has already opened the service window.
+municipalities. Immediate and weekly reports both wait for the generic quick reply
+before sending their free-form event details. This keeps the two delivery flows
+consistent and ensures that the selected locality and report window come from the
+button payload.
 
 The URL button is defined in Meta as:
 
@@ -1009,14 +1012,16 @@ save subscription
     ↓
 send help template
     ↓
-select events from now through current Sunday
+select events from the start of today through current Sunday
     ↓
 send scrappy_weekly_events, or scrappy_no_events when empty
     ↓
-send free-form event-detail parts immediately when events exist
+wait for the generic quick reply when events exist
+    ↓
+send free-form event-detail parts for the encoded report window
 ```
 
-The incoming FOLLOW already opened the 24-hour customer service window, so the
+The quick reply opens or refreshes the 24-hour customer service window, so the
 event-detail messages do not need approval as templates. A duplicate Meta
 `MessageId` must still be ignored before any template or text is sent.
 
@@ -1024,7 +1029,7 @@ event-detail messages do not need approval as templates. A duplicate Meta
 - [ ] Text commands still parse normally
 - [ ] Generic quick reply resolves the correct locality and report window
 - [ ] Inactive subscriptions cannot request a weekly report through an old payload
-- [ ] Immediate subscription sends help, summary and free-form details in order
+- [ ] Immediate subscription sends help and summary, then sends free-form details after the quick reply
 - [ ] Free-form details preserve their line breaks
 - [ ] Duplicate webhook delivery does not repeat the sequence
 
@@ -1090,7 +1095,7 @@ Minimum tests:
 - [ ] Weekly template contains no event-summary parameter
 
 ## Immediate subscription delivery
-- [ ] Created/reactivated subscription sends help, summary and event details in order
+- [ ] Created/reactivated subscription sends help and summary before waiting for the quick reply
 - [ ] Already-active subscription does not repeat the report
 - [ ] Duplicate Meta `MessageId` does not repeat delivery
 - [ ] Event or Meta failure does not remove the saved subscription

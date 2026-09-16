@@ -66,7 +66,7 @@ public sealed class WhatsAppCommandResolver
             !string.Equals(
                 parts[0],
                 "Subscrever",
-                StringComparison.OrdinalIgnoreCase)
+                StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -157,7 +157,7 @@ public sealed class WhatsAppCommandResolver
                 parts[0],
                 "event_report",
                 StringComparison.Ordinal) ||
-            !LocalitiesBySlug.TryGetValue(
+            !TryResolveLocality(
                 parts[1],
                 out var locality) ||
             !DateOnly.TryParseExact(
@@ -223,11 +223,19 @@ public sealed class WhatsAppCommandResolver
     /// Resolves user input by applying the same canonical normalization used
     /// when the locality slug dictionary is built.
     /// </summary>
-    private static bool TryResolveLocality(
-        string localityText,
+    public bool TryResolveLocality(
+        string? localityText,
         out LocalityName locality)
     {
-        var normalizedSlug = LocalitySlug.From(localityText);
+        locality = default;
+
+        if (string.IsNullOrWhiteSpace(localityText))
+        {
+            return false;
+        }
+
+        var normalizedSlug =
+            LocalitySlug.From(localityText.Trim());
 
         return LocalitiesBySlug.TryGetValue(
             normalizedSlug,
