@@ -8,12 +8,12 @@ public sealed class WhatsAppCommandResolverTests
     private readonly WhatsAppCommandResolver resolver = new();
 
     [Theory]
-    [InlineData("Obter eventos de Alcobaça", "alcobaca", LocalityName.Alcobaça)]
-    [InlineData("Obter eventos de alcobaca", "alcobaca", LocalityName.Alcobaça)]
-    [InlineData("Obter eventos de Lourinhã", "lourinha", LocalityName.Lourinhã)]
-    [InlineData("Obter eventos de lourinha", "lourinha", LocalityName.Lourinhã)]
+    [InlineData("Subscrever Alcobaça", "alcobaca", LocalityName.Alcobaça)]
+    [InlineData("Subscrever alcobaca", "alcobaca", LocalityName.Alcobaça)]
+    [InlineData("Subscrever Lourinhã", "lourinha", LocalityName.Lourinhã)]
+    [InlineData("Subscrever lourinha", "lourinha", LocalityName.Lourinhã)]
     [InlineData(
-        "  Obter   eventos de   São João da Madeira  ",
+        "  Subscrever   Alcobaça  ",
         "sao-joao-da-madeira",
         LocalityName.SãoJoãoDaMadeira)]
     public void TryResolveFollow_NormalizesLocalityText(
@@ -50,9 +50,9 @@ public sealed class WhatsAppCommandResolverTests
     }
 
     [Theory]
-    [InlineData("Obter eventos de")]
+    [InlineData("Subscrever")]
     [InlineData("Stop")]
-    [InlineData("Obter eventos de Localidade Inexistente")]
+    [InlineData("Subscrever Localidade Inexistente")]
     [InlineData("Stop Localidade Inexistente")]
     public void Resolver_ReturnsFalseForInvalidLocalityCommands(string text)
     {

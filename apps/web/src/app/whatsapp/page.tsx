@@ -62,7 +62,7 @@ export default function WhatsAppQrPage() {
 
           <div className="grid w-full grid-cols-3 gap-4 max-[1400px]:grid-cols-2 max-[1200px]:gap-3 max-[720px]:grid-cols-1">
             {localities.map((locality) => {
-              const message = `Obter eventos de ${locality.slug}`;
+              const message = `Subscrever ${locality.slug}`;
               const whatsappUrl =
                 `https://wa.me/${testPhoneNumber}?text=${encodeURIComponent(message)}`;
 

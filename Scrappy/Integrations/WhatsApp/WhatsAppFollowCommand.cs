@@ -62,24 +62,16 @@ public sealed class WhatsAppCommandResolver
             StringSplitOptions.RemoveEmptyEntries |
             StringSplitOptions.TrimEntries);
 
-        if (parts.Length < 4 ||
+        if (parts.Length < 2 ||
             !string.Equals(
                 parts[0],
-                "Obter",
-                StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(
-                parts[1],
-                "eventos",
-                StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(
-                parts[2],
-                "de",
-                StringComparison.OrdinalIgnoreCase))
+                "Subscrever",
+                StringComparison.OrdinalIgnoreCase)
         {
             return false;
         }
 
-        var localityText = string.Join(" ", parts.Skip(3));
+        var localityText = string.Join(" ", parts.Skip(1));
 
         if (!TryResolveLocality(localityText, out var locality))
         {

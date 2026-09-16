@@ -19,11 +19,4 @@ public sealed class WhatsAppHelpCommand
                 "Ajuda",
                 StringComparison.OrdinalIgnoreCase);
     }
-
-    public string GetHelpMessage()
-    {
-        return "ℹ️ Comandos disponíveis:\n\n" +
-               "• Obter eventos de <localidade> - Para seguir os eventos de uma localidade específica.\n" +
-               "• Stop <localidade> - Para deixar de seguir os eventos de uma localidade específica.";
-    }
 }

@@ -42,7 +42,7 @@ WhatsApp.
 - Backoffice Next.js com pesquisa, filtros, mapa, edição de eventos e página de
   QR codes para adesão ao WhatsApp.
 - Webhook WhatsApp para subscrição e cancelamento de localidades através de
-  comandos como `Obter eventos de Alcobaça` e `Stop São João da Madeira`.
+  comandos como `Subscrever Alcobaça` e `Stop São João da Madeira`.
 
 ## Arquitetura
 
@@ -465,7 +465,7 @@ Comandos reconhecidos pelo bot:
 ```text
 Help
 Ajuda
-Obter eventos de <localidade>
+Subscrever <localidade>
 Stop <localidade>
 ```
 

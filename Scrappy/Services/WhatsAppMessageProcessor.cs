@@ -64,7 +64,7 @@ public sealed class WhatsAppMessageProcessor(
                         message.PhoneNumberId,
                         message.UserId,
                         $"ℹ️ Já não tens uma subscrição ativa para os " +
-                        $"eventos de {localityName}. Envia \"Obter eventos de " +
+                        $"eventos de {localityName}. Envia \"Subscrever " +
                         $"{reportRequest.LocalitySlug}\" para voltares a subscrever.",
                         cancellationToken);
 
@@ -323,7 +323,7 @@ public sealed class WhatsAppMessageProcessor(
         await whatsAppClient.SendTextAsync(
             message.PhoneNumberId,
             message.UserId,
-            " ❌ Comando inválido. Usa: Obter eventos de <localidade> ou Stop <localidade>.",
+            " ❌ Comando inválido. Usa: Subscrever <localidade> ou Stop <localidade>.",
             cancellationToken);
         }
         catch

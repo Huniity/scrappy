@@ -564,7 +564,7 @@ WhatsAppClient
 Example input:
 
 ```text
-Obter eventos de alcobaca
+Subscrever alcobaca
 ```
 
 Expected reply:
@@ -659,7 +659,7 @@ Alcobaça website
       ↓
 WhatsApp
       ↓
-Obter eventos de alcobaca
+Subscrever alcobaca
       ↓
 Meta
       ↓
@@ -675,7 +675,7 @@ Then:
 ```text
 Faro website
       ↓
-Obter eventos de faro
+Subscrever faro
 ```
 
 Database must contain both.
