@@ -44,7 +44,6 @@ jobs:
           runtime: node@22
           cache: true
           cache-dependency-path: pnpm-lock.yaml
-          require-lockfile: true
 
       - name: Typecheck
         run: pnpm typecheck
