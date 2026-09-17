@@ -1,1 +1,1 @@
-npm run prepush
+CI=true pnpm run prepush
