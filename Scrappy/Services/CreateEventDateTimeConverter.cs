@@ -9,7 +9,8 @@ public sealed class CreateEventDateTimeConverter : JsonConverter<DateTime>
     public override DateTime Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
-        JsonSerializerOptions options)
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.String)
             throw new JsonException("Event dates must be ISO 8601 strings.");
@@ -17,15 +18,12 @@ public sealed class CreateEventDateTimeConverter : JsonConverter<DateTime>
         return CreateEventDateTimeParser.Parse(reader.GetString());
     }
 
-    public override void Write(
-        Utf8JsonWriter writer,
-        DateTime value,
-        JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        var serialized = value.Kind == DateTimeKind.Unspecified &&
-                         value.TimeOfDay == TimeSpan.Zero
-            ? value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
-            : value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
+        var serialized =
+            value.Kind == DateTimeKind.Unspecified && value.TimeOfDay == TimeSpan.Zero
+                ? value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                : value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
 
         writer.WriteStringValue(serialized);
     }
@@ -36,7 +34,8 @@ public sealed class NullableCreateEventDateTimeConverter : JsonConverter<DateTim
     public override DateTime? Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
-        JsonSerializerOptions options)
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType == JsonTokenType.Null)
             return null;
@@ -50,7 +49,8 @@ public sealed class NullableCreateEventDateTimeConverter : JsonConverter<DateTim
     public override void Write(
         Utf8JsonWriter writer,
         DateTime? value,
-        JsonSerializerOptions options)
+        JsonSerializerOptions options
+    )
     {
         if (!value.HasValue)
         {
@@ -59,10 +59,10 @@ public sealed class NullableCreateEventDateTimeConverter : JsonConverter<DateTim
         }
 
         var date = value.Value;
-        var serialized = date.Kind == DateTimeKind.Unspecified &&
-                         date.TimeOfDay == TimeSpan.Zero
-            ? date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
-            : date.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
+        var serialized =
+            date.Kind == DateTimeKind.Unspecified && date.TimeOfDay == TimeSpan.Zero
+                ? date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                : date.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
 
         writer.WriteStringValue(serialized);
     }
@@ -77,25 +77,32 @@ internal static class CreateEventDateTimeParser
 
         var value = input.Trim();
 
-        if (DateTime.TryParseExact(
+        if (
+            DateTime.TryParseExact(
                 value,
                 "yyyy-MM-dd",
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
-                out var calendarDate))
+                out var calendarDate
+            )
+        )
         {
             return DateTime.SpecifyKind(calendarDate, DateTimeKind.Unspecified);
         }
 
-        if (!HasExplicitTimezoneOffset(value) ||
-            !DateTimeOffset.TryParse(
+        if (
+            !HasExplicitTimezoneOffset(value)
+            || !DateTimeOffset.TryParse(
                 value,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
-                out var dateTime))
+                out var dateTime
+            )
+        )
         {
             throw new JsonException(
-                "Use yyyy-MM-dd or an ISO 8601 date-time with a timezone offset.");
+                "Use yyyy-MM-dd or an ISO 8601 date-time with a timezone offset."
+            );
         }
 
         return dateTime.UtcDateTime;
@@ -108,13 +115,13 @@ internal static class CreateEventDateTimeParser
 
         var offsetStart = Math.Max(value.LastIndexOf('+'), value.LastIndexOf('-'));
 
-        return offsetStart >= 10 &&
-               value.Length - offsetStart == 6 &&
-               value[offsetStart + 3] == ':' &&
-               IsDigit(value[offsetStart + 1]) &&
-               IsDigit(value[offsetStart + 2]) &&
-               IsDigit(value[offsetStart + 4]) &&
-               IsDigit(value[offsetStart + 5]);
+        return offsetStart >= 10
+            && value.Length - offsetStart == 6
+            && value[offsetStart + 3] == ':'
+            && IsDigit(value[offsetStart + 1])
+            && IsDigit(value[offsetStart + 2])
+            && IsDigit(value[offsetStart + 4])
+            && IsDigit(value[offsetStart + 5]);
     }
 
     private static bool IsDigit(char value) => value is >= '0' and <= '9';

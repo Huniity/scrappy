@@ -84,7 +84,7 @@ public class CreateEventDto
     /// <summary> Gets or sets the event end date or ISO 8601 date-time. </summary>
     [JsonConverter(typeof(NullableCreateEventDateTimeConverter))]
     public DateTime? EndDate { get; set; }
-    
+
     /// <summary> Gets or sets the door time of the event. </summary>
     public DateTime? DoorTime { get; set; }
 

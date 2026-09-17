@@ -25,7 +25,7 @@ public class ApiResultDto<T>
 
     /// <summary> Creates a failed ApiResultDto with the specified error message. </summary>
     public static ApiResultDto<T> Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
-    
+
     /// <summary> Creates a failed ApiResultDto with the specified list of validation errors. </summary>
     public static ApiResultDto<T> Failure(List<string> errors) => new() { IsSuccess = false, ValidationErrors = errors };
 }

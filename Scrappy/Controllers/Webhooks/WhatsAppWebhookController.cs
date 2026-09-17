@@ -37,7 +37,7 @@ public sealed class WhatsAppWebhookController(
         var validRequest = string.Equals(mode, "subscribe", StringComparison.OrdinalIgnoreCase) &&
                             !string.IsNullOrEmpty(_options.VerifyToken) &&
                            string.Equals(verifyToken, _options.VerifyToken, StringComparison.Ordinal);
-    
+
         if (!validRequest)
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Invalid verification token");
