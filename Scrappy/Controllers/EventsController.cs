@@ -1,17 +1,14 @@
-
-
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using Scrappy.DTOs.Common;
 using Scrappy.DTOs.Requests;
 using Scrappy.DTOs.Responses;
 using Scrappy.DTOs.SchemaOrg;
+using Scrappy.Exceptions;
 using Scrappy.Mappers;
 using Scrappy.Services;
-using Scrappy.Exceptions;
-using MongoDB.Bson;
 
 namespace Scrappy.Controllers;
-
 
 /// <summary>
 /// Controller for managing events, providing endpoints for creating, retrieving, updating, and deleting events.
@@ -19,9 +16,8 @@ namespace Scrappy.Controllers;
 /// </summary>
 [ApiController]
 [Route("events")]
-public class EventsController(
-    EventService eventService,
-    ILogger<EventsController> logger) : ControllerBase
+public class EventsController(EventService eventService, ILogger<EventsController> logger)
+    : ControllerBase
 {
     /// <summary> Retrieves the Schema.org representation of an event by its ID. </summary>
     /// <param name="id">The ID of the event to retrieve.</param>
@@ -39,12 +35,9 @@ public class EventsController(
             return NotFound(new { error = result.Error });
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-        var schema =result.Value!.ToSchemaOrgDto(baseUrl);
+        var schema = result.Value!.ToSchemaOrgDto(baseUrl);
 
-        return new JsonResult(schema)
-        {
-            ContentType = "application/ld+json"
-        };
+        return new JsonResult(schema) { ContentType = "application/ld+json" };
     }
 
     /// <summary> Retrieves all events. </summary>
@@ -86,7 +79,7 @@ public class EventsController(
         try
         {
             var result = await eventService.AddEvent(dto);
-            
+
             if (!result.IsSuccess)
             {
                 return BadRequest(new { error = result.Error });
@@ -94,8 +87,10 @@ public class EventsController(
 
             Response.Headers["X-Ingestion-Action"] = eventService.LastIngestionAction;
             if (eventService.LastUpdatedFields.Count > 0)
-                Response.Headers["X-Ingestion-Updated-Fields"] =
-                    string.Join(',', eventService.LastUpdatedFields);
+                Response.Headers["X-Ingestion-Updated-Fields"] = string.Join(
+                    ',',
+                    eventService.LastUpdatedFields
+                );
 
             var eventEntity = result.Value!;
             var response = eventEntity.ToDistrictEventResponseDto();
@@ -128,7 +123,7 @@ public class EventsController(
                 return BadRequest(new { error = "Invalid event id." });
 
             var result = await eventService.UpdateEvent(id, dto);
-            
+
             if (!result.IsSuccess)
             {
                 return result.Error == "Event not found"
@@ -158,12 +153,11 @@ public class EventsController(
             return BadRequest(new { error = "Invalid event id." });
 
         var result = await eventService.DeleteEvent(id);
-        
+
         if (!result.IsSuccess)
         {
             return NotFound(new { error = result.Error });
         }
         return Ok(result.Value!.ToDistrictEventResponseDto());
     }
-
 }
