@@ -1,9 +1,162 @@
-name: CI/CD Placeholder
+name: CI
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "CI-[${{ github.actor }}]: ${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
-  placeholder:
+  typescript-web:
+    name: TypeScript & Web
     runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:8.10-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - run: echo "CI/CD workflow placeholder"
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: pnpm & Node.js setup
+        uses: pnpm/setup@v2
+        with:
+          version: 11.25.0
+          runtime: node@22
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
+          require-lockfile: true
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Shared Tests
+        run: node --import tsx --test apps/shared/*.test.ts
+
+      - name: Tests
+        run: |
+          pnpm test1
+          pnpm test2
+
+      - name: Lint
+        run: pnpm --filter web lint
+
+      - name: Build
+        run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5000
+
+
+  dotnet:
+    name: API .NET
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: .NET setup
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore deps
+        run: dotnet restore Scrappy.Tests/Scrappy.Tests.csproj
+
+      - name: Format check
+        run: dotnet format Scrappy/Scrappy.csproj --no-restore --verify-no-changes
+
+      - name: Build
+        run: dotnet build Scrappy.Tests/Scrappy.Tests.csproj --configuration Release --no-restore
+
+      - name: Tests
+        run: dotnet test Scrappy.Tests/Scrappy.Tests.csproj --configuration Release --no-restore --no-build
+
+
+
+  docker:
+      name: Docker Build (${{ matrix.name }})
+      runs-on: ubuntu-latest
+
+      strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - name: api
+              dockerfile: ops/api/Dockerfile
+            - name: web
+              dockerfile: ops/web/Dockerfile
+            - name: ingestion
+              dockerfile: ops/ingestion/Dockerfile
+            - name: scraper
+              dockerfile: ops/scraper/Dockerfile
+            - name: redis
+              dockerfile: ops/redis/Dockerfile
+            - name: mongodb
+              dockerfile: ops/mongodb/Dockerfile
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v7
+
+        - name: Build image
+          run: docker build --file "${{ matrix.dockerfile }}" --tag "scrappy-${{ matrix.name }}:${{ github.sha }}" .
+
+    integration:
+      name: Integration smoke tests
+      runs-on: ubuntu-latest
+
+      needs:
+        - typescript-web
+        - dotnet
+        - docker
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v7
+
+        - name: Start services
+          run: docker compose -f docker/docker-compose.yml up -d --build mongodb redis api ingestion-worker
+
+        - name: Wait for API
+          run: |
+            for attempt in {1..30}; do
+              if curl --fail --silent --show-error --location
+              "http://localhost:5000/public/events?page=1&pageSize=1" > /dev/null;
+              then
+                echo "API is ready"
+                exit 0
+              fi
+
+              sleep 2
+            done
+
+            docker compose -f docker/docker-compose.yml logs --no-color api mongodb
+            redis ingestion-worker
+            exit 1
+
+        - name: Verify Redis
+          run: docker compose -f docker/docker-compose.yml exec -T redis redis-cli ping
+
+        - name: Cleanup
+          if: always()
+          run: docker compose -f docker/docker-compose.yml down -v --remove-orphans

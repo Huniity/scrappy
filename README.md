@@ -544,6 +544,10 @@ scrappy/
 - [Arquitetura e fluxo de dados](docs/ARCHITECTURE.md)
 - [Pipeline de scraping](docs/SCRAPING.md)
 - [Referência detalhada da API](docs/API_REFERENCE.md)
+- [Backoffice web](apps/web/README.md)
+- [Worker de ingestão](apps/ingestion/README.md)
+- [Scraper](apps/scraper/README.md)
+- [Contratos e utilitários partilhados](apps/shared/README.md)
 - [Contexto técnico e contratos](docs/CONTEXT.md)
 - [Documentação do scheduler](ops/scheduler/README.md)
 
