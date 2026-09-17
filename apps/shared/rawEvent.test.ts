@@ -8,7 +8,7 @@
     sourceUrl: 'https://example.com/event/1',
     startDate: '2026-08-20T20:00:00+01:00',
     locationName: 'Teatro',
-    locality: 'Faro',
+    municipality: 'Faro',
     district: 'Faro',
     region: 'PT15',
     dicoCode: '0805',
