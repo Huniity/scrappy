@@ -54,12 +54,21 @@ public sealed class WhatsAppClientTests
         Assert.Equal("Faro", bodyParameters[0].GetProperty("text").GetString());
         Assert.Equal("3", bodyParameters[1].GetProperty("text").GetString());
 
-        var buttonParameter = components[2]
+        var quickReplyPayload = components[2]
+            .GetProperty("parameters")[0]
+            .GetProperty("payload")
+            .GetString();
+
+        Assert.Equal(
+            "event_report:faro:2026-09-17:2026-09-20",
+            quickReplyPayload);
+
+        var urlButtonParameter = components[3]
             .GetProperty("parameters")[0]
             .GetProperty("text")
             .GetString();
 
-        Assert.Equal("faro", buttonParameter);
+        Assert.Equal("faro", urlButtonParameter);
     }
 
     private sealed class RecordingHttpMessageHandler : HttpMessageHandler

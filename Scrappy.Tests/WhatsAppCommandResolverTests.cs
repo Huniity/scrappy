@@ -13,7 +13,7 @@ public sealed class WhatsAppCommandResolverTests
     [InlineData("Subscrever Lourinhã", "lourinha", LocalityName.Lourinhã)]
     [InlineData("Subscrever lourinha", "lourinha", LocalityName.Lourinhã)]
     [InlineData(
-        "  Subscrever   Alcobaça  ",
+        "  Subscrever   São João da Madeira  ",
         "sao-joao-da-madeira",
         LocalityName.SãoJoãoDaMadeira)]
     public void TryResolveFollow_NormalizesLocalityText(
