@@ -83,6 +83,6 @@ ngrok-tunnel:
 	docker run --rm -it \
 			--network host \
 			-e NGROK_AUTHTOKEN \
-			ngrok/ngrok:latest \
+			$$NGROK_IMAGE \
 			http --url="https://$$NGROK_DOMAIN" \
-			http://127.0.0.1:5000
+			$$TARGET_PROTO://$$TARGET_HOST:$$TARGET_PORT
