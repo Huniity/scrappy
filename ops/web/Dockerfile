@@ -14,6 +14,7 @@ RUN --mount=type=cache,id=scrappy-pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --filter web
 
 COPY apps/web apps/web
+COPY Scrappy/Configuration/municipalities.json Scrappy/Configuration/municipalities.json
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_API_URL=http://localhost:5000

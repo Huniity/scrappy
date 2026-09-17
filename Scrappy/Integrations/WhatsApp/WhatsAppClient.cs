@@ -296,15 +296,15 @@ public sealed class WhatsAppClient(
                             {
                                 type = "text",
                                 text =
-                                parameters.EventCount
-                                .ToString(
-                                    CultureInfo.InvariantCulture)
+                                parameters.LocalityName.Trim()
                             },
                             new
                             {
                                 type = "text",
                                 text =
-                                parameters.LocalityName.Trim()
+                                parameters.EventCount
+                                .ToString(
+                                    CultureInfo.InvariantCulture)
                             }
                         }
                     },

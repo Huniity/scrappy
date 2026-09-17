@@ -10,6 +10,7 @@ namespace Scrappy.Controllers;
 /// </summary>
 [ApiController]
 [Route("municipio")]
+[Route("municipios")]
 public sealed class MunicipalityRedirectController(
     MunicipalityCatalog municipalityCatalog)
     : ControllerBase

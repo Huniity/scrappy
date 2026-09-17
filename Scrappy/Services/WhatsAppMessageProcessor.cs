@@ -43,6 +43,8 @@ public sealed class WhatsAppMessageProcessor(
             return;
         }
 
+        var releaseMessageOnFailure = true;
+
         try
         {
             if (commandResolver.TryResolveEventReport(
@@ -154,6 +156,12 @@ public sealed class WhatsAppMessageProcessor(
                         followCommand.LocalitySlug,
                         cancellationToken);
 
+                // The command has now changed persistent state. Releasing the
+                // message ID after a later delivery failure would allow Meta's
+                // retry to process the command again and return AlreadyActive
+                // after the user had just received Created or Reactivated.
+                releaseMessageOnFailure = false;
+
                 var localityName =
                     followCommand.Locality.GetDisplayName();
 
@@ -190,10 +198,23 @@ public sealed class WhatsAppMessageProcessor(
                     confirmationMessage,
                     cancellationToken);
 
-                await whatsAppClient.SendHelpTemplateAsync(
-                    message.PhoneNumberId,
-                    message.UserId,
-                    cancellationToken);
+                try
+                {
+                    await whatsAppClient.SendHelpTemplateAsync(
+                        message.PhoneNumberId,
+                        message.UserId,
+                        cancellationToken);
+                }
+                catch (Exception exception)
+                    when (exception is not OperationCanceledException)
+                {
+                    logger.LogError(
+                        exception,
+                        "Could not send the WhatsApp help template after " +
+                        "subscribing {UserId} to {LocalitySlug}.",
+                        message.UserId,
+                        followCommand.LocalitySlug);
+                }
 
                 var reportWindow =
                     reportWindowService.CreateImmediateWindow();
@@ -328,17 +349,22 @@ public sealed class WhatsAppMessageProcessor(
         }
         catch
         {
-            try
+            if (releaseMessageOnFailure)
             {
-                await idempotencyService.ReleaseAsync(
-                    message.MessageId,
-                    CancellationToken.None);
-            }
-            catch (Exception releaseException)
-            {
-                logger.LogError(
-                    releaseException,
-                    "Could not release WhatsApp message {MessageId} " + "for retry.", message.MessageId);
+                try
+                {
+                    await idempotencyService.ReleaseAsync(
+                        message.MessageId,
+                        CancellationToken.None);
+                }
+                catch (Exception releaseException)
+                {
+                    logger.LogError(
+                        releaseException,
+                        "Could not release WhatsApp message {MessageId} " +
+                        "for retry.",
+                        message.MessageId);
+                }
             }
 
             throw;
