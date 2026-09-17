@@ -95,11 +95,11 @@ public static class EventSchemaOrgMapper
             Country = location.Country,
             DicoCode = location.DicoCode ?? string.Empty
         },
-        Geo = location.Latitude.HasValue && location.Longitude.HasValue? new SchemaOrgGeoDto
-            {
-                Latitude = location.Latitude.Value,
-                Longitude = location.Longitude.Value
-            }
+        Geo = location.Latitude.HasValue && location.Longitude.HasValue ? new SchemaOrgGeoDto
+        {
+            Latitude = location.Latitude.Value,
+            Longitude = location.Longitude.Value
+        }
             : null
     };
 

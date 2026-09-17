@@ -14,7 +14,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
 {
     /// <summary> Initializes a new instance of the <see cref="GlobalExceptionMiddleware"/> class with the specified next middleware and logger.</summary>
     private readonly RequestDelegate _next = next;
-    
+
     /// <summary> Initializes a new instance of the <see cref="GlobalExceptionMiddleware"/> class with the specified next middleware and logger.</summary>
     private readonly ILogger<GlobalExceptionMiddleware> _logger = logger;
 

@@ -31,7 +31,7 @@ public class SchemaOrgAddressDto
     /// <summary> Gets or sets the postal code of the address. </summary>
     [JsonPropertyName("postalCode")]
     public string? PostalCode { get; set; }
-    
+
     /// <summary> Gets or sets the locality (city or town) of the address. </summary>
     [JsonPropertyName("addressLocality")]
     public string Locality { get; set; } = string.Empty;

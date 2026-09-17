@@ -38,7 +38,7 @@ public sealed class WhatsAppCommandResolver
     /// <summary>
     /// A mapping of locality slugs to their corresponding <see cref="LocalityName"/> values, built from the <see cref="LocalityName"/> enum.
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, LocalityName>LocalitiesBySlug = BuildLocalitiesBySlug();
+    private static readonly IReadOnlyDictionary<string, LocalityName> LocalitiesBySlug = BuildLocalitiesBySlug();
 
     /// <summary>
     /// Attempts to resolve the given text message into a <see cref="FollowLocalityCommand"/> if it matches the expected format for following a locality.

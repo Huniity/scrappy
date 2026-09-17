@@ -146,38 +146,38 @@ public sealed class WhatsAppClient(
     public async Task SendHelpTemplateAsync(
         string phoneNumberId,
         string recipient,
-        CancellationToken cancellationToken  = default)
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+
+        if (string.IsNullOrWhiteSpace(
+            _options.HelpTemplateName))
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumberId);
-            ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+            throw new InvalidOperationException("WhatsApp help template name is not configured.");
+        }
 
-            if (string.IsNullOrWhiteSpace(
-                _options.HelpTemplateName))
-            {
-                throw new InvalidOperationException("WhatsApp help template name is not configured.");
-            }
-            
-            if (string.IsNullOrWhiteSpace(
-                _options.TemplateLanguageCode))
-            {
-                throw new InvalidOperationException("WhatsApp template language is not configured.");
-            }
+        if (string.IsNullOrWhiteSpace(
+            _options.TemplateLanguageCode))
+        {
+            throw new InvalidOperationException("WhatsApp template language is not configured.");
+        }
 
-            var payload = new
+        var payload = new
+        {
+            messaging_product = "whatsapp",
+            recipient_type = "individual",
+            to = recipient.Trim(),
+            type = "template",
+            template = new
             {
-                messaging_product = "whatsapp",
-                recipient_type = "individual",
-                to = recipient.Trim(),
-                type = "template",
-                template = new
+                name = _options.HelpTemplateName.Trim(),
+                language = new
                 {
-                    name = _options.HelpTemplateName.Trim(),
-                    language = new
-                    {
-                        code = _options.TemplateLanguageCode.Trim()
-                    }
+                    code = _options.TemplateLanguageCode.Trim()
                 }
-            };
+            }
+        };
 
         await SendPayloadAsync(
             phoneNumberId,

@@ -64,11 +64,11 @@ public static class EventResponseMapper
     /// </summary>
     public static DistrictEventResponseDto ToDistrictEventResponseDto(
         this DistrictEvent entity) => new()
-    {
-        Id = entity.Id,
-        District = entity.District?.GetDisplayName() ?? string.Empty,
-        Event = entity.ToResponseDto()
-    };
+        {
+            Id = entity.Id,
+            District = entity.District?.GetDisplayName() ?? string.Empty,
+            Event = entity.ToResponseDto()
+        };
 
     /// <summary> Maps a <see cref="DistrictEvent"/> entity to an <see cref="EventSummaryDto"/>. </summary>
     /// <param name="entity">The <see cref="DistrictEvent"/> entity to map.</param>
@@ -104,12 +104,12 @@ public static class EventResponseMapper
     /// <summary> Maps a paged district-event result to API response DTOs. </summary>
     public static PagedResult<DistrictEventResponseDto> ToResponsePagedResult(
         this PagedResult<DistrictEvent> source) => new()
-    {
-        Page = source.Page,
-        PageSize = source.PageSize,
-        TotalCount = source.TotalCount,
-        Items = source.Items.Select(ToDistrictEventResponseDto).ToList()
-    };
+        {
+            Page = source.Page,
+            PageSize = source.PageSize,
+            TotalCount = source.TotalCount,
+            Items = source.Items.Select(ToDistrictEventResponseDto).ToList()
+        };
 
     /// <summary> Maps an <see cref="EventLocation"/> model to an <see cref="EventLocationResponseDto"/>. </summary>
     /// <param name="location">The <see cref="EventLocation"/> model to map.</param>

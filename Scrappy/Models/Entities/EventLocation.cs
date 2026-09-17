@@ -49,7 +49,7 @@ public class EventLocation
 
     /// <summary> Gets or sets the street address of the event location. </summary>
     [BsonElement("Url")]
-      public string? Url { get; set; }
+    public string? Url { get; set; }
 
     /// <summary> Gets or sets the street address of the event location. </summary>
     [BsonElement("SameAs")]

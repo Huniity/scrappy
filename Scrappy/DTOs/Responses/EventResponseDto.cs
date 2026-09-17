@@ -142,19 +142,19 @@ public class EventResponseDto
 
     /// <summary> Gets or sets the list of actors associated with the event. </summary>
     public List<EventAgentResponseDto> Actor { get; set; } = new();
-    
+
     /// <summary> Gets or sets the list of maintainers associated with the event. </summary>
     public List<EventAgentResponseDto> Composer { get; set; } = new();
-    
+
     /// <summary> Gets or sets the list of directors associated with the event. </summary>
     public List<EventAgentResponseDto> Director { get; set; } = new();
-    
+
     /// <summary> Gets or sets the list of maintainers associated with the event. </summary>
     public List<EventAgentResponseDto> Maintainer { get; set; } = new();
-    
+
     /// <summary> Gets or sets the list of funders associated with the event. </summary>
     public List<EventAgentResponseDto> Funder { get; set; } = new();
-    
+
     /// <summary> Gets or sets the list of audiences associated with the event. </summary>
     public List<EventAudienceResponseDto> Audience { get; set; } = new();
 

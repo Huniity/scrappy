@@ -9,7 +9,7 @@ public sealed class WhatsAppHelpCommand
     {
         var command = text?.Trim();
 
-        return 
+        return
             string.Equals(
                 command,
                 "Help",

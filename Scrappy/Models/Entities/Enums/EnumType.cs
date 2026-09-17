@@ -40,7 +40,7 @@ public enum EventType
     /// <summary>Event type Business</summary>
     Business,
     /// <summary>Event type Moda</summary>
-    Moda, 
+    Moda,
     /// <summary>Event type Educativo</summary>
     Educativo,
     /// <summary>Event type Património</summary>

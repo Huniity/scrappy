@@ -317,35 +317,35 @@ public sealed class WhatsAppMessageProcessor(
                 return;
             }
 
-        if (commandResolver.TryResolveStop( message.Text, out var stopCommand) && stopCommand is not null)
-        {
-            var wasUnsubscribed =
-                await subscriptionService.UnsubscribeAsync(
+            if (commandResolver.TryResolveStop(message.Text, out var stopCommand) && stopCommand is not null)
+            {
+                var wasUnsubscribed =
+                    await subscriptionService.UnsubscribeAsync(
+                        message.UserId,
+                        stopCommand.LocalitySlug,
+                        cancellationToken);
+
+                var localityName =
+                    stopCommand.Locality.GetDisplayName();
+
+                var confirmationMessage = wasUnsubscribed
+                    ? $"ℹ️ Deixaste de seguir os eventos de {localityName}."
+                    : $"ℹ️ Não tens uma subscrição ativa para os eventos de {localityName}.";
+
+                await whatsAppClient.SendTextAsync(
+                    message.PhoneNumberId,
                     message.UserId,
-                    stopCommand.LocalitySlug,
+                    confirmationMessage,
                     cancellationToken);
 
-            var localityName =
-                stopCommand.Locality.GetDisplayName();
-
-            var confirmationMessage = wasUnsubscribed
-                ? $"ℹ️ Deixaste de seguir os eventos de {localityName}."
-                : $"ℹ️ Não tens uma subscrição ativa para os eventos de {localityName}.";
+                return;
+            }
 
             await whatsAppClient.SendTextAsync(
                 message.PhoneNumberId,
                 message.UserId,
-                confirmationMessage,
+                " ❌ Comando inválido. Usa: Subscrever <localidade> ou Stop <localidade>.",
                 cancellationToken);
-
-            return;
-        }
-
-        await whatsAppClient.SendTextAsync(
-            message.PhoneNumberId,
-            message.UserId,
-            " ❌ Comando inválido. Usa: Subscrever <localidade> ou Stop <localidade>.",
-            cancellationToken);
         }
         catch
         {

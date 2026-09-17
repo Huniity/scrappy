@@ -35,48 +35,48 @@ public static class EventRequestMapper
         decimal qualityScore,
         bool isFinished,
         DateTime? retentionUntil) => new()
-    {
-        Id = ObjectId.GenerateNewId().ToString(),
-        District = dto.Location.District
-            ?? throw new ArgumentException("Location district is required.", nameof(dto)),
-        Event = new Event
         {
             Id = ObjectId.GenerateNewId().ToString(),
-            Title = dto.Title.Trim(),
-            Description = description,
-            AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
-            StartDate = startDate,
-            EndDate = endDate,
-            DoorTime = dto.DoorTime,
-            Type = dto.Type!.Value,
-            SourceUrl = dto.SourceUrl.Trim(),
-            SourceUrls = [dto.SourceUrl.Trim()],
-            ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
-            IsAccessibleForFree = dto.IsAccessibleForFree,
-            PhysicalAccessibility = dto.PhysicalAccessibility,
-            AgeRating = dto.AgeRating,
-            MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
-            Keywords = dto.Keywords?.Select(keyword => keyword.Trim()).ToList() ?? new(),
-            Location = dto.Location.ToEventLocation(),
-            Organizer = dto.Organizer?.Select(ToAgentModel).ToList() ?? new(),
-            Promoter = dto.Promoter?.Select(ToAgentModel).ToList() ?? new(),
-            Performers = dto.Performers?.Select(ToAgentModel).ToList() ?? new(),
-            Maintainer = dto.Maintainer?.Select(ToAgentModel).ToList() ?? new(),
-            Actor = dto.Actor?.Select(ToAgentModel).ToList() ?? new(),
-            Director = dto.Director?.Select(ToAgentModel).ToList() ?? new(),
-            Composer = dto.Composer?.Select(ToAgentModel).ToList() ?? new(),
-            Funder = dto.Funder?.Select(ToAgentModel).ToList() ?? new(),
-            Audience = dto.Audience?.Select(ToAudienceModel).ToList() ?? new(),
-            Duration = dto.Duration?.Trim(),
-            AttendanceMode = dto.AttendanceMode,
-            Status = dto.Status ?? EventStatus.Scheduled,
-            IsFinished = isFinished,
-            RetentionUntil = retentionUntil,
-            QualityScore = qualityScore,
-            Offers = dto.Offers?.Select(ToOfferModel).ToList() ?? new(),
-            Schedule = dto.Schedule?.ToScheduleModel()
-        }
-    };
+            District = dto.Location.District
+            ?? throw new ArgumentException("Location district is required.", nameof(dto)),
+            Event = new Event
+            {
+                Id = ObjectId.GenerateNewId().ToString(),
+                Title = dto.Title.Trim(),
+                Description = description,
+                AlternateName = dto.AlternateName?.Trim() ?? string.Empty,
+                StartDate = startDate,
+                EndDate = endDate,
+                DoorTime = dto.DoorTime,
+                Type = dto.Type!.Value,
+                SourceUrl = dto.SourceUrl.Trim(),
+                SourceUrls = [dto.SourceUrl.Trim()],
+                ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty,
+                IsAccessibleForFree = dto.IsAccessibleForFree,
+                PhysicalAccessibility = dto.PhysicalAccessibility,
+                AgeRating = dto.AgeRating,
+                MaximumAttendeeCapacity = dto.MaximumAttendeeCapacity,
+                Keywords = dto.Keywords?.Select(keyword => keyword.Trim()).ToList() ?? new(),
+                Location = dto.Location.ToEventLocation(),
+                Organizer = dto.Organizer?.Select(ToAgentModel).ToList() ?? new(),
+                Promoter = dto.Promoter?.Select(ToAgentModel).ToList() ?? new(),
+                Performers = dto.Performers?.Select(ToAgentModel).ToList() ?? new(),
+                Maintainer = dto.Maintainer?.Select(ToAgentModel).ToList() ?? new(),
+                Actor = dto.Actor?.Select(ToAgentModel).ToList() ?? new(),
+                Director = dto.Director?.Select(ToAgentModel).ToList() ?? new(),
+                Composer = dto.Composer?.Select(ToAgentModel).ToList() ?? new(),
+                Funder = dto.Funder?.Select(ToAgentModel).ToList() ?? new(),
+                Audience = dto.Audience?.Select(ToAudienceModel).ToList() ?? new(),
+                Duration = dto.Duration?.Trim(),
+                AttendanceMode = dto.AttendanceMode,
+                Status = dto.Status ?? EventStatus.Scheduled,
+                IsFinished = isFinished,
+                RetentionUntil = retentionUntil,
+                QualityScore = qualityScore,
+                Offers = dto.Offers?.Select(ToOfferModel).ToList() ?? new(),
+                Schedule = dto.Schedule?.ToScheduleModel()
+            }
+        };
 
     /// <summary> Maps a <see cref="UpdateEventDto"/> to an existing <see cref="DistrictEvent"/> entity. </summary>
     /// <param name="entity">The existing <see cref="DistrictEvent"/> entity to update.</param>

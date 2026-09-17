@@ -28,7 +28,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
     {
         if (dto.Location.Locality is null)
             return Result<DistrictEvent>.Failure("Locality is required in the location.");
-        
+
         var geoData = geoDataService.Lookup(dto.Location.Locality.Value);
 
         if (geoData is null)
@@ -91,7 +91,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             return Result<DistrictEvent>.Failure("Invalid attendance mode.");
 
         if (!Validator.IsEventStatusValid(dto.Status))
-            return Result<DistrictEvent>.Failure( "Invalid event status.");
+            return Result<DistrictEvent>.Failure("Invalid event status.");
 
         if (!Validator.AreKeywordsValid(dto.Keywords))
             return Result<DistrictEvent>.Failure("Invalid keywords.");
@@ -113,7 +113,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
         if (!Validator.IsSourceUrlValid(dto.SourceUrl))
             return Result<DistrictEvent>.Failure("Invalid source URL.");
 
-    
+
         if (!Validator.AreAgentsValid(dto.Organizer))
             return Result<DistrictEvent>.Failure("Invalid organizers.");
 
@@ -309,7 +309,7 @@ public class EventService(IMongoDatabase database, IGeoDataService geoDataServic
             !Validator.IsDoorTimeValid(dto.DoorTime, startDate))
         {
             return Result<DistrictEvent>.Failure("Invalid door time.");
-        }                
+        }
 
         if (dto.Duration is not null &&
             !Validator.IsDurationValid(dto.Duration))

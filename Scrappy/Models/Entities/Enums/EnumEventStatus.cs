@@ -11,21 +11,21 @@ namespace Scrappy.Models.Entities.Enums;
 public enum EventStatus
 {
     /// <summary> Scheduled Type </summary>
-    [Display( Name= "Programado")]
+    [Display(Name = "Programado")]
     Scheduled,
     /// <summary> Cancelled Type </summary>
-    [Display( Name= "Cancelado")]
+    [Display(Name = "Cancelado")]
     Cancelled,
     /// <summary> Postponed Type </summary>    
-    [Display( Name= "Adiado")]
+    [Display(Name = "Adiado")]
     Postponed,
     /// <summary> Rescheduled Type </summary>
-    [Display( Name= "Reprogramado")]
+    [Display(Name = "Reprogramado")]
     Rescheduled,
     /// <summary> Completed Type </summary>
-    [Display( Name= "Completado")]
+    [Display(Name = "Completado")]
     Completed,
     /// <summary> Moved Online Type </summary>
-    [Display( Name= "Online")]
+    [Display(Name = "Online")]
     MovedOnline,
 }

@@ -30,7 +30,7 @@ public class SchemaOrgAgentDto
 
     /// <summary> Gets or sets the URL of the agent. </summary>
     [JsonPropertyName("url")]
-    public string? Url { get; set; } 
+    public string? Url { get; set; }
 
     /// <summary> Gets or sets the sameAs URL of the agent, which can be used to identify the same agent across different platforms. </summary>
     [JsonPropertyName("sameAs")]

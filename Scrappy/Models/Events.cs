@@ -25,19 +25,19 @@ public class Event
     /// <summary> Gets or sets the description of the event. </summary>
     [BsonElement("Description")]
     public string Description { get; set; } = string.Empty;
-    
+
     /// <summary> Gets or sets the start date of the event. </summary>
     [BsonElement("StartDate")]
     public DateTime StartDate { get; set; }
-    
+
     /// <summary> Gets or sets the end date of the event. </summary>
     [BsonElement("EndDate")]
     public DateTime? EndDate { get; set; }
-    
+
     /// <summary> Gets or sets the location of the event. </summary>
     [BsonElement("Location")]
     public EventLocation? Location { get; set; }
-    
+
     /// <summary> Gets or sets the source URL of the event. </summary>
     [BsonElement("SourceUrl")]
     public string SourceUrl { get; set; } = string.Empty;
@@ -45,12 +45,12 @@ public class Event
     /// <summary>Gets all source URLs contributing data to a merged event.</summary>
     [BsonElement("SourceUrls")]
     public List<string> SourceUrls { get; set; } = new();
-    
+
     /// <summary> Gets or sets the type of the event. </summary>
     [BsonElement("Type")]
     [BsonRepresentation(BsonType.String)]
     public EventType? Type { get; set; }
-    
+
     /// <summary> Gets or sets the quality score of the event, which is a decimal value representing the quality of the event based on various factors. </summary>
     [BsonElement("QualityScore")]
     [BsonRepresentation(BsonType.Double)]

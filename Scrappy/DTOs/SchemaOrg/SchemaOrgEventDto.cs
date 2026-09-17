@@ -159,7 +159,7 @@ public class SchemaOrgEventDto
     /// <summary> Gets or sets the additionalType of the event. </summary>
     [JsonPropertyName("additionalType")]
     public string additionalType { get; set; } = string.Empty;
-    
+
     /// <summary> Gets or sets the unique identifier (URL) of the event. </summary>
     [JsonPropertyName("@id")]
     public string Id { get; set; } = string.Empty;
@@ -283,7 +283,7 @@ public class SchemaOrgEventDto
     /// <summary> Gets or sets the attendance mode of the event, which is represented by a string value. </summary>
     [JsonPropertyName("eventAttendanceMode")]
     public string? EventAttendanceMode { get; set; }
-    
+
     /// <summary> Gets or sets the additional properties of the event, which is represented by a list of <see cref="SchemaOrgPropertyValueDto"/> objects. </summary>
     [JsonPropertyName("additionalProperty")]
     public List<SchemaOrgPropertyValueDto> AdditionalProperties { get; set; } = new();

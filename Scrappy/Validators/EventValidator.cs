@@ -397,7 +397,7 @@ public static class Validator
         string.IsNullOrWhiteSpace(alternateName) ||
         alternateName.Trim().Length <= 250;
     public static bool IsEventStatusValid(EventStatus? status) => !status.HasValue || Enum.IsDefined(status.Value);
-    
+
     public static bool IsAgeRatingValid(int? ageRating) =>
         !ageRating.HasValue || ageRating.Value >= 0;
 
@@ -499,7 +499,7 @@ public static class Validator
     {
         if (agents is null)
             return true;
-        
+
         var agentList = agents.ToList();
 
         return agentList.Count <= MaxAgents &&
@@ -629,24 +629,24 @@ public static class Validator
       EventAttendanceMode? attendanceMode) =>
       !attendanceMode.HasValue || Enum.IsDefined(attendanceMode.Value);
 
-      public static bool IsDurationValid(string? duration)
+    public static bool IsDurationValid(string? duration)
+    {
+        if (string.IsNullOrWhiteSpace(duration))
+            return true;
+
+        var value = duration.Trim();
+
+        if (value.Length > MaxDurationLength)
+            return false;
+
+        try
         {
-            if (string.IsNullOrWhiteSpace(duration))
-                return true;
-
-            var value = duration.Trim();
-
-            if (value.Length > MaxDurationLength)
-                return false;
-
-            try
-            {
-                XmlConvert.ToTimeSpan(value);
-                return true;
-            }
-            catch (FormatException)
-            {
-                return false;
-            }
+            XmlConvert.ToTimeSpan(value);
+            return true;
         }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
 }

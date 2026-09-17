@@ -12,8 +12,8 @@ using Scrappy.Validators;
 namespace Scrappy.Services;
 
 public class EventQueryService(
-    IMongoDatabase database, 
-    EventFilterService filterService, 
+    IMongoDatabase database,
+    EventFilterService filterService,
     EventSortingService sortingService)
 {
     private readonly IMongoCollection<DistrictEvent> _events = database.GetCollection<DistrictEvent>("DistrictEvents");

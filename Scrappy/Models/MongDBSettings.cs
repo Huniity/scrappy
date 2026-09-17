@@ -15,5 +15,5 @@ public class MongoDBSettings
 
     /// <summary> Gets or sets the name of the collection within the MongoDB database. </summary>
     public string CollectionName { get; set; } = null!;
-    
+
 }
