@@ -545,8 +545,6 @@ scrappy/
 - [Pipeline de scraping](docs/SCRAPING.md)
 - [Referência detalhada da API](docs/API_REFERENCE.md)
 - [Contexto técnico e contratos](docs/CONTEXT.md)
-- [Plano WhatsApp — Gonçalo](docs/scrappy-whatsapp-goncalo.md)
-- [Plano WhatsApp — Adrien](docs/scrappy-whatsapp-adrien.md)
 - [Documentação do scheduler](ops/scheduler/README.md)
 
 ## Limitações conhecidas
