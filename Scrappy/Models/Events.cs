@@ -1,8 +1,8 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.ComponentModel.DataAnnotations;
-using System;
-using System.Globalization;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 

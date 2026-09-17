@@ -1,6 +1,6 @@
-using Scrappy.DTOs.Common;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using Scrappy.DTOs.Common;
 
 namespace Scrappy.Extensions;
 

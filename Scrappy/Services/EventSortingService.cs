@@ -1,12 +1,10 @@
-
-
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Scrappy.Common;
+using Scrappy.DTOs;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
-using Scrappy.DTOs;
-using Scrappy.Common;
 using Scrappy.Validators;
-using MongoDB.Driver;
-using MongoDB.Bson;
 
 namespace Scrappy.Services;
 

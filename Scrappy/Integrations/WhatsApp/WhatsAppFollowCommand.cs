@@ -1,7 +1,6 @@
 
-
-using Scrappy.Models.Entities.Enums;
 using System.Globalization;
+using Scrappy.Models.Entities.Enums;
 
 namespace Scrappy.Integrations.WhatsApp;
 

@@ -1,9 +1,7 @@
 
-
-
+using System.Text.Json.Serialization;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
-using System.Text.Json.Serialization;
 
 namespace Scrappy.DTOs.SchemaOrg;
 

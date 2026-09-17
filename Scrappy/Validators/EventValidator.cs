@@ -1,11 +1,9 @@
-
-
+using System.Globalization;
+using System.Xml;
 using Scrappy.DTOs.Requests;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 using Scrappy.Services;
-using System.Globalization;
-using System.Xml;
 
 namespace Scrappy.Validators;
 

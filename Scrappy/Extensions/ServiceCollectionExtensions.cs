@@ -1,15 +1,15 @@
 
-
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.OpenApi;
 using MongoDB.Driver;
-using Scrappy.Services;
 using Scrappy.Integrations.WhatsApp;
-using Scrappy.Services.Interfaces;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using Scrappy.Models.Configuration;
+using Scrappy.Services;
+using Scrappy.Services.Interfaces;
+
 namespace Scrappy.Extensions;
 
 /// <summary>

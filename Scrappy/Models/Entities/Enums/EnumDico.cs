@@ -1,7 +1,7 @@
 
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Scrappy.Models;
-using System.ComponentModel;
 
 namespace Scrappy.Models.Entities.Enums;
 

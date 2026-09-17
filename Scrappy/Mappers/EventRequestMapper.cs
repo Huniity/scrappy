@@ -1,13 +1,11 @@
 
-
-using MongoDB.Bson;
 using System.Globalization;
+using MongoDB.Bson;
 using Scrappy.DTOs.Requests;
 using Scrappy.Models;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
 using Scrappy.Services;
-
 
 namespace Scrappy.Mappers;
 

@@ -1,8 +1,6 @@
-
-
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Globalization;
 using Microsoft.Extensions.Options;
 
 namespace Scrappy.Integrations.WhatsApp;

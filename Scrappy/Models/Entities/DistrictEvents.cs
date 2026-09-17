@@ -1,11 +1,10 @@
 
 
+using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.ComponentModel.DataAnnotations;
 using Scrappy.Models.Entities;
 using Scrappy.Models.Entities.Enums;
-
 
 namespace Scrappy.Models.Entities;
 
