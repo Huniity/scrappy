@@ -540,6 +540,7 @@ scrappy/
 
 ## Documentação adicional
 
+- [Guia interno da API e das suas pastas](Scrappy/README.md)
 - [Arquitetura e fluxo de dados](docs/ARCHITECTURE.md)
 - [Pipeline de scraping](docs/SCRAPING.md)
 - [Referência detalhada da API](docs/API_REFERENCE.md)
