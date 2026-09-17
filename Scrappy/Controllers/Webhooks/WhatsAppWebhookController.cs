@@ -115,4 +115,3 @@ public sealed class WhatsAppWebhookController(
         return Ok();
     }
 }
-    
