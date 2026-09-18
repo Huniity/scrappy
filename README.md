@@ -547,6 +547,7 @@ scrappy/
 - [Backoffice web](apps/web/README.md)
 - [Worker de ingestão](apps/ingestion/README.md)
 - [Scraper](apps/scraper/README.md)
+- [Guia para adicionar uma nova fonte](apps/scraper/sources/README.md)
 - [Contratos e utilitários partilhados](apps/shared/README.md)
 - [Contexto técnico e contratos](docs/CONTEXT.md)
 - [Documentação do scheduler](ops/scheduler/README.md)

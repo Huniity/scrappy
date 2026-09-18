@@ -201,6 +201,10 @@ dados de produção a esta pasta.
 
 ## Alterar ou adicionar uma fonte
 
+Para o procedimento completo, incluindo a estrutura do adaptador, integração
+no router, testes e critérios de aceitação, consulta o [guia para adicionar uma
+nova fonte](sources/README.md).
+
 1. Registar o job e o timezone em `config/sources.json` e confirmar o schema.
 2. Verificar o padrão de URL no router e limitar a descoberta a links de
    detalhe.

@@ -54,7 +54,7 @@ rebuild-redis:
 	docker compose -f docker/docker-compose.yml up -d --build redis
 
 scraper:
-	docker compose -f docker/docker-compose.yml --profile scheduled run --rm --no-deps --build scraper
+	docker compose -f docker/docker-compose.yml --profile scheduled run --rm --no-deps scraper
 
 scheduler:
 	docker compose -f docker/docker-compose.yml --profile scheduler up -d --build scheduler
