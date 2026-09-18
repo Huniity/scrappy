@@ -22,7 +22,7 @@ public sealed class WhatsAppClientTests
             AccessToken = "test-token",
             GraphApiVersion = "v23.0",
             TemplateLanguageCode = "pt_PT",
-            WeeklyEventsTemplateName = "scrappy_weekly_events",
+            WeeklyEventsTemplateName = "scrappy_weekly_events2",
             PublicBaseUrl = "https://www.scrappy.pt"
         });
 

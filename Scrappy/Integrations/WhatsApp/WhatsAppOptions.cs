@@ -42,7 +42,7 @@ public sealed class WhatsAppOptions
     public string HelpTemplateName { get; init; } = "help";
 
     /// <summary>Name of the approved template for reports containing events.</summary>
-    public string WeeklyEventsTemplateName { get; init; } = "scrappy_weekly_events";
+    public string WeeklyEventsTemplateName { get; init; } = "scrappy_weekly_events2";
 
     /// <summary>Name of the approved template for reports without events.</summary>
     public string NoEventsTemplateName { get; init; } = "scrappy_no_events";
